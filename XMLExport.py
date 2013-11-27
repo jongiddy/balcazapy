@@ -27,7 +27,8 @@ class NamespaceSet:
 		return clone
 
 	def setDefaultNamespace(self, uri=''):
-		self.pendingDefault = uri
+		if uri != self.activeDefault:
+			self.pendingDefault = uri
 
 	def addNamespace(self, uri, prefixCandidate):
 		if self.uriPrefix.has_key(uri):
