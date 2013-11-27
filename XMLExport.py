@@ -20,7 +20,7 @@ class NamespaceSet:
 		clone = NamespaceSet()
 		clone.uriPrefix = self.uriPrefix
 		clone.prefixUri = self.prefixUri
-		clone.default = self.activeDefault
+		clone.activeDefault = self.activeDefault
 		clone.active = self.active.copy()
 		clone.pendingDefault = self.pendingDefault
 		clone.pending = self.pending.copy()
@@ -73,7 +73,7 @@ class NamespaceSet:
 			# return None to indicate the URI is the default namespace
 			return None
 		else:
-			# return the prefrix entry for the URI. If no entry exists, just
+			# return the prefix entry for the URI. If no entry exists, just
 			# return the URI
 			return self.active.get(uri, uri)
 
@@ -84,6 +84,21 @@ class NamespaceSet:
 		else:
 			fulltag = '%s:%s' % (prefix, tag)
 		return fulltag
+
+class XMLCompressor:
+	
+	def __init__(self, file):
+		file.write
+		self.file = file
+
+	def indent(self):
+		pass
+
+	def dedent(self):
+		pass
+
+	def writeLine(self, parts):
+		self.file.write(' '.join(parts))
 
 class XMLIndenter:
 
