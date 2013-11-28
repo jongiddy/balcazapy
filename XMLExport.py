@@ -1,5 +1,10 @@
 from xml.sax.saxutils import escape, quoteattr
 
+initialNamespace = {
+	'xml': 'http://www.w3.org/XML/1998/namespace',
+	'xmlns': 'http://www.w3.org/2000/xmlns/'
+}
+
 # Namespaces:
 # 	prefixMap: url -> prefix - use user-supplied prefix, else create one on first use
 # 	prefixToUri: prefix -> url # used to check whether prefix is in use
@@ -10,11 +15,13 @@ class NamespaceSet:
 
 	def __init__(self):
 		self.uriPrefix = {}
-		self.prefixUri = {}
+		self.prefixUri = initialNamespace.copy()
 		self.activeDefault = ''
 		self.active = {}
 		self.pendingDefault = None
 		self.pending = {}
+		for prefix, uri in initialNamespace.items():
+			self.uriPrefix[uri] = self.active[uri] = prefix
 
 	def clone(self):
 		clone = NamespaceSet()
@@ -27,10 +34,16 @@ class NamespaceSet:
 		return clone
 
 	def setDefaultNamespace(self, uri=''):
+		if uri in ('http://www.w3.org/XML/1998/namespace', 'http://www.w3.org/2000/xmlns/'):
+			raise RuntimeError('this namespace must not be set to default [http://www.w3.org/TR/REC-xml-names/]')
 		if uri != self.activeDefault:
 			self.pendingDefault = uri
 
 	def addNamespace(self, uri, prefixCandidate):
+		if uri == 'http://www.w3.org/XML/1998/namespace' and prefixCandidate != 'xml':
+			raise RuntimeError('the xml namespace must not be bound to any other name [http://www.w3.org/TR/REC-xml-names/]')
+		if uri == 'http://www.w3.org/2000/xmlns/':
+			raise RuntimeError('the xmlns namespace must not be bound to any name [http://www.w3.org/TR/REC-xml-names/]')
 		if self.uriPrefix.has_key(uri):
 			# use a cached prefix, if this namespace has been named before
 			prefix = self.uriPrefix[uri]
@@ -81,6 +94,9 @@ class NamespaceSet:
 		prefix = self.getActivePrefix(uri)
 		if prefix is None:
 			fulltag = tag
+		elif not prefix:
+			# tag needs no namespace, but no namespace is not the default
+			raise RuntimeError('<%s> requires default namespace set to no namespace' % tag)
 		else:
 			fulltag = '%s:%s' % (prefix, tag)
 		return fulltag
@@ -185,6 +201,8 @@ class Namespace:
 
 	def __getitem__(self, name):
 		# tav['my-name'] => <tav:my-name>
+		if name.startswith('xml'):
+			raise RuntimeError('element name must not start with xml [http://www.w3.org/TR/REC-xml-names/]')
 		xml = self.__xml
 		xml.closePendingTag()
 		xml.setPendingNamespace(self.__uri)
@@ -215,6 +233,7 @@ class NamespaceScope:
 
 	def __exit__(self, exc_type, exc_value, exc_tb):
 		if exc_type is None:
+			self.xml.closePendingTag()
 			self.xml.setNamespaces(self.old)
 
 
