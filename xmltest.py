@@ -1,7 +1,7 @@
 import sys
 import XMLExport
 
-x = XMLExport.XMLExporter(XMLExport.XMLIndenter(sys.stdout))
+x = XMLExport.XMLExporter(XMLExport.XMLCompressor(sys.stdout))
 
 with x.namespace('http://taverna.org/2013/') as tav:
 	with tav.workflow(author='Jon Giddy'):
