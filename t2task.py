@@ -1,5 +1,4 @@
 from t2base import Namespace, Port, Source, Sink
-from t2types import T2FlowType
 from t2annotation import Annotation
 from t2activity import Activity, DataflowActivity
 
@@ -110,7 +109,7 @@ class TaskOutputPorts(TaskPorts):
         self._.PortClass = TaskOutputPort
 
 
-class WorkflowTask:
+class WorkflowTask(object):
 
     def __init__(self, flow, name, activity=None):
         self.name = name

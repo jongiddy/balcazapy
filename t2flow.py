@@ -44,10 +44,6 @@ class WorkflowPort(Port):
             value = Annotation(value)
         self.annotations['net.sf.taverna.t2.annotation.annotationbeans.ExampleValue'] = value
 
-    def __setitem__(self, description, type):
-        self.description = description
-        self.type = type
-
 
 class WorkflowInputPort(WorkflowPort, Source):
 
@@ -140,7 +136,7 @@ class DataLink:
                 self.sink.exportSinkXML(xml)
 
 
-class Workflow:
+class Workflow(object):
 
     def __init__(self, name):
         self.id = getUUID()

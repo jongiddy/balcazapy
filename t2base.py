@@ -1,4 +1,3 @@
-import t2types
 
 class Source:
 
@@ -16,7 +15,7 @@ class Sink:
     def __rrshift__(self, text):
         self.flow.linkData(text, self)
 
-class Port:
+class Port(object):
 
     def connect(self):
         pass
