@@ -231,3 +231,9 @@ class RServer:
     def Activity(self, script, **kw):
         return RServerActivity(self, script, **kw)
 
+    def runScript(self, script, **kw):
+        return RServerActivity(self, script, **kw)
+
+    def runFile(self, filename, **kw):
+        with open(filename, 'rt') as f:
+            return RServerActivity(self, f.read(), **kw)
