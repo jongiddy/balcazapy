@@ -1,0 +1,17 @@
+Create a Taverna workflow file (t2flow format) using a script.
+
+Requires Python.
+
+Create a scripted description of the workflow.  See wf3.py for an example.
+
+Essentially, "activities" can be created and assigned to named workflow tasks.
+Activities can be reused, by assigning them to multiple tasks.
+
+Each task has inputs and outputs, which have a type (e.g. String, Numeric).
+Lists can be represented using List(String) or List(List(Numeric)).
+
+Link input and output ports using the >> operator.
+
+Run the command:
+$ python myfile.py > myflow.t2flow
+
