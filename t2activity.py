@@ -1,3 +1,6 @@
+import string
+import t2types
+
 class Activity:
 
     activityGroup = 'net.sf.taverna.t2.activities'
@@ -16,45 +19,6 @@ class Activity:
         else:
             self.outputs = outputs
 
-    def input(self, **kw):
-        for name, type in kw.items():
-            self.inputs[name] = type
-        return self
-
-    def output(self, **kw):
-        for name, type in kw.items():
-            self.outputs[name] = type
-        return self
-
-    def setInput(self, name, type):
-        self.inputs[name] = type
-
-    def setOutput(self, name, type):
-        self.outputs[name] = type
-
-    def deleteInput(self, name):
-        del self.inputs[name]
-
-    def deleteOutput(self, name):
-        del self.outputs[name]
-
-    def exportXML(self, xml):
-        with xml.namespace('http://taverna.sf.net/2008/xml/t2flow') as tav:
-            with tav.activity:
-                with tav.raven as raven:
-                    raven.group >> self.activityGroup
-                    raven.artifact >> self.activityArtifact
-                    raven.version >> self.activityVersion
-                tav['class'] >> self.activityClass
-                with tav.inputMap:
-                    for name in self.inputs.keys():
-                        tav.map({'from': name}, to=name)
-                with tav.outputMap:
-                    for name in self.outputs.keys():
-                        tav.map({'from': name}, to=name)
-                with tav.configBean(encoding=self.configEncoding):
-                    self.exportConfiguration(xml)
-                tav.annotations
 
 class BeanshellActivity(Activity):
 
@@ -62,15 +26,12 @@ class BeanshellActivity(Activity):
     activityVersion = '1.0.4'
     activityClass = 'net.sf.taverna.t2.activities.beanshell.BeanshellActivity'
 
-    def __init__(self, script, **kw):
+    def __init__(self, script, localDependencies=(), **kw):
         Activity.__init__(self, **kw)
         self.script = script
-        self.localDependencies = []
+        self.localDependencies = localDependencies
 
-    def addLocalDependency(self, dependency):
-        self.localDependencies.append(dependency)
-
-    def exportConfiguration(self, xml):
+    def exportConfigurationXML(self, xml):
         with xml.namespace() as conf:
             with conf.net.sf.taverna.t2.activities.beanshell.BeanshellActivityConfigurationBean:
                 with conf.inputs:
@@ -104,13 +65,13 @@ class DataflowActivity(Activity):
     activityClass = 'net.sf.taverna.t2.activities.dataflow.DataflowActivity'
     configEncoding = 'dataflow'
 
-    def __init__(self, flow, **kw):
-        Activity.__init__(self, **kw)
+    def __init__(self, flow):
+        Activity.__init__(self, inputs=flow.getInputs(), outputs=flow.getOutputs())
         self.flow = flow
 
-    def exportConfiguration(self, xml):
+    def exportConfigurationXML(self, xml):
         with xml.namespace('http://taverna.sf.net/2008/xml/t2flow') as tav:
-            tav.dataflow(ref=self.flow.id)
+            tav.dataflow(ref=self.flow.getId())
 
 class InteractionActivity(Activity):
 
@@ -122,7 +83,7 @@ class InteractionActivity(Activity):
         Activity.__init__(self, **kw)
         self.url = url
 
-    def exportConfiguration(self, xml):
+    def exportConfigurationXML(self, xml):
         with xml.namespace() as conf:
             with conf.net.sf.taverna.t2.activities.interaction.InteractionActivityConfigurationBean:
                 with conf.inputs:
@@ -158,7 +119,7 @@ class RestActivity(Activity):
         self.httpMethod = httpMethod
         self.urlTemplate = urlTemplate
 
-    def exportConfiguration(self, xml):
+    def exportConfigurationXML(self, xml):
         with xml.namespace() as conf:
             with conf.net.sf.taverna.t2.activities.rest.RESTActivityConfigurationBean:
                 conf.httpMethod >> self.httpMethod
@@ -180,14 +141,29 @@ class RestActivity(Activity):
 
 class TextConstant(Activity):
 
+    alnum = string.letters + string.digits
+
     activityArtifact = 'stringconstant-activity'
     activityClass = 'net.sf.taverna.t2.activities.stringconstant.StringConstantActivity'
 
-    def __init__(self, text, **kw):
-        Activity.__init__(self, **kw)
-        self.text = text
+    def __init__(self, text):
+        Activity.__init__(self, outputs=dict(value=t2types.String))
+        self.text = str(text)
 
-    def exportConfiguration(self, xml):
+    def getLabel(self):
+        parts = self.text.split()
+        label = '__'
+        candidate = ['_']
+        while parts and (len(candidate) < 30):
+            candidate += [ch for ch in parts[0] if ch in self.alnum]
+            del parts[0]
+            candidate.append('_')
+            if len(candidate) > 30:
+                break
+            label = ''.join(candidate)
+        return label
+
+    def exportConfigurationXML(self, xml):
         with xml.namespace() as conf:
             with conf.net.sf.taverna.t2.activities.stringconstant.StringConstantConfigurationBean:
                 conf.value >> self.text
@@ -208,7 +184,7 @@ class RServerActivity(Activity):
             # Taverna. So, we ensure the script ends with a newline.
             self.script += '\n'
 
-    def exportConfiguration(self, xml):
+    def exportConfigurationXML(self, xml):
         with xml.namespace() as config:
             with config.net.sf.taverna.t2.activities.rshell.RshellActivityConfigurationBean:
                 with config.inputs:
@@ -225,7 +201,7 @@ class RServerActivity(Activity):
                             outputPort.mimeTypes
                             outputPort.granularDepth >> type_.getDepth()
                 config.rVersion >> 'false'
-                config.script >> self.script + '\n'
+                config.script >> self.script
                 with config.connectionSettings as conn:
                     self.rserve.exportXML(xml)
                     conn.keepSessionAlive >> 'false'
@@ -252,8 +228,6 @@ class RServer:
             conn.host >> self.host
             conn.port >> self.port
 
-    def Task(self, script, **kw):
+    def Activity(self, script, **kw):
         return RServerActivity(self, script, **kw)
 
-    def script(self, script):
-        return RServerActivity(self, script)

@@ -1,64 +1,67 @@
 import uuid
 
-from t2types import *
-from t2activity import *
+from t2base import Namespace, Port, Source, Sink
+from t2types import T2FlowType
+from t2annotation import Annotation
+from t2activity import DataflowActivity, TextConstant
+from t2task import WorkflowTasks
 
 def getUUID():
     return uuid.uuid4()
 
 
-class Annotation:
+class WorkflowPort(Port):
 
-    def __init__(self, text):
-        self.text = text
-        self.chain = 'annotation_chain'
-        self.label = 'text'
-
-    def exportXML(self, xml, annotationClass):
-        with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
-            with tav[self.chain](encoding="xstream"):
-                with xml.namespace() as annotation:
-                    with annotation.net.sf.taverna.t2.annotation.AnnotationChainImpl:
-                        with annotation.annotationAssertions:
-                            with annotation.net.sf.taverna.t2.annotation.AnnotationAssertionImpl:
-                                with annotation.annotationBean({'class': annotationClass}):
-                                    annotation[self.label] >> self.text
-                                annotation.date >> '2013-11-27 14:27:50.10 UTC'
-                                annotation.creators
-                                annotation.curationEventList
-
-class Annotation_2_2(Annotation):
-
-    def __init__(self, text):
-        Annotation.__init__(self, text)
-        self.chain = 'annotation_chain_2_2'
-        self.label = 'identification'
-
-class Source:
-    pass
-
-class Sink:
-    pass
-
-class InputPort(Source):
-
-    def __init__(self, name, t2type):
+    def __init__(self, name, type=None):
         self.name = name
-        self.depth = t2type.getDepth()
+        if type is not None:
+            self.type = type
         self.annotations = {}
 
-    def setDescription(self, annotation):
-        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = annotation
+    @property
+    def description(self):
+        try:
+            return self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription']
+        except KeyError:
+            raise AttributeError('description')
 
-    def setExampleValue(self, annotation):
-        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.ExampleValue'] = annotation
-    
-    def exportXML(self, xml):
+    @description.setter
+    def description(self, value):
+        if not isinstance(value, Annotation):
+            value = Annotation(value)
+        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = value
+        
+    @property
+    def example(self):
+        try:
+            return self.annotations['net.sf.taverna.t2.annotation.annotationbeans.ExampleValue']
+        except KeyError:
+            raise AttributeError('example')
+
+    @example.setter
+    def example(self, value):
+        if not isinstance(value, Annotation):
+            value = Annotation(value)
+        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.ExampleValue'] = value
+
+    def __setitem__(self, description, type):
+        self.description = description
+        self.type = type
+
+
+class WorkflowInputPort(WorkflowPort, Source):
+
+    def __init__(self, flow, name, type=None):
+        Source.__init__(self, flow)
+        WorkflowPort.__init__(self, name, type)
+
+    def exportInputPortXML(self, xml):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.port as port:
                 port.name >> self.name
-                port.depth >> self.depth
-                port.granularDepth >> self.depth
+                depth = self.type.getDepth()
+                port.depth >> depth
+                port.granularDepth >> depth
                 with port.annotations:
                     for annotationClass, annotation in self.annotations.items():
                         annotation.exportXML(xml, annotationClass)
@@ -68,19 +71,13 @@ class InputPort(Source):
             with tav.source(type="dataflow"):
                 tav.port >> self.name
 
-class OutputPort(Sink):
+class WorkflowOutputPort(WorkflowPort, Sink):
 
-    def __init__(self, name, t2type):
-        self.name = name
-        self.annotations = {}
+    def __init__(self, flow, name, type=None):
+        Sink.__init__(self, flow)
+        WorkflowPort.__init__(self, name, type)
 
-    def setDescription(self, annotation):
-        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = annotation
-
-    def setExampleValue(self, annotation):
-        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.ExampleValue'] = annotation
-    
-    def exportXML(self, xml):
+    def exportOutputPortXML(self, xml):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.port as port:
                 port.name >> self.name
@@ -93,158 +90,42 @@ class OutputPort(Sink):
             with tav.sink(type="dataflow"):
                 tav.port >> self.name
 
-class ProcessorInput(Sink):
+class WorkflowPorts(object):
 
-    def __init__(self, processor, name):
-        self.processor = processor
-        self.name = name
+    def __init__(self, flow):
+        super(WorkflowPorts, self).__setattr__('_', Namespace())
+        self._.flow = flow
+        self._.ports = {}
+        self._.order = []
 
-    def exportSinkXML(self, xml):
-        with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
-            with tav.sink(type="processor"):
-                tav.processor >> self.processor.name
-                tav.port >> self.name
+    def __getitem__(self, index):
+        return self._.ports[self._.order[index]]
 
-class ProcessorInputs:
-
-    def __init__(self, processor):
-        self.processor = processor
-
-    def __getattr__(self, name):
-        return self[name]
-
-    def __getitem__(self, name):
-        self.processor.enableInputPort(name)
-        return ProcessorInput(self.processor, name)
-
-class ProcessorOutput(Source):
-
-    def __init__(self, processor, name):
-        self.processor = processor
-        self.name = name
-
-    def exportSourceXML(self, xml):
-        with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
-            with tav.source(type="processor"):
-                tav.processor >> self.processor.name
-                tav.port >> self.name
-
-class ProcessorOutputs:
-
-    def __init__(self, processor):
-        self.processor = processor
+    def __setattr__(self, name, type):
+        # flow.input.name = type
+        if self._.ports.has_key(name):
+            raise RuntimeError('port "%s" redefined' % name)
+        if not isinstance(type, T2FlowType):
+            raise TypeError('port "%s" must be assigned a type' % name)
+        self._.ports[name] = self._.PortClass(self._.flow, name, type)
+        self._.order.append(name)
 
     def __getattr__(self, name):
-        return self[name]
+        if self._.ports.has_key(name):
+            return self._.ports[name]
+        raise AttributeError(name)
 
-    def __getitem__(self, name):
-        self.processor.enableOutputPort(name)
-        return ProcessorOutput(self.processor, name)
+class WorkflowInputPorts(WorkflowPorts):
 
-class Processor:
+    def __init__(self, flow):
+        WorkflowPorts.__init__(self, flow)
+        self._.PortClass = WorkflowInputPort
 
-    def __init__(self, name):
-        self.name = name
-        self.annotations = {}
-        self.activities = []
-        self.input = ProcessorInputs(self)
-        self.output = ProcessorOutputs(self)
-        self.inputMap = []
-        self.outputMap = []
+class WorkflowOutputPorts(WorkflowPorts):
 
-    def setDescription(self, annotation):
-        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = annotation
-    
-    def addActivity(self, task):
-        self.activities.append(task)
-
-    def enableInputPort(self, name):
-        if name in self.activities[0].inputs:
-            self.inputMap.append((name, name, self.activities[0].inputs[name].getDepth()))
-        else:
-            raise RuntimeError('input port %s not found' % name)
-
-    def enableOutputPort(self, name):
-        if name in self.activities[0].outputs:
-            self.outputMap.append((name, name, self.activities[0].outputs[name].getDepth()))
-        else:
-            raise RuntimeError('output port %s not found' % name)
-
-    def exportXML(self, xml):
-        with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
-            with tav.processor as proc:
-                proc.name >> self.name
-                with proc.inputPorts:
-                    for (source, sink, depth) in self.inputMap:
-                        with proc.port:
-                            proc.name >> source
-                            proc.depth >> depth
-                with proc.outputPorts:
-                    for (source, sink, depth) in self.outputMap:
-                        with proc.port:
-                            proc.name >> source
-                            proc.depth >> depth
-                            proc.granularDepth >> depth
-                with proc.annotations:
-                    for annotationClass, annotation in self.annotations.items():
-                        annotation.exportXML(xml, annotationClass)
-                with proc.activities:
-                    for activity in self.activities:
-                        activity.exportXML(xml) 
-                with proc.dispatchStack:
-                    with proc.dispatchLayer:
-                        with proc.raven as raven:
-                            raven.group >> 'net.sf.taverna.t2.core'
-                            raven.artifact >> 'workflowmodel-impl'
-                            raven.version >> '1.4'
-                        proc['class'] >> 'net.sf.taverna.t2.workflowmodel.processor.dispatch.layers.Parallelize'
-                        with proc.configBean(encoding="xstream"):
-                            with xml.namespace() as Parallelize:
-                                with Parallelize.net.sf.taverna.t2.workflowmodel.processor.dispatch.layers.ParallelizeConfig:
-                                    Parallelize.maxJobs >> 1
-                    with proc.dispatchLayer:
-                        with proc.raven as raven:
-                            raven.group >> 'net.sf.taverna.t2.core'
-                            raven.artifact >> 'workflowmodel-impl'
-                            raven.version >> '1.4'
-                        proc['class'] >> 'net.sf.taverna.t2.workflowmodel.processor.dispatch.layers.ErrorBounce'
-                        with proc.configBean(encoding="xstream"):
-                            with xml.namespace() as ErrorBounce:
-                                ErrorBounce.null
-                    with proc.dispatchLayer:
-                        with proc.raven as raven:
-                            raven.group >> 'net.sf.taverna.t2.core'
-                            raven.artifact >> 'workflowmodel-impl'
-                            raven.version >> '1.4'
-                        proc['class'] >> 'net.sf.taverna.t2.workflowmodel.processor.dispatch.layers.Failover'
-                        with proc.configBean(encoding="xstream"):
-                            with xml.namespace() as Failover:
-                                Failover.null
-                    with proc.dispatchLayer:
-                        with proc.raven as raven:
-                            raven.group >> 'net.sf.taverna.t2.core'
-                            raven.artifact >> 'workflowmodel-impl'
-                            raven.version >> '1.4'
-                        proc['class'] >> 'net.sf.taverna.t2.workflowmodel.processor.dispatch.layers.Retry'
-                        with proc.configBean(encoding="xstream"):
-                            with xml.namespace() as Retry:
-                                with Retry.net.sf.taverna.t2.workflowmodel.processor.dispatch.layers.RetryConfig:
-                                    Retry.backoffFactor >> '1.0'
-                                    Retry.initialDelay >> '1000'
-                                    Retry.maxDelay >> '5000'
-                                    Retry.maxRetries >> '0'
-                    with proc.dispatchLayer:
-                        with proc.raven as raven:
-                            raven.group >> 'net.sf.taverna.t2.core'
-                            raven.artifact >> 'workflowmodel-impl'
-                            raven.version >> '1.4'
-                        proc['class'] >> 'net.sf.taverna.t2.workflowmodel.processor.dispatch.layers.Invoke'
-                        with proc.configBean(encoding="xstream"):
-                            with xml.namespace() as Invoke:
-                                Invoke.null
-                with proc.iterationStrategyStack:
-                    with proc.iteration:
-                        proc.strategy
+    def __init__(self, flow):
+        WorkflowPorts.__init__(self, flow)
+        self._.PortClass = WorkflowOutputPort
 
 class DataLink:
 
@@ -258,93 +139,97 @@ class DataLink:
                 self.source.exportSourceXML(xml)
                 self.sink.exportSinkXML(xml)
 
+
 class Workflow:
 
     def __init__(self, name):
         self.id = getUUID()
         self.name = name
         self.annotations = {}
-        self.inputPorts = []
-        self.inputs = {}
-        self.outputPorts = []
-        self.outputs = {}
-        self.processors = {}
         self.dataLinks = []
-        self.nested = []
+        self.input = WorkflowInputPorts(self)
+        self.output = WorkflowOutputPorts(self)
+        self.task = WorkflowTasks(self)
 
-    def setTitle(self, annotation):
-        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.DescriptiveTitle'] = annotation
-    
-    def setAuthors(self, annotation):
-        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.Author'] = annotation
-    
-    def setDescription(self, annotation):
-        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = annotation
-    
-    def addInput(self, name, t2type, description=None, example=None):
-        port = InputPort(name, t2type)
-        if description is not None:
-            port.setDescription(Annotation(description))
-        if example is not None:
-            port.setExampleValue(Annotation(example))
-        self.inputPorts.append(port)
-        self.inputs[name] = t2type
-        return port
+    def getId(self):
+        return self.id
 
-    def addOutput(self, name, t2type, description=None, example=None):
-        port = OutputPort(name, t2type)
-        if description is not None:
-            port.setDescription(Annotation(description))
-        if example is not None:
-            port.setExampleValue(Annotation(example))
-        self.outputPorts.append(port)
-        self.outputs[name] = t2type
-        return port
+    def getInputs(self):
+        inputs = {}
+        for port in self.input:
+            inputs[port.name] = port.type
+        return inputs
 
-    def addTask(self, name, activity, description=None):
-        assert isinstance(activity, Activity), activity
-        processor = Processor(name)
-        if description is not None:
-            processor.setDescription(Annotation(description))
-        processor.addActivity(activity)
-        self.processors[name] = processor
-        return processor
+    def getOutputs(self):
+        outputs = {}
+        for port in self.output:
+            outputs[port.name] = port.type
+        return outputs
 
-    def addFlow(self, name, flow, description=None):
-        assert isinstance(flow, Workflow), flow
-        self.nested.append(flow)
-        return self.addTask(name, DataflowActivity(flow, inputs=self.inputs, outputs=self.outputs), description)
+    @property
+    def title(self):
+        try:
+            return self.annotations['net.sf.taverna.t2.annotation.annotationbeans.DescriptiveTitle']
+        except KeyError:
+            raise AttributeError('title')
+
+    @title.setter
+    def title(self, value):
+        if not isinstance(value, Annotation):
+            value = Annotation(value)
+        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.DescriptiveTitle'] = value
+        
+    @property
+    def author(self):
+        try:
+            return self.annotations['net.sf.taverna.t2.annotation.annotationbeans.Author']
+        except KeyError:
+            raise AttributeError('author')
+
+    @author.setter
+    def author(self, value):
+        if not isinstance(value, Annotation):
+            value = Annotation(value)
+        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.Author'] = value
+        
+    @property
+    def description(self):
+        try:
+            return self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription']
+        except KeyError:
+            raise AttributeError('description')
+
+    @description.setter
+    def description(self, value):
+        if not isinstance(value, Annotation):
+            value = Annotation(value)
+        self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = value
 
     def linkData(self, source, sink):
         if not isinstance(source, Source):
-            text = str(source)
-            import string
-            parts = text.split()
-            alnum = string.letters + string.digits
-            candidate = ['_']
-            while parts and len(candidate) < 25:
-                candidate += [ch for ch in parts[0] if ch in alnum]
-                del parts[0]
-                candidate.append('_')
+            textConstant = TextConstant(source)
+            label = candidate = textConstant.getLabel()
             i = 1
-            oklabel = ''.join(candidate)
-            label = oklabel
-            while self.processors.has_key(label):
+            while hasattr(self.task, label):
                 i += 1
-                label = oklabel + str(i)
-            textConstant = self.addTask(label, TextConstant(text).output(value=String))
-            source = textConstant.output.value
+                label = candidate + str(i)
+            setattr(self.task, label, textConstant)
+            source = getattr(self.task, label).output.value
         if not isinstance(sink, Sink):
             raise TypeError("link sink must be a Sink")
+        source.connect()
+        sink.connect()
         self.dataLinks.append(DataLink(source, sink))
 
     def allDescendants(self, descendants=None):
         # Create a list of all nested workflows and their nested workflows, ad infinitum
         if descendants is None:
             descendants = []
-        for child in self.nested:
-            descendants.append(child)
-            child.allDescendants(descendants)
+        for task in self.task:
+            if isinstance(task.activity, DataflowActivity): 
+                flow = task.activity.flow
+                descendants.append(flow)
+                flow.allDescendants(descendants)
         return descendants
 
     def exportXML(self, xml):
@@ -364,13 +249,13 @@ class Workflow:
             with tav.dataflow(id=self.id, role=role):
                 tav.name >> self.name
                 with tav.inputPorts:
-                    for port in self.inputPorts:
-                        port.exportXML(xml)
+                    for port in self.input:
+                        port.exportInputPortXML(xml)
                 with tav.outputPorts:
-                    for port in self.outputPorts:
-                        port.exportXML(xml)
+                    for port in self.output:
+                        port.exportOutputPortXML(xml)
                 with tav.processors:
-                    for processor in self.processors.values():
+                    for processor in self.task:
                         processor.exportXML(xml)                    
                 tav.conditions
                 with tav.datalinks:

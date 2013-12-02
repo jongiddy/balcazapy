@@ -48,10 +48,12 @@ class PNGImageType(T2FlowType):
 
 PNGImage = PNGImageType()
 
-class TextFile(T2FlowType):
+class TextFileType(T2FlowType):
 
     def symanticType(self):
         return 'TEXT_FILE'
+
+TextFile = TextFileType()
 
 class List(T2FlowType):
 
