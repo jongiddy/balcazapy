@@ -7,8 +7,8 @@ Create a scripted description of the workflow.  See wf3.py for an example.
 Essentially, "activities" can be created and assigned to named workflow tasks.
 Activities can be reused, by assigning them to multiple tasks.
 
-Each task has inputs and outputs, which have a type (e.g. String, Numeric).
-Lists can be represented using List(String) or List(List(Numeric)).
+Each task has inputs and outputs, which have a type (e.g. String, Number).
+Lists can be represented using List(String) or List(List(Number)).
 
 Link input and output ports using the >> operator.
 

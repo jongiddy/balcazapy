@@ -55,10 +55,17 @@ class TextFileType(T2FlowType):
 
 TextFile = TextFileType()
 
-class List(T2FlowType):
+VectorBaseType = {
+    Boolean: 'BOOL_LIST',
+    Integer: 'INTEGER_LIST',
+    Number: 'DOUBLE_LIST',
+    String: 'STRING_LIST'
+}
+
+class ListType(T2FlowType):
 
     def __init__(self, elementType):
-        if isinstance(elementType, List):
+        if isinstance(elementType, ListType):
             self.baseType = elementType.baseType
             self.depth = elementType.depth + 1
         else:
@@ -68,23 +75,26 @@ class List(T2FlowType):
     def validator(self):
         return self.baseType.validator()
 
-VectorBaseType = {
-    Boolean: 'BOOL_LIST',
-    Integer: 'INTEGER_LIST',
-    Number: 'DOUBLE_LIST',
-    String: 'STRING_LIST'
-}
-class Vector(List):
+    def symanticType(self):
+        return VectorBaseType[self.baseType]
 
-    def __init__(self, elementType):
-        List.__init__(self, elementType)
-        if isinstance(elementType, List):
+class ListFactory:
+
+    def __getitem__(self, elementType):
+        return ListType(elementType)
+
+List = ListFactory()
+
+class VectorFactory:
+
+    def __getitem__(self, elementType):
+        if isinstance(elementType, ListType):
             raise RuntimeError('Vector can not have depth > 1')
         if not VectorBaseType.has_key(elementType):
             raise RuntimeError('Invalid Vector type')
+        return ListType(elementType)
 
-    def symanticType(self):
-        return VectorBaseType[self.baseType]
+Vector = VectorFactory()
 
 class RExpressionType(T2FlowType):
 

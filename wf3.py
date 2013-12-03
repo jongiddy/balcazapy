@@ -97,12 +97,12 @@ outer.input.stageMatrixFile.example = """0.0000	0.0000	0.0000	7.6660	0.0000
 
 # List types must identify what the list contains
 
-outer.input.stages = List(String)
+outer.input.stages = List[String]
 
 
 rshell = rserve.runFile(
 	"readMatrix.R",
-	inputs = dict(stage_matrix_file=TextFile, stages=Vector(String)),
+	inputs = dict(stage_matrix_file=TextFile, stages=Vector[String]),
 	outputs = dict(stage_matrix=RExpression)
 	)
 
