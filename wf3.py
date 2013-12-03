@@ -1,8 +1,8 @@
 ### Do not edit the lines at the top and bottom of this file.
 ### Edit the workflow description between START and FINISH comments
-from t2types import *
-from t2activity import *
-from t2flow import *
+from balcaza.t2types import *
+from balcaza.t2activity import *
+from balcaza.t2flow import *
 
 ### START editing your workflow below here
 #
@@ -125,7 +125,8 @@ outer.title = 'Workflow 34'
 # FINISH your workflow above here, and do not change the lines below, except to select
 # one of the export lines
 
-import sys, XMLExport
+import sys
+import maximal.XMLExport as XMLExport
 
 # You can output the workflow indented for readability or compressed for space
 
