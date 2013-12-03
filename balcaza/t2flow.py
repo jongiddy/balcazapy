@@ -1,3 +1,5 @@
+__all__ = ("Workflow",)
+
 import uuid
 
 from t2base import Namespace, Port, Source, Sink
