@@ -2,7 +2,7 @@ __all__ = ("Workflow",)
 
 import uuid
 
-from t2base import Namespace, Port, Source, Sink
+from t2base import alphanumeric, Namespace, Port, Source, Sink
 from t2types import T2FlowType
 from t2annotation import Annotation
 from t2activity import DataflowActivity, TextConstant
@@ -140,17 +140,32 @@ class DataLink:
                 self.source.exportSourceXML(xml)
                 self.sink.exportSinkXML(xml)
 
+def tavernaName(title):
+    # Taverna creates the workflow name from the title annotation's first 20 characters,
+    # with non-alphanumeric characters replaced by underscore
+    name = []
+    for ch in title[:20]:
+        if ch in alphanumeric:
+            name.append(ch)
+        else:
+            name.append('_')
+    return ''.join(name)
 
 class Workflow(object):
 
-    def __init__(self, name):
+    def __init__(self, title="Workflow", author=None, description=None):
         self.id = getUUID()
-        self.name = name
         self.annotations = {}
         self.dataLinks = []
         self.input = WorkflowInputPorts(self)
         self.output = WorkflowOutputPorts(self)
         self.task = WorkflowTasks(self)
+        self.title = title
+        self.name = tavernaName(title)
+        if author is not None:
+            self.author = author
+        if description is not None:
+            self.description = description
 
     def getId(self):
         return self.id
@@ -179,6 +194,7 @@ class Workflow(object):
         if not isinstance(value, Annotation):
             value = Annotation(value)
         self.annotations['net.sf.taverna.t2.annotation.annotationbeans.DescriptiveTitle'] = value
+        self.name = tavernaName(value.text)
         
     @property
     def author(self):

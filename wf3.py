@@ -8,7 +8,7 @@ from balcaza.t2flow import *
 #
 # This example creates a simple nested workflow. First, create the inner nested workflow:
 
-inner = Workflow('eigenanalysis')
+inner = Workflow(title='Projection Matrix')
 
 # Create a reusable port type
 
@@ -63,11 +63,12 @@ inner.task.ProjectionMatrix.output.plot_image >> inner.output.projectionMatrix
 
 # Create another workflow
 
-outer = Workflow('Eigenanalysis')
+outer = Workflow(title='Create Projection Matrix', author="Maria and Jon",
+	description="Create a projection matrix from a stage matrix and a list of stages")
 
 # and add the nested workflow (treat the nested workflow just like any other acivity)
 
-outer.task.Eigenanalysis = inner
+outer.task.ProjectionMatrix = inner
 
 # Hey, we can reuse our SpeciesName defined near the top of this file
 
@@ -105,16 +106,13 @@ outer.task.ReadMatrix = rshell
 outer.input.stageMatrixFile >> outer.task.ReadMatrix.input.stage_matrix_file
 outer.input.stages >> outer.task.ReadMatrix.input.stages
 
-outer.task.ReadMatrix.output.stage_matrix >> outer.task.Eigenanalysis.input.stageMatrix # not inner.input.stageMatrix !
-outer.input.speciesName >> outer.task.Eigenanalysis.input.speciesName
+outer.task.ReadMatrix.output.stage_matrix >> outer.task.ProjectionMatrix.input.stageMatrix # not inner.input.stageMatrix !
+outer.input.speciesName >> outer.task.ProjectionMatrix.input.speciesName
 
 outer.output.projectionMatrix = PNGImage(description = "A projection matrix")
 
-outer.task.Eigenanalysis.output.projectionMatrix >> outer.output.projectionMatrix
+outer.task.ProjectionMatrix.output.projectionMatrix >> outer.output.projectionMatrix
 
-outer.author = 'Maria and Jon'
-outer.description = 'Hello'
-outer.title = 'Workflow 34'
 
 # Set compressed = True to create a smaller workflow file
 # Set compressed = False to create a workflow indented for readability

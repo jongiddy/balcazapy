@@ -1,3 +1,6 @@
+import string
+
+alphanumeric = string.letters + string.digits
 
 class Source:
 

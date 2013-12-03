@@ -1,6 +1,6 @@
 __all__ = ('BeanshellActivity', 'InteractionActivity', 'RestActivity', 'TextConstant', 'RServer')
 
-import string
+from t2base import alphanumeric
 import t2types
 
 class Activity:
@@ -143,8 +143,6 @@ class RestActivity(Activity):
 
 class TextConstant(Activity):
 
-    alnum = string.letters + string.digits
-
     activityArtifact = 'stringconstant-activity'
     activityClass = 'net.sf.taverna.t2.activities.stringconstant.StringConstantActivity'
 
@@ -157,7 +155,7 @@ class TextConstant(Activity):
         label = '__'
         candidate = ['_']
         while parts and (len(candidate) < 30):
-            candidate += [ch for ch in parts[0] if ch in self.alnum]
+            candidate += [ch for ch in parts[0] if ch in alphanumeric]
             del parts[0]
             candidate.append('_')
             if len(candidate) > 30:
