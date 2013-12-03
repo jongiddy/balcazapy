@@ -122,15 +122,18 @@ outer.author = 'Maria and Jon'
 outer.description = 'Hello'
 outer.title = 'Workflow 34'
 
-# FINISH your workflow above here, and do not change the lines below, except to select
-# one of the export lines
+# Set compressed = True to create a smaller workflow file
+# Set compressed = False to create a workflow indented for readability
+
+compressed = True
+
+# FINISH your workflow above here, and do not change the lines below
 
 import sys
 import maximal.XMLExport as XMLExport
 
-# You can output the workflow indented for readability or compressed for space
-
-#outer.exportXML(XMLExport.XMLExporter(XMLExport.XMLIndenter(sys.stdout)))
-outer.exportXML(XMLExport.XMLExporter(XMLExport.XMLCompressor(sys.stdout)))
-
+if compressed:
+	outer.exportXML(XMLExport.XMLExporter(XMLExport.XMLCompressor(sys.stdout)))
+else:
+	outer.exportXML(XMLExport.XMLExporter(XMLExport.XMLIndenter(sys.stdout)))
 
