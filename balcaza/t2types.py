@@ -1,7 +1,18 @@
+__all__ = ('Boolean', 'Integer', 'Number', 'String', 'TextFile', 'PNGImage',
+    'RExpression', 'List', 'Vector')
+
+import copy
+
 class T2FlowType:
 
     def __init__(self, depth=0):
         self.depth = depth
+        self.dict = {}
+
+    def __call__(self, **kw):
+        new = copy.copy(self)
+        new.dict = kw
+        return new
 
     def getDepth(self):
         return self.depth
@@ -18,7 +29,8 @@ String = StringType()
 
 class BooleanType(T2FlowType):
 
-    pass
+    def symanticType(self):
+        return 'BOOL'
 
 Boolean = BooleanType()
 
@@ -32,13 +44,15 @@ class IntegerType(T2FlowType):
 
     def validator():
         import t2activity
-        t2activity.BeanshellTask(integerValidatorScript, {'input': T2FlowType}, {'output': T2FlowType})
+        t2activity.BeanshellTask(integerValidatorScript, {'input': T2FlowType},
+            {'output': T2FlowType})
 
 Integer = IntegerType()
 
 class NumberType(T2FlowType):
 
-    pass
+    def symanticType(self):
+        return 'DOUBLE'
 
 Number = NumberType()
 class PNGImageType(T2FlowType):
@@ -67,10 +81,11 @@ class ListType(T2FlowType):
     def __init__(self, elementType):
         if isinstance(elementType, ListType):
             self.baseType = elementType.baseType
-            self.depth = elementType.depth + 1
+            depth = elementType.depth + 1
         else:
             self.baseType = elementType
-            self.depth = 1
+            depth = 1
+        T2FlowType.__init__(self, depth)
 
     def validator(self):
         return self.baseType.validator()

@@ -14,11 +14,14 @@ def getUUID():
 
 class WorkflowPort(Port):
 
-    def __init__(self, name, type=None):
+    def __init__(self, name, type):
         self.name = name
-        if type is not None:
-            self.type = type
+        self.type = type
         self.annotations = {}
+        dict = type.dict
+        for name in ('description', 'example'):
+            if dict.has_key(name):
+                setattr(self, name, dict[name])
 
     @property
     def description(self):
@@ -49,7 +52,7 @@ class WorkflowPort(Port):
 
 class WorkflowInputPort(WorkflowPort, Source):
 
-    def __init__(self, flow, name, type=None):
+    def __init__(self, flow, name, type):
         Source.__init__(self, flow)
         WorkflowPort.__init__(self, name, type)
 
@@ -71,7 +74,7 @@ class WorkflowInputPort(WorkflowPort, Source):
 
 class WorkflowOutputPort(WorkflowPort, Sink):
 
-    def __init__(self, flow, name, type=None):
+    def __init__(self, flow, name, type):
         Sink.__init__(self, flow)
         WorkflowPort.__init__(self, name, type)
 

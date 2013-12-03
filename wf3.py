@@ -10,16 +10,20 @@ from balcaza.t2flow import *
 
 inner = Workflow('eigenanalysis')
 
+# Create a reusable port type
+
+SpeciesName = String(
+	description = """Species name
+
+Controls the title of the bar plot that will be generated with the analysis. As an example, it can be the name of the species or the name of the place where the research has been conducted, between others.
+""",
+	example = "Gentiana pneumonanthe"
+)
+
 # Refer to workflow input ports using <wflow>.input.<portname>
 # output ports usig <wflow>.output.<portname>
 
-inner.input.speciesName = String
-inner.input.speciesName.description = """Species name
-
-Controls the title of the bar plot that will be generated with the analysis. As an example, it can be the name of the species or the name of the place where the research has been conducted, between others.
-"""
-inner.input.speciesName.example = "Gentiana pneumonanthe"
-
+inner.input.speciesName = SpeciesName
 
 inner.input.stageMatrix = RExpression
 
@@ -53,8 +57,7 @@ inner.task.ProjectionMatrix.description = 'Create a projection matrix'
 inner.input.stageMatrix >> inner.task.ProjectionMatrix.input.stage_matrix
 inner.task.CalculatePlotSize.output.plot_size >> inner.task.ProjectionMatrix.input.plot_size
 
-inner.output.projectionMatrix = PNGImage
-inner.output.projectionMatrix.description = 'Plot of results'
+inner.output.projectionMatrix = PNGImage(description='Plot of results')
 
 inner.task.ProjectionMatrix.output.plot_image >> inner.output.projectionMatrix
 
@@ -66,34 +69,25 @@ outer = Workflow('Eigenanalysis')
 
 outer.task.Eigenanalysis = inner
 
-# Assign to variables, to make things more reusable (to more readable)
+# Hey, we can reuse our SpeciesName defined near the top of this file
 
-desc = """Species name
-
-Controls the title of the bar plot that will be generated with the analysis. As an example, it can be the name of the species or the name of the place where the research has been conducted, between others.
-"""
-
-example = "Gentiana pneumonanthe"
-
-outer.input.speciesName = String
-sn = outer.input.speciesName
-sn.description = desc
-sn.example = example
+outer.input.speciesName = SpeciesName
 
 
-outer.input.stageMatrixFile = TextFile
-outer.input.stageMatrixFile.description = """The stage matrix file input port:
+outer.input.stageMatrixFile = TextFile(
+	description = """The stage matrix file input port:
 
 Here comes the stage matrix without the stage names (as you see in the example).  It should be provied as a txt-file.  
 
 Example from:
 J. Gerard B. Oostermeijer; M.L. Brugman; E.R. de Boer; H.C.M. Den Nijs. 1996. Temporal and Spatial Variation in the Demography of Gentiana pneumonanthe, a Rare Perennial Herb. The Journal of Ecology, Vol. 84(2): 153-166.
-"""
-outer.input.stageMatrixFile.example = """0.0000	0.0000	0.0000	7.6660	0.0000
+""",
+	example = """0.0000	0.0000	0.0000	7.6660	0.0000
 0.0579	0.0100	0.0000	8.5238	0.0000
 0.4637	0.8300	0.9009	0.2857	0.8604
 0.0000	0.0400	0.0090	0.6190	0.1162
 0.0000	0.0300	0.0180	0.0000	0.0232"""
+)
 
 # List types must identify what the list contains
 
@@ -114,7 +108,7 @@ outer.input.stages >> outer.task.ReadMatrix.input.stages
 outer.task.ReadMatrix.output.stage_matrix >> outer.task.Eigenanalysis.input.stageMatrix # not inner.input.stageMatrix !
 outer.input.speciesName >> outer.task.Eigenanalysis.input.speciesName
 
-outer.output.projectionMatrix = PNGImage
+outer.output.projectionMatrix = PNGImage(description = "A projection matrix")
 
 outer.task.Eigenanalysis.output.projectionMatrix >> outer.output.projectionMatrix
 
