@@ -24,24 +24,32 @@ Controls the title of the bar plot that will be generated with the analysis. As 
 # output ports usig <wflow>.output.<portname>
 
 inner.input.speciesName = SpeciesName
-
 inner.input.stageMatrix = RExpression
 
 rserve = RServer()
 
 # Create a reusable activity and assign it to a workflow task, using
 # <wflow>.task.<taskname> = <activity>
+# 
+# In this example, we create an RShell activity from a script and details of 
+# the inputs and outputs. Note that the {} form and dict() form are similar, 
+# but {} requires quotes, while dict() cannot handle names containing dots
 
 inner.task.CalculatePlotSize = rserve.runScript(
-	"plot_size <- 128 + 32 * dim(stage_matrix)[1]",
-	inputs = dict(stage_matrix=RExpression),
-	outputs = dict(plot_size=Integer)
+	"plot_size <- 128 + 32 * dim(stage.matrix)[1]",
+	inputs = {'stage.matrix': RExpression},
+	outputs = dict(plot_size = Integer)
 	)
 
 # Task input ports are <wflow>.task.<taskname>.input.<portname>
 # Connect ports using the >> operator
+# 
+# For RShell, if an R variable name is not a valid Taverna name (e.g. it contains a dot)
+# use [] to provide the R variable name after the Taverna name
 
-inner.input.stageMatrix >> inner.task.CalculatePlotSize.input.stage_matrix
+inner.input.stageMatrix >> inner.task.CalculatePlotSize.input.stage_matrix['stage.matrix']
+
+# Create another RShell, this time from an external R file
 
 inner.task.ProjectionMatrix = rserve.runFile(
 	"projectionMatrix.R",

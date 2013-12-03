@@ -12,6 +12,7 @@ class TaskPort(Port):
 
     def __getitem__(self, name):
         self.activityPortName = name
+        return self
 
     def getName(self):
         return self.name
