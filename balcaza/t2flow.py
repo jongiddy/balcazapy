@@ -56,6 +56,10 @@ class WorkflowInputPort(WorkflowPort, Source):
         Source.__init__(self, flow)
         WorkflowPort.__init__(self, name, type)
 
+    def link(self, other):
+        assert isinstance(other, Sink), other
+        self.flow.linkData(self, other)
+
     def exportInputPortXML(self, xml):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.port as port:
@@ -77,6 +81,10 @@ class WorkflowOutputPort(WorkflowPort, Sink):
     def __init__(self, flow, name, type):
         Sink.__init__(self, flow)
         WorkflowPort.__init__(self, name, type)
+
+    def link(self, other):
+        assert isinstance(other, Source), other
+        self.flow.linkData(other, self)
 
     def exportOutputPortXML(self, xml):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
@@ -106,10 +114,19 @@ class WorkflowPorts(object):
         # flow.input.name = type
         if self._.ports.has_key(name):
             raise RuntimeError('port "%s" redefined' % name)
-        if not isinstance(type, T2FlowType):
+        if isinstance(type, Port):
+            other = type
+            other.connect()
+            type = other.type
+        elif isinstance(type, T2FlowType):
+            other = None
+        else:
             raise TypeError('port "%s" must be assigned a type' % name)
-        self._.ports[name] = self._.PortClass(self._.flow, name, type)
+        port = self._.ports[name] = self._.PortClass(self._.flow, name, type)
         self._.order.append(name)
+        if other is not None:
+            port.connect()
+            port.link(other)
 
     def __getattr__(self, name):
         if self._.ports.has_key(name):
@@ -232,10 +249,9 @@ class Workflow(object):
                 label = candidate + str(i)
             setattr(self.task, label, textConstant)
             source = getattr(self.task, label).output.value
+            source.connect()
         if not isinstance(sink, Sink):
             raise TypeError("link sink must be a Sink")
-        source.connect()
-        sink.connect()
         self.dataLinks.append(DataLink(source, sink))
 
     def allDescendants(self, descendants=None):
