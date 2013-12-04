@@ -1,11 +1,12 @@
+# -*- coding: utf-8 -*-
 import sys
-import XMLExport
+from maximal import XMLExport
 
 x = XMLExport.XMLExporter(XMLExport.XMLCompressor(sys.stdout))
 
 with x.namespace('http://taverna.org/2013/') as tav:
 	with tav.workflow(author='Jon Giddy'):
-		tav.input.routine({'complex.name': 'hh'}, name='fido') >> 'Hello'
+		tav.input.routine({'complex.name': 'hλ1h'}, name='fido', x=2) >> 'Hλ1ello'
 		with tav.output as foo:
 			foo.hd >> "World!"
 

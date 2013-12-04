@@ -318,7 +318,7 @@ class XMLExporter:
 				if v is None:
 					parts.append(k)
 				else:
-					parts.append("%s=%s" % (k, quoteattr(str(v))))
+					parts.append("%s=%s" % (k, quoteattr(unicode(str(v), 'utf-8'))))
 		parts += nsparts
 		return parts, '</%s>' % fulltag
 
@@ -342,4 +342,4 @@ class XMLExporter:
 		self.pendingAttributes = attributes
 
 	def setPendingText(self, text):
-		self.pendingText += str(text)
+		self.pendingText += unicode(str(text), 'utf-8')

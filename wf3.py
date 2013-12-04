@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ### Do not edit the lines at the top and bottom of this file.
 ### Edit the workflow description between START and FINISH comments
 from balcaza.t2types import *
@@ -13,7 +14,7 @@ inner = Workflow(title='Projection Matrix')
 # Create a reusable port type
 
 SpeciesName = String(
-	description = """Species name
+	description = """Species nameλ1
 
 Controls the title of the bar plot that will be generated with the analysis. As an example, it can be the name of the species or the name of the place where the research has been conducted, between others.
 """,
@@ -129,11 +130,14 @@ compressed = True
 
 # FINISH your workflow above here, and do not change the lines below
 
-import sys
+import codecs, sys
 import maximal.XMLExport as XMLExport
 
+UTF8Writer = codecs.getwriter('utf8')
+stdout = UTF8Writer(sys.stdout)
+
 if compressed:
-	outer.exportXML(XMLExport.XMLExporter(XMLExport.XMLCompressor(sys.stdout)))
+	outer.exportXML(XMLExport.XMLExporter(XMLExport.XMLCompressor(stdout)))
 else:
-	outer.exportXML(XMLExport.XMLExporter(XMLExport.XMLIndenter(sys.stdout)))
+	outer.exportXML(XMLExport.XMLExporter(XMLExport.XMLIndenter(stdout)))
 
