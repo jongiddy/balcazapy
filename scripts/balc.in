@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ -z "$1" ]; then
+	echo "Usage: $0 <balc.py>" >&2
+	exit 1
+fi
+
+BALCAZAPY_HOME=@BALCAZAPY_HOME@
+
+PYTHONPATH=${BALCAZAPY_HOME}/python @PYTHON@ "$@"
