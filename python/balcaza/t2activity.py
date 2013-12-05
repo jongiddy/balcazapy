@@ -234,6 +234,7 @@ class RServer:
     def runScript(self, script, **kw):
         return RServerActivity(self, script, **kw)
 
-    def runFile(self, filename, **kw):
-        with open(filename, 'rt') as f:
+    def runFile(self, filename, encoding='utf-8', **kw):
+        import codecs
+        with codecs.open(filename, encoding=encoding) as f:
             return RServerActivity(self, f.read(), **kw)
