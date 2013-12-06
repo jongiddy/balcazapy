@@ -1,4 +1,4 @@
-__all__ = ('Boolean', 'Integer', 'Number', 'String', 'TextFile', 'PNGImage',
+__all__ = ('Logical', 'Integer', 'Number', 'String', 'TextFile', 'PNGImage',
     'RExpression', 'List', 'Vector')
 
 import copy
@@ -27,12 +27,12 @@ class StringType(T2FlowType):
 
 String = StringType()
 
-class BooleanType(T2FlowType):
+class LogicalType(T2FlowType):
 
     def symanticType(self):
         return 'BOOL'
 
-Boolean = BooleanType()
+Logical = LogicalType()
 
 integerValidatorScript = '''Integer.parseInt(input);
 '''
@@ -70,7 +70,7 @@ class TextFileType(T2FlowType):
 TextFile = TextFileType()
 
 VectorBaseType = {
-    Boolean: 'BOOL_LIST',
+    Logical: 'BOOL_LIST',
     Integer: 'INTEGER_LIST',
     Number: 'DOUBLE_LIST',
     String: 'STRING_LIST'
