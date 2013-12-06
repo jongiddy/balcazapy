@@ -1,5 +1,5 @@
 __all__ = ('BeanshellActivity', 'InteractionActivity', 'NestedWorkflow', 
-    'RestActivity', 'TextConstant', 'RServer')
+    'NestedWorkflowFile', 'RestActivity', 'TextConstant', 'RServer')
 
 from t2base import alphanumeric
 import t2types
@@ -75,6 +75,15 @@ class NestedWorkflow(Activity):
     def exportConfigurationXML(self, xml):
         with xml.namespace('http://taverna.sf.net/2008/xml/t2flow') as tav:
             tav.dataflow(ref=self.flow.getId())
+
+def NestedWorkflowFile(filename, flowname='flow'):
+    with open(filename, 'r') as f:
+        source = f.read()
+        code = compile(source, filename, 'exec')
+        module = {}
+        exec(code, module)
+        flow = module[flowname]
+        return NestedWorkflow(flow)
 
 class InteractionActivity(Activity):
 
