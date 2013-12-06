@@ -1,0 +1,5 @@
+library(popbio)
+png(plot_image, width=plot_size, height=plot_size)
+image2(stage_matrix, cex=.7, mar=c(0.5,3,4,1), labels=c(2,3), srt = 90)
+title(plot_title, line=3)
+dev.off()

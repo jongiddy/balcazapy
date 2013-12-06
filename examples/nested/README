@@ -1,0 +1,8 @@
+onefile.py
+
+Nested workflow as single file
+
+outer.py
+inner.py
+
+Nested workflow over two files
