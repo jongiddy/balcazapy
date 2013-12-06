@@ -1,6 +1,6 @@
 from t2base import Namespace, Port, Source, Sink
 from t2annotation import Annotation
-from t2activity import Activity, DataflowActivity
+from t2activity import Activity
 
 class TaskPort(Port):
 
@@ -260,8 +260,6 @@ class WorkflowTasks(object):
         # flow.input.name = type
         if self._.tasks.has_key(name):
             raise RuntimeError('task "%s" defined twice for workflow "%s"' % (name, self._.flow.name))
-        if isinstance(activity, Workflow):
-            activity = DataflowActivity(activity)
         if not isinstance(activity, Activity):
             raise TypeError('cannot assign non-Activity %s to task "%s"' % (`activity`, name))
         self._.tasks[name] = WorkflowTask(self._.flow, name, activity)

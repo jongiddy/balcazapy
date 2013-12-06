@@ -5,7 +5,7 @@ import uuid
 from t2base import alphanumeric, Namespace, Port, Source, Sink
 from t2types import T2FlowType
 from t2annotation import Annotation
-from t2activity import DataflowActivity, TextConstant
+from t2activity import NestedWorkflow, TextConstant
 from t2task import WorkflowTasks
 
 def getUUID():
@@ -259,7 +259,7 @@ class Workflow(object):
         if descendants is None:
             descendants = []
         for task in self.task:
-            if isinstance(task.activity, DataflowActivity): 
+            if isinstance(task.activity, NestedWorkflow): 
                 flow = task.activity.flow
                 descendants.append(flow)
                 flow.allDescendants(descendants)

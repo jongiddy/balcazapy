@@ -1,4 +1,5 @@
-__all__ = ('BeanshellActivity', 'InteractionActivity', 'RestActivity', 'TextConstant', 'RServer')
+__all__ = ('BeanshellActivity', 'InteractionActivity', 'NestedWorkflow', 
+    'RestActivity', 'TextConstant', 'RServer')
 
 from t2base import alphanumeric
 import t2types
@@ -61,7 +62,7 @@ class BeanshellActivity(Activity):
                 conf.script >> self.script
                 conf.dependencies
 
-class DataflowActivity(Activity):
+class NestedWorkflow(Activity):
 
     activityArtifact = 'dataflow-activity'
     activityClass = 'net.sf.taverna.t2.activities.dataflow.DataflowActivity'
