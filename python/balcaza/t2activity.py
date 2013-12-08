@@ -77,11 +77,11 @@ class NestedWorkflow(Activity):
 def NestedWorkflowFile(filename, flowname='flow'):
     with open(filename, 'r') as f:
         source = f.read()
-        code = compile(source, filename, 'exec')
-        module = {}
-        exec(code, module)
-        flow = module[flowname]
-        return NestedWorkflow(flow)
+    code = compile(source, filename, 'exec')
+    module = {}
+    exec(code, module)
+    flow = module[flowname]
+    return NestedWorkflow(flow)
 
 class InteractionActivity(Activity):
 
