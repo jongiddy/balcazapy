@@ -2,11 +2,12 @@ __all__ = ("Workflow",)
 
 import uuid
 
-from t2base import alphanumeric, Namespace, Port, Source, Sink
+from t2base import Namespace, Port, Source, Sink
 from t2types import T2FlowType
 from t2annotation import Annotation
 from t2activity import NestedWorkflow, TextConstant
 from t2task import WorkflowTasks
+from t2util import alphanumeric
 
 def getUUID():
     return uuid.uuid4()
@@ -15,7 +16,7 @@ def getUUID():
 class WorkflowPort(Port):
 
     def __init__(self, name, type):
-        self.name = name
+        Port.__init__(self, name)
         self.type = type
         self.annotations = {}
         dict = type.dict
@@ -178,7 +179,6 @@ class Workflow(object):
         self.output = WorkflowOutputPorts(self)
         self.task = WorkflowTasks(self)
         self.title = title
-        self.name = tavernaName(title)
         if author is not None:
             self.author = author
         if description is not None:
@@ -201,10 +201,7 @@ class Workflow(object):
 
     @property
     def title(self):
-        try:
-            return self.annotations['net.sf.taverna.t2.annotation.annotationbeans.DescriptiveTitle']
-        except KeyError:
-            raise AttributeError('title')
+        return self.annotations.get('net.sf.taverna.t2.annotation.annotationbeans.DescriptiveTitle')
 
     @title.setter
     def title(self, value):
@@ -215,10 +212,7 @@ class Workflow(object):
         
     @property
     def author(self):
-        try:
-            return self.annotations['net.sf.taverna.t2.annotation.annotationbeans.Author']
-        except KeyError:
-            raise AttributeError('author')
+        return self.annotations.get('net.sf.taverna.t2.annotation.annotationbeans.Author')
 
     @author.setter
     def author(self, value):
@@ -228,10 +222,7 @@ class Workflow(object):
         
     @property
     def description(self):
-        try:
-            return self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription']
-        except KeyError:
-            raise AttributeError('description')
+        return self.annotations.get('net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription')
 
     @description.setter
     def description(self, value):
@@ -239,20 +230,34 @@ class Workflow(object):
             value = Annotation(value)
         self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = value
 
+    def selectUniqueLabel(self, candidate):
+        i = 1
+        label = candidate
+        while hasattr(self.task, label):
+            i += 1
+            label = candidate + str(i)
+        return label
+
     def linkData(self, source, sink):
         if not isinstance(source, Source):
             textConstant = TextConstant(source)
-            label = candidate = textConstant.getLabel()
-            i = 1
-            while hasattr(self.task, label):
-                i += 1
-                label = candidate + str(i)
+            label = self.selectUniqueLabel(textConstant.getLabel())
             setattr(self.task, label, textConstant)
             source = getattr(self.task, label).output.value
             source.connect()
         if not isinstance(sink, Sink):
             raise TypeError("link sink must be a Sink")
-        self.dataLinks.append(DataLink(source, sink))
+        validator = sink.type.validator(source.type)
+        if validator is not None:
+            label = self.selectUniqueLabel('Validate_' + source.name)
+            setattr(self.task, label, validator)
+            task = getattr(self.task, label)
+            task.input.input.connect()
+            task.output.output.connect()
+            self.dataLinks.append(DataLink(source, task.input.input))
+            self.dataLinks.append(DataLink(task.output.output, sink))
+        else:
+            self.dataLinks.append(DataLink(source, sink))
 
     def allDescendants(self, descendants=None):
         # Create a list of all nested workflows and their nested workflows, ad infinitum

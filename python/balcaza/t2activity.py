@@ -1,8 +1,7 @@
 __all__ = ('BeanshellActivity', 'InteractionActivity', 'NestedWorkflow', 
     'NestedWorkflowFile', 'RestActivity', 'TextConstant', 'RServer')
 
-from t2base import alphanumeric
-import t2types
+from t2util import alphanumeric
 
 class Activity:
 
@@ -22,7 +21,6 @@ class Activity:
         else:
             self.outputs = outputs
 
-
 class BeanshellActivity(Activity):
 
     activityArtifact = 'beanshell-activity'
@@ -38,7 +36,7 @@ class BeanshellActivity(Activity):
         with xml.namespace() as conf:
             with conf.net.sf.taverna.t2.activities.beanshell.BeanshellActivityConfigurationBean:
                 with conf.inputs:
-                    for name, type in self.inputs:
+                    for name, type in self.inputs.items():
                         with conf.net.sf.taverna.t2.workflowmodel.processor.activity.config.ActivityInputPortDefinitionBean:
                             conf.name >> name
                             conf.depth >> type.getDepth()
@@ -46,9 +44,9 @@ class BeanshellActivity(Activity):
                                 conf.string >> 'text/plain'
                             conf.handledReferenceSchemes
                             conf.translatedElementType >> 'java.lang.String'
-                            conf.allowsLiteralValues >> 'false'
+                            conf.allowsLiteralValues >> 'true'
                 with conf.outputs:
-                    for name, type in self.outputs:
+                    for name, type in self.outputs.items():
                         with conf.net.sf.taverna.t2.workflowmodel.processor.activity.config.ActivityOutputPortDefinitionBean:
                             conf.name >> name
                             conf.depth >> type.getDepth()
@@ -99,7 +97,7 @@ class InteractionActivity(Activity):
         with xml.namespace() as conf:
             with conf.net.sf.taverna.t2.activities.interaction.InteractionActivityConfigurationBean:
                 with conf.inputs:
-                    for name, type in self.inputs:
+                    for name, type in self.inputs.items():
                         with conf.net.sf.taverna.t2.workflowmodel.processor.activity.config.ActivityInputPortDefinitionBean:
                             conf.name >> name
                             conf.depth >> type.getDepth()
@@ -109,7 +107,7 @@ class InteractionActivity(Activity):
                             conf.translatedElementType >> 'java.lang.String'
                             conf.allowsLiteralValues >> 'false'
                 with conf.outputs:
-                    for name, type in self.outputs:
+                    for name, type in self.outputs.items():
                         with conf.net.sf.taverna.t2.workflowmodel.processor.activity.config.ActivityOutputPortDefinitionBean:
                             conf.name >> name
                             conf.depth >> type.getDepth()
@@ -157,7 +155,8 @@ class TextConstant(Activity):
     activityClass = 'net.sf.taverna.t2.activities.stringconstant.StringConstantActivity'
 
     def __init__(self, text):
-        Activity.__init__(self, outputs=dict(value=t2types.String))
+        from t2types import String
+        Activity.__init__(self, outputs=dict(value=String))
         self.text = str(text)
 
     def getLabel(self):

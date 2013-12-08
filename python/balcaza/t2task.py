@@ -5,8 +5,8 @@ from t2activity import Activity
 class TaskPort(Port):
 
     def __init__(self, task, name):
+        Port.__init__(self, name)
         self.task = task
-        self.name = name
         self.activityPortName = name
         self.connected = False
 

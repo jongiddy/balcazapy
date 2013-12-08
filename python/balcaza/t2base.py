@@ -1,7 +1,3 @@
-import string
-
-alphanumeric = string.letters + string.digits
-
 class Source:
 
     def __init__(self, flow):
@@ -22,6 +18,9 @@ class Sink:
         self.flow.linkData(text, self)
 
 class Port(object):
+
+    def __init__(self, name):
+        self.name = name
 
     def connect(self):
         pass
