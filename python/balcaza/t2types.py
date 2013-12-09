@@ -1,5 +1,5 @@
-__all__ = ('Logical', 'Integer', 'Number', 'String', 'TextFile', 'PDFFile', 
-    'PNGImage', 'RExpression', 'List', 'Vector')
+__all__ = ('Logical', 'Integer', 'Number', 'String', 'TextFile', 'PDF_File', 
+    'PNG_Image', 'RExpression', 'List', 'Vector')
 
 import copy
 from t2util import BeanshellEscapeString
@@ -154,14 +154,14 @@ class NumberType(T2FlowType):
         return 'DOUBLE'
 
 Number = NumberType()
-class PNGImageType(T2FlowType):
+class PNG_ImageType(T2FlowType):
     
     def symanticType(self):
         return 'PNG_FILE'
 
-PNGImage = PNGImageType()
+PNG_Image = PNG_ImageType()
 
-PDFFile = PNGImage
+PDF_File = PNG_Image
 
 class TextFileType(T2FlowType):
 
