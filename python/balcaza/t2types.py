@@ -1,5 +1,5 @@
-__all__ = ('Logical', 'Integer', 'Number', 'String', 'TextFile', 'PNGImage',
-    'RExpression', 'List', 'Vector')
+__all__ = ('Logical', 'Integer', 'Number', 'String', 'TextFile', 'PDFFile', 
+    'PNGImage', 'RExpression', 'List', 'Vector')
 
 import copy
 from t2util import BeanshellEscapeString
@@ -129,7 +129,7 @@ class IntegerType(T2FlowType):
             script = "output = Integer.parseInt(String.trim(input));\n"
         elif isinstance(inputType, NumberType):
             script = "output = Integer.parseInt(String.trim(input));\n" # should round somehow
-        elif isinstance(inputType, Integer):
+        elif isinstance(inputType, IntegerType):
             script = ""
         if self.lower is None:
             if self.higher is None:
@@ -160,6 +160,8 @@ class PNGImageType(T2FlowType):
         return 'PNG_FILE'
 
 PNGImage = PNGImageType()
+
+PDFFile = PNGImage
 
 class TextFileType(T2FlowType):
 
