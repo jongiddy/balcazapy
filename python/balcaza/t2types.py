@@ -188,7 +188,7 @@ class ListType(T2FlowType):
             depth = elementType.depth + 1
         else:
             self.baseType = elementType
-            depth = 1
+            depth = elementType.depth + 1
         T2FlowType.__init__(self, depth)
 
     def validator(self, inputType):
