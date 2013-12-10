@@ -1,5 +1,6 @@
-__all__ = ('BeanshellActivity', 'InteractionActivity', 'NestedWorkflow', 
-    'NestedWorkflowFile', 'RestActivity', 'TextConstant', 'RServer')
+__all__ = ('BeanshellActivity', 'BeanshellFileActivity', 'InteractionActivity',
+    'NestedWorkflow', 'NestedWorkflowFile', 'RestActivity', 'TextConstant', 
+    'RServer')
 
 from t2util import alphanumeric
 
@@ -59,6 +60,11 @@ class BeanshellActivity(Activity):
                 conf.artifactDependencies
                 conf.script >> self.script
                 conf.dependencies
+
+def BeanshellFileActivity(filename, localDependencies=(), **kw):
+    with open(filename, 'r') as f:
+        script = f.read()
+    return BeanshellActivity(script, localDependencies, **kw)
 
 class NestedWorkflow(Activity):
 
