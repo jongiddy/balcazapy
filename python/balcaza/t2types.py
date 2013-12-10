@@ -142,7 +142,7 @@ class IntegerType(T2FlowType):
             else:
                 condition = "output < %d || output > %d" % (self.lower, self.higher)
         if condition is not None:
-            script += 'if (%s) {\n  throw new RuntimeException("integer out of bounds");\n}\n' % self.condition
+            script += 'if (%s) {\n  throw new RuntimeException("integer out of bounds");\n}\n' % condition
         if script:
             return BeanshellActivity(script, inputs={'input': T2FlowType()}, outputs={'output': T2FlowType()})
 
