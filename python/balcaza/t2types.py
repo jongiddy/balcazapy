@@ -125,25 +125,36 @@ class IntegerType(T2FlowType):
     def validator(self, inputType):
         if isinstance(inputType, ListType):
             inputType = inputType.baseType
+        if isinstance(inputType, IntegerType):
+            return self.integerValidator(inputType)
         if isinstance(inputType, StringType):
             script = "output = Integer.parseInt(String.trim(input));\n"
         elif isinstance(inputType, NumberType):
-            script = "output = Integer.parseInt(String.trim(input));\n" # should round somehow
-        elif isinstance(inputType, IntegerType):
-            script = ""
-        if self.lower is None:
-            if self.higher is None:
-                condition = None
-            else:
-                condition = "output > %d" % self.higher
+            script = "output = input.intValue();\n"
         else:
-            if self.higher is None:
-                condition = "output < %d" % self.lower
-            else:
-                condition = "output < %d || output > %d" % (self.lower, self.higher)
-        if condition is not None:
+            raise RuntimeError('incompatible input to Integer')
+        conditions = []
+        if self.lower is not None:
+            conditions.append("output < %d" % self.lower)
+        if self.higher is not None:
+            conditions.append("output > %d" % self.higher)
+        condition = ' || '.join(conditions)
+        if condition:
             script += 'if (%s) {\n  throw new RuntimeException("integer out of bounds");\n}\n' % condition
         if script:
+            return BeanshellActivity(script, inputs={'input': T2FlowType()}, outputs={'output': T2FlowType()})
+
+    def integerValidator(self, inputType):
+        conditions = []
+        if self.lower is not None:
+            if inputType.lower is None or inputType.lower < self.lower:
+                conditions.append("output < %d" % self.lower)
+        if self.higher is not None:
+            if inputType.higher is None or inputType.higher > self.higher:
+                conditions.append("output > %d" % self.higher)
+        condition = ' || '.join(conditions)
+        if condition:
+            script = '''output = input;\nif (%s) {\n  throw new RuntimeException("integer out of bounds");\n}\n''' % condition
             return BeanshellActivity(script, inputs={'input': T2FlowType()}, outputs={'output': T2FlowType()})
 
 Integer = IntegerType()
