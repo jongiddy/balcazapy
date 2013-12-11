@@ -183,12 +183,35 @@ class TextConstant(Activity):
             with conf.net.sf.taverna.t2.activities.stringconstant.StringConstantConfigurationBean:
                 conf.value >> self.text
 
+class RServerDict(dict):
+
+    def __init__(self, script, dictionary):
+        self.script = script
+        if dictionary is not None:
+            dict.update(self, dictionary)
+            self.dict = {}
+        else:
+            self.dict = dictionary
+
+    def __getitem__(self, name):
+        if not dict.__contains__(self, name):
+            # If the variable has not been named as an input/output for the 
+            # RShell, we check (poorly) whether the variable appears in the
+            # script. If it does, act as though the variable had been mentioned
+            # as an input/output of type RExpression.
+            if name in self.script:
+                import t2types
+                dict.__setitem__(self, name, t2types.RExpression)
+        return dict.__getitem__(self, name)
+
 class RServerActivity(Activity):
 
     activityArtifact = 'rshell-activity'
     activityClass = 'net.sf.taverna.t2.activities.rshell.RshellActivity'
 
     def __init__(self, rserve, script, **kw):
+        kw['inputs'] = RServerDict(script, kw.get('inputs'))
+        kw['outputs'] = RServerDict(script, kw.get('outputs'))
         Activity.__init__(self, **kw)
         self.rserve = rserve
         self.script = script
