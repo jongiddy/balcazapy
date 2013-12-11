@@ -53,7 +53,7 @@ flow.input.stageMatrix >> flow.task.CalculatePlotSize.input.stage_matrix['stage.
 flow.task.ProjectionMatrix = rserve.runFile(
 	"projectionMatrix.R",
 	inputs=dict(plot_title=String, stage_matrix=RExpression, plot_size=Integer),
-	outputs=dict(plot_image=PNGImage)
+	outputs=dict(plot_image=PNG_Image)
 	)
 flow.task.ProjectionMatrix.description = 'Create a projection matrix'
 
@@ -64,7 +64,7 @@ flow.task.ProjectionMatrix.description = 'Create a projection matrix'
 flow.input.stageMatrix >> flow.task.ProjectionMatrix.input.stage_matrix
 flow.task.CalculatePlotSize.output.plot_size >> flow.task.ProjectionMatrix.input.plot_size
 
-flow.output.projectionMatrix = PNGImage(description='Plot of results')
+flow.output.projectionMatrix = PNG_Image(description='Plot of results')
 
 flow.task.ProjectionMatrix.output.plot_image >> flow.output.projectionMatrix
 

@@ -57,7 +57,7 @@ inner.input.stageMatrix >> inner.task.CalculatePlotSize.input.stage_matrix['stag
 inner.task.ProjectionMatrix = rserve.runFile(
 	"projectionMatrix.R",
 	inputs=dict(plot_title=String, stage_matrix=RExpression, plot_size=Integer),
-	outputs=dict(plot_image=PNGImage)
+	outputs=dict(plot_image=PNG_Image)
 	)
 inner.task.ProjectionMatrix.description = 'Create a projection matrix'
 
@@ -68,7 +68,7 @@ inner.task.ProjectionMatrix.description = 'Create a projection matrix'
 inner.input.stageMatrix >> inner.task.ProjectionMatrix.input.stage_matrix
 inner.task.CalculatePlotSize.output.plot_size >> inner.task.ProjectionMatrix.input.plot_size
 
-inner.output.projectionMatrix = PNGImage(description='Plot of results')
+inner.output.projectionMatrix = PNG_Image(description='Plot of results')
 
 inner.task.ProjectionMatrix.output.plot_image >> inner.output.projectionMatrix
 
@@ -119,7 +119,7 @@ outer.input.stages >> outer.task.ReadMatrix.input.stages
 outer.task.ReadMatrix.output.stage_matrix >> outer.task.ProjectionMatrix.input.stageMatrix # not inner.input.stageMatrix !
 outer.input.speciesName >> outer.task.ProjectionMatrix.input.speciesName
 
-outer.output.projectionMatrix = PNGImage(description = "A projection matrix")
+outer.output.projectionMatrix = PNG_Image(description = "A projection matrix")
 
 outer.task.ProjectionMatrix.output.projectionMatrix >> outer.output.projectionMatrix
 

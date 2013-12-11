@@ -54,7 +54,7 @@ flow.input.stages >> flow.task.ReadMatrix.input.stages
 
 flow.task.ReadMatrix.output.stage_matrix >> flow.task.ProjectionMatrix.input.stageMatrix # not inner.input.stageMatrix !
 
-flow.output.projectionMatrix = PNGImage(description = "A projection matrix")
+flow.output.projectionMatrix = PNG_Image(description = "A projection matrix")
 
 flow.task.ProjectionMatrix.output.projectionMatrix >> flow.output.projectionMatrix
 
