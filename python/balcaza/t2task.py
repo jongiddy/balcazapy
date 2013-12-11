@@ -132,8 +132,14 @@ class WorkflowTask(object):
     def mapOutput(self, processorPort, activityPort):
         self.activity.outputs[activityPort]
         if self.outputMap.has_key(activityPort):
-            raise RuntimeError('activity output "%s" already mapped' % activityPort)
-        self.outputMap[activityPort] = processorPort
+            if self.outputMap[activityPort] != processorPort:
+                raise RuntimeError('activity output "%s" already mapped' % activityPort)
+            else:
+                # OK to map activity port to same processor port multiple times.
+                # This happens when an output is an input to multiple inputs
+                pass
+        else:
+            self.outputMap[activityPort] = processorPort
         return self.activity.outputs[activityPort]
 
     @property
