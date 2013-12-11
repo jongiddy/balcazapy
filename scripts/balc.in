@@ -6,5 +6,6 @@ if [ -z "$1" ]; then
 fi
 
 BALCAZAPY_HOME=@BALCAZAPY_HOME@
+export BALCAZAPY_HOME
 
 PYTHONPATH=${BALCAZAPY_HOME}/python @PYTHON@ "$@"

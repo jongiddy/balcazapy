@@ -275,7 +275,7 @@ class Workflow(object):
         # it is only added to the file once.
         uuidCache = set()
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
-            with tav.workflow(version=1, producedBy="pyt2flow"):
+            with tav.workflow(version=1, producedBy=getCreator()):
                 self.exportXMLDataflow(xml, 'top')
                 for flow in self.allDescendants():
                     if flow.id not in uuidCache:
@@ -303,3 +303,27 @@ class Workflow(object):
                     for annotationClass, annotation in self.annotations.items():
                         annotation.exportXML(xml, annotationClass)
 
+def getCreator():
+    from subprocess import check_output
+    import os, traceback
+    repo = "http://github.com/jongiddy/balcazapy"
+    hash = " unknown version"
+    modifications = ""
+    try:
+        balcazapy_home = os.environ['BALCAZAPY_HOME']
+        output = check_output(["git", "config", "--get", "remote.origin.url"], cwd=balcazapy_home).strip()
+        if output:
+            repo = output
+        words = check_output(["git", "show-ref", "--hash=10"], cwd=balcazapy_home).split()
+        localHash = words[0]
+        remoteHash = words[1]
+        if remoteHash == localHash:
+            hash = " " + localHash
+        else:
+            hash = " %s (remote %s)" % (localHash, remoteHash)
+        if check_output(["git", "ls-files", "-m"], cwd=balcazapy_home).strip():
+            modifications = ' with local modifications'
+    except:
+        traceback.print_exc()
+    creator = "Balcazapy %s%s%s" % (repo, hash, modifications)
+    return creator
