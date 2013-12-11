@@ -210,17 +210,18 @@ class RServerActivity(Activity):
     activityClass = 'net.sf.taverna.t2.activities.rshell.RshellActivity'
 
     def __init__(self, rserve, script, **kw):
+        # Taverna 2.4 adds lines to the to the end of a script to access output
+        # values, but does not add a newline to separate the last line of our
+        # script from the first line added by Taverna. So, we ensure the script
+        # ends with a newline.
+        script = script.strip() + '\n'
+        # We replace the input and output dictionaries with alternatives that
+        # can check the script for additional variables.
         kw['inputs'] = RServerDict(script, kw.get('inputs'))
         kw['outputs'] = RServerDict(script, kw.get('outputs'))
         Activity.__init__(self, **kw)
         self.rserve = rserve
-        self.script = script
-        if not script.endswith('\n'):
-            # Taverna 2.4 adds lines to the to the end of a script to 
-            # access output values, but does not add a newline to separate
-            # the last line of our script from the first line added by
-            # Taverna. So, we ensure the script ends with a newline.
-            self.script += '\n'
+        self.script = script.strip() + '\n'
 
     def exportConfigurationXML(self, xml):
         with xml.namespace() as config:
