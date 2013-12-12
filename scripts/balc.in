@@ -1,11 +1,12 @@
 #!/bin/sh
 
-if [ -z "$1" ]; then
-	echo "Usage: $0 <balc.py>" >&2
-	exit 1
-fi
-
 BALCAZAPY_HOME=@BALCAZAPY_HOME@
 export BALCAZAPY_HOME
 
-PYTHONPATH=${BALCAZAPY_HOME}/python @PYTHON@ "$@"
+BALCAZAPROG=$0
+export BALCAZAPROG
+
+PYTHONPATH=${BALCAZAPY_HOME}/python
+export PYTHONPATH
+
+exec @PYTHON@ ${BALCAZAPY_HOME}/python/balcaza/T2FlowBuilder.py "$@"

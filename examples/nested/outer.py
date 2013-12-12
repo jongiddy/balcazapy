@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
-### Do not edit the lines at the top and bottom of this file.
-### Edit the workflow description between START and FINISH comments
 from balcaza.t2types import *
 from balcaza.t2activity import *
 from balcaza.t2flow import *
 
-### START editing your workflow below here
-#
 # This example creates a simple nested workflow. First, create the main workflow:
 
 rserve = RServer()
@@ -58,22 +54,3 @@ flow.output.projectionMatrix = PNG_Image(description = "A projection matrix")
 
 flow.task.ProjectionMatrix.output.projectionMatrix >> flow.output.projectionMatrix
 
-
-# Set compressed = True to create a smaller workflow file
-# Set compressed = False to create a workflow indented for readability
-
-compressed = True
-
-# FINISH your workflow above here, and do not change the lines below
-
-if __name__ == '__main__':
-	import codecs, sys
-	import maximal.XMLExport as XMLExport
-
-	UTF8Writer = codecs.getwriter('utf8')
-	stdout = UTF8Writer(sys.stdout)
-
-	if compressed:
-		flow.exportXML(XMLExport.XMLExporter(XMLExport.XMLCompressor(stdout)))
-	else:
-		flow.exportXML(XMLExport.XMLExporter(XMLExport.XMLIndenter(stdout)))

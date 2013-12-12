@@ -23,5 +23,5 @@ PATH, copy the "balc" executable to somewhere in your PATH, or reference "balc"
 with an absolute path name.
 
 To create a t2flow file:
-$ balc myfile.py > myflow.t2flow
+$ balc myfile.py myflow.t2flow
 
