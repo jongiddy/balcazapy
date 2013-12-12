@@ -2,7 +2,7 @@ __all__ = ("Workflow",)
 
 import uuid
 
-from t2base import Namespace, Port, Source, Sink
+from t2base import Namespace, Port, Ports, Source, Sink
 from t2types import T2FlowType
 from t2annotation import Annotation
 from t2activity import NestedWorkflow, TextConstant
@@ -100,16 +100,13 @@ class WorkflowOutputPort(WorkflowPort, Sink):
             with tav.sink(type="dataflow"):
                 tav.port >> self.name
 
-class WorkflowPorts(object):
+class WorkflowPorts(Ports):
 
-    def __init__(self, flow):
-        super(WorkflowPorts, self).__setattr__('_', Namespace())
-        self._.flow = flow
-        self._.ports = {}
-        self._.order = []
+    def __getitem__(self, name):
+        return self.__getattr__(name)
 
-    def __getitem__(self, index):
-        return self._.ports[self._.order[index]]
+    def __setitem__(self, name, type):
+        return self.__setattr__(name, type)
 
     def __setattr__(self, name, type):
         # flow.input.name = type

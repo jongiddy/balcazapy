@@ -1,4 +1,4 @@
-from t2base import Namespace, Port, Source, Sink
+from t2base import Namespace, Port, Ports, Source, Sink
 from t2annotation import Annotation
 from t2activity import Activity
 
@@ -74,20 +74,11 @@ class TaskOutputPort(TaskPort, Source):
                 tav.processor >> self.task.name
                 tav.port >> self.name
 
-class TaskPorts(object):
+class TaskPorts(Ports):
 
     def __init__(self, flow, task):
-        super(TaskPorts, self).__setattr__('_', Namespace())
-        self._.flow = flow
+        super(TaskPorts, self).__init__(flow)
         self._.task = task
-        self._.ports = {}
-        self._.order = []
-
-    def __len__(self):
-        return len(self._.ports)
-
-    def __getitem__(self, index):
-        return self._.ports[self._.order[index]]
 
     def __getattr__(self, name):
         if self._.ports.has_key(name):
