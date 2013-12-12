@@ -41,7 +41,7 @@ J. Gerard B. Oostermeijer; M.L. Brugman; E.R. de Boer; H.C.M. Den Nijs. 1996. Te
 flow.input.stages = List[String]
 
 
-rshell = rserve.runFile(
+rshell = rserve.file(
 	"readMatrix.R",
 	inputs = dict(stage_matrix_file=TextFile, stages=Vector[String]),
 	outputs = dict(stage_matrix=RExpression)

@@ -3,7 +3,7 @@ __all__ = ('Logical', 'Integer', 'Number', 'String', 'TextFile', 'PDF_File',
 
 import copy
 from t2util import BeanshellEscapeString
-from t2activity import BeanshellActivity
+from t2activity import BeanshellCode
 
 class T2FlowType:
 
@@ -67,7 +67,7 @@ default:
 \tthrow RuntimeException("Invalid value");
 }
 """
-        return BeanshellActivity(script, inputs={'input': T2FlowType()}, 
+        return BeanshellCode(script, inputs={'input': T2FlowType()}, 
             outputs={'output': T2FlowType()})
 
 String = StringType()
@@ -142,7 +142,7 @@ class IntegerType(T2FlowType):
         if condition:
             script += 'if (%s) {\n  throw new RuntimeException("integer out of bounds");\n}\n' % condition
         if script:
-            return BeanshellActivity(script, inputs={'input': T2FlowType()}, outputs={'output': T2FlowType()})
+            return BeanshellCode(script, inputs={'input': T2FlowType()}, outputs={'output': T2FlowType()})
 
     def integerValidator(self, inputType):
         conditions = []
@@ -155,7 +155,7 @@ class IntegerType(T2FlowType):
         condition = ' || '.join(conditions)
         if condition:
             script = '''output = input;\nif (%s) {\n  throw new RuntimeException("integer out of bounds");\n}\n''' % condition
-            return BeanshellActivity(script, inputs={'input': T2FlowType()}, outputs={'output': T2FlowType()})
+            return BeanshellCode(script, inputs={'input': T2FlowType()}, outputs={'output': T2FlowType()})
 
 Integer = IntegerType()
 

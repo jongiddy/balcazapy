@@ -1,4 +1,4 @@
-__all__ = ('BeanshellActivity', 'BeanshellFileActivity', 'InteractionActivity',
+__all__ = ('BeanshellCode', 'BeanshellFile', 'InteractionPage',
     'NestedWorkflow', 'NestedWorkflowFile', 'RestActivity', 'TextConstant', 
     'RServer')
 
@@ -22,7 +22,7 @@ class Activity:
         else:
             self.outputs = outputs
 
-class BeanshellActivity(Activity):
+class BeanshellCode(Activity):
 
     activityArtifact = 'beanshell-activity'
     activityVersion = '1.0.4'
@@ -61,10 +61,10 @@ class BeanshellActivity(Activity):
                 conf.script >> self.script
                 conf.dependencies
 
-def BeanshellFileActivity(filename, localDependencies=(), **kw):
+def BeanshellFile(filename, localDependencies=(), **kw):
     with open(filename, 'r') as f:
         script = f.read()
-    return BeanshellActivity(script, localDependencies, **kw)
+    return BeanshellCode(script, localDependencies, **kw)
 
 class NestedWorkflow(Activity):
 
@@ -89,7 +89,7 @@ def NestedWorkflowFile(filename, flowname='flow'):
     flow = module[flowname]
     return NestedWorkflow(flow)
 
-class InteractionActivity(Activity):
+class InteractionPage(Activity):
 
     activityArtifact = 'interaction-activity'
     activityVersion = '1.0.4'
@@ -267,13 +267,10 @@ class RServer:
             conn.host >> self.host
             conn.port >> self.port
 
-    def Activity(self, script, **kw):
+    def code(self, script, **kw):
         return RServerActivity(self, script, **kw)
 
-    def runScript(self, script, **kw):
-        return RServerActivity(self, script, **kw)
-
-    def runFile(self, filename, encoding='utf-8', **kw):
+    def file(self, filename, encoding='utf-8', **kw):
         import codecs
         with codecs.open(filename, encoding=encoding) as f:
             return RServerActivity(self, f.read(), **kw)

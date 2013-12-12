@@ -34,7 +34,7 @@ rserve = RServer()
 # the inputs and outputs. Note that the {} form and dict() form are similar, 
 # but {} requires quotes, while dict() cannot handle names containing dots
 
-flow.task.CalculatePlotSize = rserve.runScript(
+flow.task.CalculatePlotSize = rserve.code(
 	"plot_size <- 128 + 32 * dim(stage.matrix)[1]",
 	inputs = {'stage.matrix': RExpression},
 	outputs = dict(plot_size = Integer)
@@ -50,7 +50,7 @@ flow.input.stageMatrix >> flow.task.CalculatePlotSize.input.stage_matrix['stage.
 
 # Create another RShell, this time from an external R file
 
-flow.task.ProjectionMatrix = rserve.runFile(
+flow.task.ProjectionMatrix = rserve.file(
 	"projectionMatrix.R",
 	inputs=dict(plot_title=String, stage_matrix=RExpression, plot_size=Integer),
 	outputs=dict(plot_image=PNG_Image)

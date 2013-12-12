@@ -13,7 +13,7 @@ from balcaza.t2wrapper import WrapperWorkflow
 flow = Workflow(title='Projection Matrix')
 
 
-flow.task.Process = BeanshellActivity("output = input1 + input2;",
+flow.task.Process = BeanshellCode("output = input1 + input2;",
 	inputs=dict(
 		input1=String['YES', 'NO'](description="Choose YES or NO", example="YES"),
 		input2=Logical),

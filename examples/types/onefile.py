@@ -12,7 +12,7 @@ from balcaza.t2flow import *
 flow = Workflow(title='Projection Matrix')
 
 
-flow.task.Process = BeanshellActivity("output = input1 + input2;",
+flow.task.Process = BeanshellCode("output = input1 + input2;",
 	inputs=dict(input1=String['YES', 'NO'], input2=Logical),
 	outputs=dict(output=String))
 
