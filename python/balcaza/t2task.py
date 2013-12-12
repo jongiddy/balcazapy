@@ -1,4 +1,4 @@
-from t2base import Namespace, Port, Ports, Source, Sink
+from t2base import Namespace, OrderedMapIterator, Port, Ports, Source, Sink
 from t2annotation import Annotation
 from t2activity import Activity
 
@@ -249,16 +249,21 @@ class WorkflowTasks(object):
         self._.tasks = {}
         self._.order = []
 
-    def __getitem__(self, index):
-        return self._.tasks[self._.order[index]]
+    def __iter__(self):
+        return OrderedMapIterator(self._.tasks, self._.order)
+
+    def __getitem__(self, name):
+        return self.__getattr__(name)
+
+    def __setitem__(self, name, activity):
+        return self.__setattr__(name, activity)
 
     def __setattr__(self, name, activity):
-        from t2flow import Workflow
         # flow.input.name = type
         if self._.tasks.has_key(name):
             raise RuntimeError('task "%s" defined twice for workflow "%s"' % (name, self._.flow.name))
         if not isinstance(activity, Activity):
-            raise TypeError('cannot assign non-Activity %s to task "%s"' % (`activity`, name))
+            raise TypeError('cannot assign non-Activity %s to task "%s"' % (repr(activity), name))
         self._.tasks[name] = WorkflowTask(self._.flow, name, activity)
         self._.order.append(name)
 

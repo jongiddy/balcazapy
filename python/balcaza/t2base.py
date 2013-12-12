@@ -25,11 +25,11 @@ class Port(object):
     def connect(self):
         pass
 
-class PortsIterator(object):
+class OrderedMapIterator(object):
 
-    def __init__(self, ns):
-        self.ports = ns.ports
-        self.order = ns.order
+    def __init__(self, map, order):
+        self.map = map
+        self.order = order
         self.i = 0
 
     def __iter__(self):
@@ -38,9 +38,9 @@ class PortsIterator(object):
     def next(self):
         if self.i >= len(self.order):
             raise StopIteration
-        port = self.ports[self.order[self.i]]
+        item = self.map[self.order[self.i]]
         self.i += 1
-        return port
+        return item
 
 class Ports(object):
 
@@ -54,7 +54,7 @@ class Ports(object):
         return len(self._.ports)
 
     def __iter__(self):
-        return PortsIterator(self._)
+        return OrderedMapIterator(self._.ports, self._.order)
 
     def __getitem__(self, name):
         return self.__getattr__(name)

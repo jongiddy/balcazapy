@@ -2,7 +2,7 @@ __all__ = ("Workflow",)
 
 import uuid
 
-from t2base import Namespace, Port, Ports, Source, Sink
+from t2base import Port, Ports, Source, Sink
 from t2types import T2FlowType
 from t2annotation import Annotation
 from t2activity import NestedWorkflow, TextConstant
