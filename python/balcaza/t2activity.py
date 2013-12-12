@@ -2,7 +2,7 @@ __all__ = ('BeanshellCode', 'BeanshellFile', 'InteractionPage',
     'NestedWorkflow', 'NestedWorkflowFile', 'RestActivity', 'TextConstant', 
     'RServer')
 
-from t2util import alphanumeric
+from t2util import alphanumeric, getAbsolutePathRelativeToCaller
 
 class Activity:
 
@@ -62,7 +62,7 @@ class BeanshellCode(Activity):
                 conf.dependencies
 
 def BeanshellFile(filename, localDependencies=(), **kw):
-    with open(filename, 'r') as f:
+    with open(getAbsolutePathRelativeToCaller(filename), 'r') as f:
         script = f.read()
     return BeanshellCode(script, localDependencies, **kw)
 
@@ -81,7 +81,7 @@ class NestedWorkflow(Activity):
             tav.dataflow(ref=self.flow.getId())
 
 def NestedWorkflowFile(filename, flowname='flow'):
-    with open(filename, 'r') as f:
+    with open(getAbsolutePathRelativeToCaller(filename), 'r') as f:
         source = f.read()
     code = compile(source, filename, 'exec')
     module = {}
@@ -272,5 +272,5 @@ class RServer:
 
     def file(self, filename, encoding='utf-8', **kw):
         import codecs
-        with codecs.open(filename, encoding=encoding) as f:
+        with codecs.open(getAbsolutePathRelativeToCaller(filename), encoding=encoding) as f:
             return RServerActivity(self, f.read(), **kw)

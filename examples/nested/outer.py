@@ -12,10 +12,11 @@ flow = Workflow(title='Create Projection Matrix', author="Maria and Jon",
 
 # and add the nested workflow (treat the nested workflow just like any other acivity)
 
-flow.task.ProjectionMatrix = NestedWorkflowFile('inner.py')
+from inner import ProjectionMatrix
+
+flow.task.ProjectionMatrix = ProjectionMatrix
 
 flow.input.speciesName = flow.task.ProjectionMatrix.input.speciesName
-
 
 flow.input.stageMatrixFile = TextFile(
 	description = """The stage matrix file input port:

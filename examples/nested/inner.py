@@ -32,7 +32,6 @@ rserve = RServer()
 
 flow.task.CalculatePlotSize = rserve.code(
 	"plot_size <- 128 + 32 * dim(stage.matrix)[1]",
-	inputs = {'stage.matrix': RExpression},
 	outputs = dict(plot_size = Integer)
 	)
 
@@ -41,6 +40,9 @@ flow.task.CalculatePlotSize = rserve.code(
 # 
 # For RShell, if an R variable name is not a valid Taverna name (e.g. it contains a dot)
 # use [] to provide the R variable name after the Taverna name
+#
+# Note that RExpression inputs and outputs do not need to be specified as inputs
+# or outputs above.
 
 flow.input.stageMatrix >> flow.task.CalculatePlotSize.input.stage_matrix['stage.matrix']
 
@@ -48,7 +50,7 @@ flow.input.stageMatrix >> flow.task.CalculatePlotSize.input.stage_matrix['stage.
 
 flow.task.ProjectionMatrix = rserve.file(
 	"projectionMatrix.R",
-	inputs=dict(plot_title=String, stage_matrix=RExpression, plot_size=Integer),
+	inputs=dict(plot_title=String, plot_size=Integer),
 	outputs=dict(plot_image=PNG_Image)
 	)
 flow.task.ProjectionMatrix.description = 'Create a projection matrix'
@@ -64,4 +66,6 @@ flow.output.projectionMatrix = PNG_Image(description='Plot of results')
 
 flow.task.ProjectionMatrix.output.plot_image >> flow.output.projectionMatrix
 
+# Create a nested workflow that can be imported into other workflows
 
+ProjectionMatrix = NestedWorkflow(flow)
