@@ -191,9 +191,15 @@ class WorkflowTask(object):
                         proc['class'] >> self.activity.activityClass
                         with proc.inputMap:
                             for activityPort, processorPort in self.inputMap.items():
+                                if self.flow.isWorkbenchSafe() and activityPort != processorPort:
+                                    self.activity.mapInputPort(activityPort, processorPort)
+                                    activityPort = processorPort
                                 proc.map({'from': processorPort}, to=activityPort)
                         with proc.outputMap:
                             for activityPort, processorPort in self.outputMap.items():
+                                if self.flow.isWorkbenchSafe() and activityPort != processorPort:
+                                    self.activity.mapOutputPort(activityPort, processorPort)
+                                    activityPort = processorPort
                                 proc.map({'from': activityPort}, to=processorPort)
                         with proc.configBean(encoding=self.activity.configEncoding):
                             self.activity.exportConfigurationXML(xml)

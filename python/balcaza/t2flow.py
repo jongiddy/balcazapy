@@ -227,6 +227,14 @@ class Workflow(object):
             value = Annotation(value)
         self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = value
 
+    def isWorkbenchSafe(self):
+        # If this is set to False, RServe activities will use direct mapping of 
+        # dotted names. Taverna Engine is OK with this, but Workbench cannot
+        # display the links or edit the component.
+        # If it is True, the RServe activity will add lines to the start and
+        # end of the script to map to Workbench-friendly names inside the script.
+        return True
+
     def selectUniqueLabel(self, namespace, candidate):
         i = 1
         label = candidate

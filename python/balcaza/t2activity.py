@@ -223,6 +223,20 @@ class RServerActivity(Activity):
         self.rserve = rserve
         self.script = script.strip() + '\n'
 
+    def mapInputPort(self, activityPort, newName):
+        if self.inputs.has_key(newName):
+            raise RuntimeError('reused port name "%s"' % newName)
+        self.inputs[newName] = self.inputs[activityPort]
+        del self.inputs[activityPort]
+        self.script = '%s <- %s # for Taverna Workbench compatibility\n' % (activityPort, newName) + self.script
+
+    def mapOutputPort(self, activityPort, newName):
+        if self.outputs.has_key(newName):
+            raise RuntimeError('reused port name "%s"' % newName)
+        self.outputs[newName] = self.outputs[activityPort]
+        del self.outputs[activityPort]
+        self.script += '%s <- %s # for Taverna Workbench compatibility\n' % (newName, activityPort)
+
     def exportConfigurationXML(self, xml):
         with xml.namespace() as config:
             with config.net.sf.taverna.t2.activities.rshell.RshellActivityConfigurationBean:
