@@ -128,7 +128,7 @@ class IntegerType(T2FlowType):
         if isinstance(inputType, IntegerType):
             return self.integerValidator(inputType)
         if isinstance(inputType, StringType):
-            script = "output = Integer.parseInt(String.trim(input));\n"
+            script = "output = Integer.parseInt(input.trim());\n"
         elif isinstance(inputType, NumberType):
             script = "output = input.intValue();\n"
         else:
