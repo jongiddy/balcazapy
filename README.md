@@ -100,7 +100,7 @@ for (Iterator i = stringlist.iterator(); i.hasNext();) {
 concatenated = sb.toString();
 """,
 	inputs=dict(
-		stringlist=List[String]
+		stringlist=List[String],
 		seperator=String
 		),
 	output=dict(
@@ -115,7 +115,7 @@ or
 BeanshellFile(
 	'file.bsh',
 	inputs=dict(
-		stringlist=List[String]
+		stringlist=List[String],
 		seperator=String
 		),
 	output=dict(
