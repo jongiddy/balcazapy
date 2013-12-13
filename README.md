@@ -85,9 +85,27 @@ Create using:
 
 ```python
 BeanshellCode(
-	script,
-	inputs=dict(in1=List[String]),
-	output=dict(out1=String)
+	"""String seperatorString = "\n";
+if (seperator != void) {
+	seperatorString = seperator;
+}
+StringBuffer sb = new StringBuffer();
+for (Iterator i = stringlist.iterator(); i.hasNext();) {
+	String item = (String) i.next();
+	sb.append(item);
+	if (i.hasNext()) {
+		sb.append(seperatorString);
+	}
+}
+concatenated = sb.toString();
+""",
+	inputs=dict(
+		stringlist=List[String]
+		seperator=String
+		),
+	output=dict(
+		concatenated=String
+		)
 	)
 ```
 
@@ -96,8 +114,13 @@ or
 ```python
 BeanshellFile(
 	'file.bsh',
-	inputs=dict(in1=List[String]),
-	output=dict(out1=String))
+	inputs=dict(
+		stringlist=List[String]
+		seperator=String
+		),
+	output=dict(
+		concatenated=String
+		)
 	)
 ```
 
