@@ -15,19 +15,20 @@ PATH, copy the "balc" executable to somewhere in your PATH, or reference "balc" 
 
 1.	Install Python 2.7 from http://www.python.org/
 
-	- Python 3 is also available. Balcazapy does not yet work with Python 3.
-	- On Windows, use the appropriate 32-bit or 64-bit MSI Installer. Use Control Panel -> System and Security -> System to check whether your Windows version is 32-bit or 64-bit. You do not need the MSI program database.
-	- Use the default values for installation.
+	Python 3 is also available. Balcazapy does not yet work with Python 3.
+	
+	On Windows, use the appropriate 32-bit or 64-bit MSI Installer. Use Control Panel -> System and Security -> System to check whether your Windows version is 32-bit or 64-bit. You do not need the MSI program database.
+	
+	Use the default values for installation.
 
 2.	Install Git from http://git-scm.com/
 
-	- Use the default values for installation, EXCEPT:
-	- for Adjusting your PATH environment, select Run Git from the Windows Command Prompt
+	Use the default values for installation, EXCEPT for Adjusting your PATH environment, select Run Git from the Windows Command Prompt
 
 3.	Go to http://github.com/jongiddy/balcazapy and copy the HTTPS clone 
 URL on the right to the clipboard.
 
-	- Click on the clipboard-arrow icon to copy the URL to the clipboard
+	Click on the clipboard-arrow icon to copy the URL to the clipboard
 
 4.	Open a command window (Start menu -> Accessories -> Command Prompt).
 
@@ -43,7 +44,7 @@ URL on the right to the clipboard.
 	> git clone https://github.com/jongiddy/balcazapy.git
 	```
 
-	- Note, this creates a folder called balcazapy
+	Note, this creates a folder called balcazapy
 
 7.	Check values in setup.bat, then run:
 
@@ -51,8 +52,8 @@ URL on the right to the clipboard.
 	> setup.bat
 	```
 
-This installs a command "balc" into the bin folder. Add the bin folder to your
-PATH, copy the "balc" executable to somewhere in your PATH, or reference "balc" 
+This installs a batch script "balc.bat" into the bin folder. Add the bin folder to your
+PATH, copy the "balc.bat" script to somewhere in your PATH, or reference "balc.bat" 
 with an absolute path name.
 
 ## Creating a Balcazapy Description File
