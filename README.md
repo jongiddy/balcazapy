@@ -26,13 +26,24 @@ with an absolute path name.
 Balcazapy files are Python files. Hence, they have a .py suffix. Using the Python format allow them, to be edited in highlighting editors, including Idle, the editor that comes with Python.
 
 ### Prologue
-Python requires that (almost) all names used but not defined in a file, are imported from libraries. To make use of Balcazar, start with these lines:
+Python requires that (almost) all names used but not defined in a file, are imported from libraries. To make use of Balcazapy, start with these lines:
 
 ```python
 from balcaza.t2types import *
 from balcaza.t2activity import *
 from balcaza.t2flow import *
 ```
+
+### Workflows
+
+Create a workflow using:
+
+```python
+flow = Workflow(title='Create Projection Matrix', author="Maria and Jon",
+	description="Create a projection matrix from a stage matrix and a list of stages")
+
+```
+
 ### Types
 
 For input and output ports, and for some activities, you will need to specify a 
@@ -65,7 +76,8 @@ e.g.
 
 ### Activities
 
-Activities are the boxes you see in a workflow. Activities describe a particular task to be performed. There are several types of activities.
+Activities are the boxes you see in a workflow. Activities describe a particular 
+task to be performed. There are several types of activities.
 
 #### Beanshell
 
@@ -133,7 +145,8 @@ rserve.file('file.r')
 ```
 
 For RServe activities, you do not need to specify an input or output port, if it
-is an RExpression.
+is an RExpression. This is most useful when connecting two R codes.
+
 
 ### Tasks
 
@@ -150,13 +163,21 @@ flow.task.MyTask = rserve.code(
 
 ### Input and output ports
 
-Link input and output ports using the >> operator.
+Create input and output ports using the flow.input and flow.output variables.
 
 ```python
 flow.input.InputValue = List[Integer]
-flow.input.InputValue >> flow.task.MyTask.input.y
-
 flow.output.OutputValue = List[Integer]
+```
+
+### Creating data links
+
+Link ports using the >> operator. Output ports can be part of multiple links.
+Input ports must only be linked once.
+
+```python
+flow.input.InputValue >> flow.task.MyTask.input.y
+flow.task.MyTask.output.x >> flow.task.AnotherTask.input.x
 flow.task.MyTask.output.x >> flow.output.OutputValue
 ```
 
@@ -167,7 +188,6 @@ equals sign. The example above could be created as:
 
 ```python
 flow.input.InputValue = flow.task.MyTask.input.y
-
 flow.output.OutputValue = flow.task.MyTask.output.x
 ```
 
