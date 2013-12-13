@@ -239,16 +239,16 @@ class Workflow(object):
         if not isinstance(source, Source):
             textConstant = TextConstant(source)
             label = self.selectUniqueLabel(textConstant.getLabel())
-            setattr(self.task, label, textConstant)
-            source = getattr(self.task, label).output.value
+            self.task[label] = textConstant
+            source = self.task[label].output.value
             source.connect()
         if not isinstance(sink, Sink):
             raise TypeError("link sink must be a Sink")
         validator = sink.type.validator(source.type)
         if validator is not None:
             label = self.selectUniqueLabel('Validate_' + source.name)
-            setattr(self.task, label, validator)
-            task = getattr(self.task, label)
+            self.task[label] = validator
+            task = self.task[label]
             task.input.input.connect()
             task.output.output.connect()
             self.dataLinks.append(DataLink(source, task.input.input))
