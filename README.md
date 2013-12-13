@@ -129,7 +129,15 @@ BeanshellFile(
 Create using:
 
 ```python
-InteractionPage(url)
+InteractionPage(url,
+	inputs=dict(
+		start=Integer,
+		end=Integer
+		),
+	outputs=dict(
+		sequences=List[List[Integer]]
+		)
+	)
 ```
 
 #### Text Constant
