@@ -147,7 +147,6 @@ rserve.file('file.r')
 For RServe activities, you do not need to specify an input or output port, if it
 is an RExpression. This is most useful when connecting two R codes.
 
-
 ### Tasks
 
 Activities can be created and assigned to named workflow tasks.
@@ -181,10 +180,18 @@ flow.task.MyTask.output.x >> flow.task.AnotherTask.input.x
 flow.task.MyTask.output.x >> flow.output.OutputValue
 ```
 
+For R scripts that contain variables with dots in the name, you can map them
+from a valid Taverna name (no dots) to the R script name, using:
+
+```python
+flow.input.IsBeta >> flow.task.RCode.input.IsBeta['Is.Beta']
+flow.task.RCode.output.ResultTable['result.table'] >> flow.output.ResultTable
+```
+
 ### Shortcuts
 
-To assign an input or output port with the same type as an activity port, use the
-equals sign. The example above could be created as:
+For input and output ports, it is possible to assign a type and link to an activity
+port using:
 
 ```python
 flow.input.InputValue = flow.task.MyTask.input.y
