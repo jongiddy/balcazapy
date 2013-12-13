@@ -33,6 +33,35 @@ from balcaza.t2types import *
 from balcaza.t2activity import *
 from balcaza.t2flow import *
 ```
+### Types
+
+For input and output ports, and for some activities, you will need to specify a 
+type for a port.
+
+Available types are:
+- String
+- Integer
+- Number
+- TextFile
+- PDF_File
+- PNG_Image
+
+For RServe activities, you can also specify:
+- Logical
+- RExpression
+- Vector[Logical]
+- Vector[Integer]
+- Vector[Number]
+- Vector[String]
+
+You can also specify lists using List[type], where type is any of the above, or
+another list.
+
+e.g.
+- List[Integer] - a list of integers
+- List[RExpression] - a list of RExpressions
+- List[List[String]] - a list containing lists of strings
+
 
 ### Activities
 
@@ -42,36 +71,44 @@ Activities are the boxes you see in a workflow. Activities describe a particular
 
 Create using:
 
-```
-BeanshellCode(script, inputs=dict(in1=List[String]), output=dict(out1=String))
+```python
+BeanshellCode(
+	script,
+	inputs=dict(in1=List[String]),
+	output=dict(out1=String)
+	)
 ```
 
 or
 
-```
-BeanshellFile('file.bsh', inputs=dict(in1=List[String]), output=dict(out1=String)))
+```python
+BeanshellFile(
+	'file.bsh',
+	inputs=dict(in1=List[String]),
+	output=dict(out1=String))
+	)
 ```
 
 #### Interaction Pages
 
 Create using:
 
-```
+```python
 InteractionPage(url)
 ```
 
 #### Text Constant
 Create using:
 
-```
-TextConstant(text)
+```python
+TextConstant('Some text')
 ```
 
 #### RServe Scripts
 
 For RServe scripts, first create an RServer using
 
-```
+```python
 rserve = RServer(host, port)
 ```
 
@@ -81,27 +118,73 @@ If host is omitted, localhost will be used.
 
 Create an RServe script using
 
-```
-rserve.code('x <- y', inputs=dict(y=Vector[Integer]), outputs=dict(x=Vector[Integer])
+```python
+rserve.code(
+	'x <- y',
+	inputs=dict(y=Vector[Integer]),
+	outputs=dict(x=Vector[Integer])
+	)
 ```
 
 or
 
-```
+```python
 rserve.file('file.r')
 ```
 
+For RServe activities, you do not need to specify an input or output port, if it
+is an RExpression.
+
 ### Tasks
 
-Essentially, "activities" can be created and assigned to named workflow tasks.
+Activities can be created and assigned to named workflow tasks.
 Activities can be reused, by assigning them to multiple tasks.
 
-Each task has inputs and outputs, which have a type (e.g. String, Number).
-Lists can be represented using List(String) or List(List(Number)).
+```python
+flow.task.MyTask = rserve.code(
+	'x <- y',
+	inputs=dict(y=Vector[Integer]),
+	outputs=dict(x=Vector[Integer])
+	)
+```
+
+### Input and output ports
 
 Link input and output ports using the >> operator.
 
-### Input and output ports
+```python
+flow.input.InputValue = List[Integer]
+flow.input.InputValue >> flow.task.MyTask.input.y
+
+flow.output.OutputValue = List[Integer]
+flow.task.MyTask.output.x >> flow.output.OutputValue
+```
+
+### Shortcuts
+
+To assign an input or output port with the same type as an activity port, use the
+equals sign. The example above could be created as:
+
+```python
+flow.input.InputValue = flow.task.MyTask.input.y
+
+flow.output.OutputValue = flow.task.MyTask.output.x
+```
+
+The types are inferred from the activity types (R Vector becomes a List).
+
+To connect all unconnected ports of a task as ports of the workflow, use:
+
+```python
+flow.task.MyTask.extendUnusedInputs()
+flow.task.MyTask.extendUnusedOutputs()
+```
+
+or, even shorter, for the above case:
+
+```python
+flow.task.MyTask.extendUnusedPorts()
+```
 
 ## Creating a Taverna 2 Workflow (t2flow) file
 
