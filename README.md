@@ -14,7 +14,9 @@ PATH, copy the "balc" executable to somewhere in your PATH, or reference "balc" 
 ### Windows
 
 On Windows, check values in setup.bat, then run:
-```setup.bat```
+```
+setup.bat
+```
 
 This installs a command "balc" into the bin folder. Add the bin folder to your
 PATH, copy the "balc" executable to somewhere in your PATH, or reference "balc" 
