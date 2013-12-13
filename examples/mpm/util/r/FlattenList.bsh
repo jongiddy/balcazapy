@@ -1,0 +1,9 @@
+StringBuffer sb = new StringBuffer();
+for (Iterator i = stringlist.iterator(); i.hasNext();) {
+	String item = (String) i.next();
+	sb.append(item);
+	if (i.hasNext()) {
+		sb.append("\n");
+	}
+}
+concatenated = sb.toString();

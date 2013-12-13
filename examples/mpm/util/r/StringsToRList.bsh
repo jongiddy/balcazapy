@@ -1,0 +1,12 @@
+StringBuffer sb = new StringBuffer("list(");
+for (Iterator i = stringlist.iterator(); i.hasNext();) {
+	String item = (String) i.next();
+	sb.append(item);
+	if (i.hasNext()) {
+		sb.append(",");
+	}
+}
+sb.append(")");
+concatenated = sb.toString();
+List output = new ArrayList(1);
+output.add(sb.toString());
