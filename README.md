@@ -42,28 +42,38 @@ Activities are the boxes you see in a workflow. Activities describe a particular
 
 Create using:
 
-```BeanshellCode(script, inputs=dict(in1=List[String]), output=dict(out1=String))```
+```
+BeanshellCode(script, inputs=dict(in1=List[String]), output=dict(out1=String))
+```
 
 or
 
-```BeanshellFile('file.bsh', inputs=dict(in1=List[String]), output=dict(out1=String)))```
+```
+BeanshellFile('file.bsh', inputs=dict(in1=List[String]), output=dict(out1=String)))
+```
 
 #### Interaction Pages
 
 Create using:
 
-```InteractionPage(url)```
+```
+InteractionPage(url)
+```
 
 #### Text Constant
 Create using:
 
-```TextConstant(text)```
+```
+TextConstant(text)
+```
 
 #### RServe Scripts
 
 For RServe scripts, first create an RServer using
 
-```rserve = RServer(host, port)```
+```
+rserve = RServer(host, port)
+```
 
 If port is omitted, the default RServe port (6311) will be used.
 
@@ -71,11 +81,15 @@ If host is omitted, localhost will be used.
 
 Create an RServe script using
 
-```rserve.code('x <- y', inputs=dict(y=Vector[Integer]), outputs=dict(x=Vector[Integer])```
+```
+rserve.code('x <- y', inputs=dict(y=Vector[Integer]), outputs=dict(x=Vector[Integer])
+```
 
 or
 
-```rserve.file('file.r')```
+```
+rserve.file('file.r')
+```
 
 ### Tasks
 
