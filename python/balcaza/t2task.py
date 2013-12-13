@@ -105,6 +105,7 @@ class WorkflowTask(object):
 
     def __init__(self, flow, name, activity=None):
         self.name = name
+        self.flow = flow
         if activity is not None:
             self.activity = activity
         self.annotations = {}
@@ -132,6 +133,22 @@ class WorkflowTask(object):
         else:
             self.outputMap[activityPort] = processorPort
         return self.activity.outputs[activityPort]
+
+    def extendUnusedPorts(self):
+        self.extendUnusedInputs()
+        self.extendUnusedOutputs()
+
+    def extendUnusedInputs(self):
+        for taskPort in self.activity.inputs.keys():
+            if not self.inputMap.has_key(taskPort):
+                flowPort = self.flow.selectUniqueLabel(self.flow.input, taskPort)
+                self.flow.input[flowPort] = self.input[taskPort]
+
+    def extendUnusedOutputs(self):
+        for taskPort in self.activity.outputs.keys():
+            if not self.outputMap.has_key(taskPort):
+                flowPort = self.flow.selectUniqueLabel(self.flow.output, taskPort)
+                self.flow.output[flowPort] = self.output[taskPort]
 
     @property
     def description(self):

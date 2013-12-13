@@ -227,10 +227,10 @@ class Workflow(object):
             value = Annotation(value)
         self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = value
 
-    def selectUniqueLabel(self, candidate):
+    def selectUniqueLabel(self, namespace, candidate):
         i = 1
         label = candidate
-        while hasattr(self.task, label):
+        while hasattr(namespace, label):
             i += 1
             label = candidate + str(i)
         return label
@@ -238,7 +238,7 @@ class Workflow(object):
     def linkData(self, source, sink):
         if not isinstance(source, Source):
             textConstant = TextConstant(source)
-            label = self.selectUniqueLabel(textConstant.getLabel())
+            label = self.selectUniqueLabel(self.task, textConstant.getLabel())
             self.task[label] = textConstant
             source = self.task[label].output.value
             source.connect()
@@ -246,7 +246,7 @@ class Workflow(object):
             raise TypeError("link sink must be a Sink")
         validator = sink.type.validator(source.type)
         if validator is not None:
-            label = self.selectUniqueLabel('Validate_' + source.name)
+            label = self.selectUniqueLabel(self.task, 'Validate_' + source.name)
             self.task[label] = validator
             task = self.task[label]
             task.input.input.connect()
