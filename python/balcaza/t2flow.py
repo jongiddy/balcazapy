@@ -246,7 +246,7 @@ class Workflow(object):
     def linkData(self, source, sink):
         if not isinstance(source, Source):
             textConstant = TextConstant(source)
-            label = self.selectUniqueLabel(self.task, textConstant.getLabel())
+            label = self.selectUniqueLabel(self.task, sink.name)
             self.task[label] = textConstant
             source = self.task[label].output.value
             source.connect()
