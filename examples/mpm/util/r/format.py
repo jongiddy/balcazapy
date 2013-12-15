@@ -4,8 +4,8 @@ from balcaza.t2activity import *
 from balcaza.t2flow import Workflow
 
 def PrettyPrint(rserve):
-	return rserve.code(
-		'''sink(output)
+	return rserve.code('''
+sink(text)
 print(rexpr)
 sink()
 ''',
