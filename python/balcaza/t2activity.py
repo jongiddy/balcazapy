@@ -1,5 +1,5 @@
 __all__ = ('BeanshellCode', 'BeanshellFile', 'InteractionPage',
-    'NestedWorkflow', 'NestedWorkflowFile', 'RestActivity', 'TextConstant', 
+    'NestedWorkflow', 'NestedZapyFile', 'RestActivity', 'TextConstant', 
     'RServer')
 
 from t2util import alphanumeric, getAbsolutePathRelativeToCaller
@@ -80,7 +80,7 @@ class NestedWorkflow(Activity):
         with xml.namespace('http://taverna.sf.net/2008/xml/t2flow') as tav:
             tav.dataflow(ref=self.flow.getId())
 
-def NestedWorkflowFile(filename, flowname='flow'):
+def NestedZapyFile(filename, flowname='flow'):
     with open(getAbsolutePathRelativeToCaller(filename), 'r') as f:
         source = f.read()
     code = compile(source, filename, 'exec')

@@ -1,0 +1,42 @@
+This example demonstrates the reusability of activities.
+
+PlaceEffect.py and YearEffect.py are two similar workflows, but contain
+differences in their inputs, and the desired naming of outputs.
+
+YearEffect.py was created by copying PlaceEffect.py and making modifications to
+the input names, text constants, and some of the links.
+
+Some of the commonality in the workflows has been moved to other places, to
+make the workflows more readable, and to ensure that future changes can be
+applied to both workflows easily.
+
+Both of the workflows eventually use the nested workflow contained in LTRE.py.
+Putting nested workflows in a separate file is not only a good idea for
+reusability. It generally makes the workflow files easier to unserstand.
+
+A nested workflow file is just like a normal Balcazapy file, and can be
+converted to its own t2flow file if required.  It is included as a task in the 
+outer workflow using a command like:
+
+flow.task.CalculatePlaceEffect = NestedZapyFile('LTRE.py')
+
+Several of the common activities are contained in sub-directories as a Python
+library. The library contains reusable RShell activities to read an R matrix 
+from a CSV file, and to format an R Expression as text. There is also an 
+activity to convert a list of R expressions to an R list of the expressions,
+which is actually implemented as a nested workflow containing Beanshells.
+
+Libraries are good for small activities that are commonly useful, similar to the
+local tools available in Taverna Workbench.
+
+Library files must create activities. So, a workflow must be presented as a
+Nested Workflow activity by wrapping it:
+
+return NestedWorkflow(flow)
+
+See util/r/format.py for an example.
+
+To use the library activity, import it from the library directory, using:
+
+from util.r.format import PrettyPrint
+flow.task.PrintAnalysis = PrettyPrint(rserve)

@@ -3,11 +3,11 @@ from balcaza.t2types import *
 from balcaza.t2activity import *
 from balcaza.t2flow import Workflow
 
-flow = Workflow(title='Place Effect', author=u'Maria Paula Balcázar-Vargas, Jonathan Giddy and Gerard Oostermeijer')
+flow = Workflow(title='Year Effect', author=u'Maria Paula Balcázar-Vargas, Jonathan Giddy and Gerard Oostermeijer')
 
-flow.input.places = List[String](
-	description="Site names",
-	example="[Dwingeloo 1, Dwingeloo 2, Dwingeloo 3, Lochem, Terschelling]"
+flow.input.years = List[Integer[1500,...,2100]](
+	description="All years which start a period of transition. This is likely to be all the years in which a survey was performed, apart from the last yearself.",
+	example="[1987, 1988, 1989, 1990, 1991, 1992]"
 	)
 
 flow.input.stages = List[String](
@@ -52,10 +52,36 @@ Each element of the top-level list is related to each element of the input port 
 		)
 	)
 
-"Select multiple stage matrices from different years for each location" >> flow.task.RequestStageMatrices.input.title
-"Location" >> flow.task.RequestStageMatrices.input.field
-"true" >> flow.task.RequestStageMatrices.input.multiple
-flow.input.places >> flow.task.RequestStageMatrices.input.values
+"Select a stage matrix for each year" >> flow.task.RequestStageMatrices.input.title
+"Year" >> flow.task.RequestStageMatrices.input.field
+"false" >> flow.task.RequestStageMatrices.input.multiple
+flow.input.years >> flow.task.RequestStageMatrices.input.values
+
+flow.task.FlattenList = BeanshellCode(
+'''flatten(inputs, outputs, depth) {
+	for (i = inputs.iterator(); i.hasNext();) {
+	    element = i.next();
+		if (element instanceof Collection && depth > 0) {
+			flatten(element, outputs, depth - 1);
+		} else {
+			outputs.add(element);
+		}
+	}
+}
+
+outputlist = new ArrayList();
+
+flatten(inputlist, outputlist, 1);
+''',
+	inputs = dict(
+		inputlist=List[List[String]]
+		),
+	outputs = dict(
+		outputlist=List[String]
+		)
+	)
+
+flow.task.RequestStageMatrices.output.matrices >> flow.task.FlattenList.input.inputlist
 
 rserve = RServer()
 
@@ -64,8 +90,8 @@ sys.path.append('')
 from util.r.file import ReadMatrixFromFile
 
 flow.task.ReadStageMatrix = ReadMatrixFromFile(rserve)
-# List[List[String]] -> String = 2 levels of iteration
-flow.task.RequestStageMatrices.output.matrices >> flow.task.ReadStageMatrix.input.matrix_file
+# List[String] -> String = 1 level of iteration
+flow.task.FlattenList.output.outputlist >> flow.task.ReadStageMatrix.input.matrix_file
 flow.input.stages >> flow.task.ReadStageMatrix.input.xlabels
 flow.input.stages >> flow.task.ReadStageMatrix.input.ylabels
 
@@ -76,53 +102,33 @@ flow.input.stages >> flow.task.ReadPooledMatrix.input.ylabels
 
 from util.r.format import ListR_to_RList
 
-flow.task.CreateListOfRMatrices = ListR_to_RList(rserve)
-flow.task.ReadStageMatrix.output.matrix >> flow.task.CreateListOfRMatrices.input.list_of_r_expressions
-
-flow.task.MeanMatrix = rserve.code('''
-# mean(matrix) usually returns the mean of all values in the matrix
-# mean(list of matrices) isn't present in base R, but the logical return value
-# would be a list (or vector) of the mean of each matrix in the list.  However,
-# package "popbio" overides mean for lists to return a matrix containing the
-# mean of values at each coordinate in all the matrices.  To emphasise that we
-# are calling this function, we call it with the function's full name, including
-# type.
-library(popbio)
-mean_matrix <- mean.list(matrices)
-''',
-	inputs = dict(matrices = RExpression),
-	outputs = dict(mean_matrix = RExpression)
-	)
-
-flow.task.CreateListOfRMatrices.output.r_list_of_expressions >> flow.task.MeanMatrix.input.matrices
-
 flow.task.CreateRListOfMatrices = ListR_to_RList(rserve)
-flow.task.MeanMatrix.output.mean_matrix >> flow.task.CreateRListOfMatrices.input.list_of_r_expressions
+flow.task.ReadStageMatrix.output.matrix >> flow.task.CreateRListOfMatrices.input.list_of_r_expressions
 
 
 flow.task.AddNames = rserve.code('names(expr) <- labels', inputs=dict(labels=Vector[String]))
 flow.task.CreateRListOfMatrices.output.r_list_of_expressions >> flow.task.AddNames.input.expr
-flow.input.places >> flow.task.AddNames.input.labels
+flow.input.years >> flow.task.AddNames.input.labels
 
-flow.task.CalculatePlaceEffect = NestedZapyFile('LTRE.py')
-flow.task.AddNames.output.expr >> flow.task.CalculatePlaceEffect.input.matrices
-flow.task.ReadPooledMatrix.output.matrix >> flow.task.CalculatePlaceEffect.input.pooled_matrix
-'Places' >> flow.task.CalculatePlaceEffect.input.xlabel
-flow.input.places >> flow.task.CalculatePlaceEffect.input.xticks
-'Place Effect' >> flow.task.CalculatePlaceEffect.input.ylabel
-'lightgreen' >> flow.task.CalculatePlaceEffect.input.plot_colour
-flow.task.CalculatePlaceEffect.extendUnusedInputs()
+flow.task.CalculateYearEffect = NestedZapyFile('LTRE.py')
+flow.task.AddNames.output.expr >> flow.task.CalculateYearEffect.input.matrices
+flow.task.ReadPooledMatrix.output.matrix >> flow.task.CalculateYearEffect.input.pooled_matrix
+'Years' >> flow.task.CalculateYearEffect.input.xlabel
+flow.input.years >> flow.task.CalculateYearEffect.input.xticks
+'Year Effect' >> flow.task.CalculateYearEffect.input.ylabel
+'lightblue' >> flow.task.CalculateYearEffect.input.plot_colour
+flow.task.CalculateYearEffect.extendUnusedInputs()
 
 from util.r.format import PrettyPrint
 
 flow.task.PrintAnalysis = PrettyPrint(rserve)
-flow.task.CalculatePlaceEffect.output.LTRE_Analysis >> flow.task.PrintAnalysis.input.rexpr
+flow.task.CalculateYearEffect.output.LTRE_Analysis >> flow.task.PrintAnalysis.input.rexpr
 flow.output.LTRE_Analysis = flow.task.PrintAnalysis.output.text
 
 flow.task.PrintResults = PrettyPrint(rserve)
-flow.task.CalculatePlaceEffect.output.LTRE_Results_RLn >> flow.task.PrintResults.input.rexpr
+flow.task.CalculateYearEffect.output.LTRE_Results_RLn >> flow.task.PrintResults.input.rexpr
 flow.output.LTRE_Results = flow.task.PrintResults.output.text
 
-flow.output.LTRE_Graph = flow.task.CalculatePlaceEffect.output.graph
+flow.output.LTRE_Graph = flow.task.CalculateYearEffect.output.graph
 
 
