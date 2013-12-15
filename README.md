@@ -56,8 +56,18 @@ This installs a batch script "balc.bat" into the bin folder. Add the bin folder 
 PATH, copy the "balc.bat" script to somewhere in your PATH, or reference "balc.bat" 
 with an absolute path name.
 
+## Creating a Taverna 2 Workflow (t2flow) file
+
+To create a t2flow file from an existing Zapy workflow file, run the command:
+
+```
+balc myfile.py myflow.t2flow
+```
+
 ## Creating a Balcazapy Description File
-Balcazapy files are Python files. Hence, they have a .py suffix. Using the Python format allow them, to be edited in highlighting editors, including Idle, the editor that comes with Python.
+Zapy files are Python files. Hence, they have a .py suffix. Using the Python
+format allows Zapy files to be edited in highlighting editors, including Idle, 
+the editor that comes with Python.
 
 ### Prologue
 Python requires that (almost) all names used but not defined in a file, are imported from libraries. To make use of Balcazapy, start with these lines:
@@ -77,6 +87,14 @@ flow = Workflow(title='Create Projection Matrix', author="Maria and Jon",
 	description="Create a projection matrix from a stage matrix and a list of stages")
 
 ```
+
+This workflow contains 3 main collections:
+
+- flow.input - the input ports for the workflow
+
+- flow.output - the output ports for the workflow
+
+- flow.task - the connected tasks within the workflow
 
 ### Types
 
@@ -225,6 +243,12 @@ flow.task.MyTask = rserve.code(
 	)
 ```
 
+Each task contains 2 main collections:
+
+- flow.task.MyTask.input - the input ports for the task
+
+- flow.task.MyTask.output - the output ports for the task
+
 ### Input and output ports
 
 Create input and output ports using the flow.input and flow.output variables.
@@ -276,13 +300,5 @@ or, even shorter, for the above case:
 
 ```python
 flow.task.MyTask.extendUnusedPorts()
-```
-
-## Creating a Taverna 2 Workflow (t2flow) file
-
-To create a t2flow file, run the command:
-
-```
-balc myfile.py myflow.t2flow
 ```
 
