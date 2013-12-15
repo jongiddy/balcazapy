@@ -132,6 +132,15 @@ e.g.
 - List[RExpression] - a list of RExpressions
 - List[List[String]] - a list containing lists of strings
 
+### Input and output ports
+
+Create input and output ports using the `flow.input` and `flow.output` 
+collections.  Assign a port type to a port name, as shown:
+
+```python
+flow.input.InputValues = List[Integer]
+flow.output.OutputValue = Integer
+```
 
 ### Activities
 
@@ -256,15 +265,6 @@ Each task contains 2 main collections:
 
 - `flow.task.MyTask.output` - the output ports for the task
 
-### Input and output ports
-
-Create input and output ports using the `flow.input` and `flow.output` 
-collections.
-
-```python
-flow.input.InputValue = List[Integer]
-flow.output.OutputValue = List[Integer]
-```
 
 ### Creating data links
 
