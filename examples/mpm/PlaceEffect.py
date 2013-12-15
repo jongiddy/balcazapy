@@ -37,7 +37,7 @@ The stages of this matrix are:
 flow.input.pooled_matrix_file = TextFile
 
 flow.task.RequestStageMatrices = InteractionPage(
-	'http://biovel.googlecode.com/svn/trunk/popmod/mpm/select_matrices.html',
+	'http://biovel.googlecode.com/svn/tags/mpm-20131215/select_matrices.html',
 	inputs = dict(
 		title=String(description="Message displayed at top of page"),
 		values=List[String](description="Values for which user will select input files"),
