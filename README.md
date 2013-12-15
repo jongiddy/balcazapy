@@ -8,8 +8,9 @@ On Linux, run:
 ```
 setup.sh
 ```
-This installs a command "balc" into the bin folder. Add the bin folder to your
-PATH, copy the "balc" executable to somewhere in your PATH, or reference "balc" with an absolute path name.
+This installs a command `balc` into the `bin` directory. Add the `bin` directory
+to your `PATH`, copy the `balc` executable to somewhere in your `PATH`, or 
+reference `balc` with an absolute path name.
 
 ### Windows
 
@@ -17,20 +18,24 @@ PATH, copy the "balc" executable to somewhere in your PATH, or reference "balc" 
 
 	Python 3 is also available. Balcazapy does not yet work with Python 3.
 	
-	On Windows, use the appropriate 32-bit or 64-bit MSI Installer. Use Control Panel -> System and Security -> System to check whether your Windows version is 32-bit or 64-bit. You do not need the MSI program database.
+	On Windows, use the appropriate 32-bit or 64-bit MSI Installer. Use 
+	**Control Panel -> System and Security -> System** to check whether your 
+	Windows version is 32-bit or 64-bit. You do not need the MSI program database.
 	
 	Use the default values for installation.
 
 2.	Install Git from http://git-scm.com/
 
-	Use the default values for installation, EXCEPT for Adjusting your PATH environment, select Run Git from the Windows Command Prompt
+	Use the default values for installation, *EXCEPT* for the page titled 
+	**Adjusting your PATH environment**, where you should select 
+	**Run Git from the Windows Command Prompt**
 
 3.	Go to http://github.com/jongiddy/balcazapy and copy the HTTPS clone 
-URL on the right to the clipboard.
+	URL on the right to the clipboard.
 
 	Click on the clipboard-arrow icon to copy the URL to the clipboard
 
-4.	Open a command window (Start menu -> Accessories -> Command Prompt).
+4.	Open a command window (**Start menu -> Accessories -> Command Prompt**).
 
 5.	Create an empty folder, and change into it:
 
@@ -44,27 +49,29 @@ URL on the right to the clipboard.
 	> git clone https://github.com/jongiddy/balcazapy.git
 	```
 
-	Note, this creates a folder called balcazapy
+	Note, this creates a folder called `balcazapy`
 
-7.	Check values in setup.bat, then run:
+7.	Check the file locations in `setup.bat`, then run:
 
 	```
 	> setup.bat
 	```
 
-This installs a batch script "balc.bat" into the bin folder. Add the bin folder to your
-PATH, copy the "balc.bat" script to somewhere in your PATH, or reference "balc.bat" 
-with an absolute path name.
+This installs a batch script `balc.bat` into the `bin` folder. Add the `bin` 
+folder to your `PATH`, copy the `balc.bat` script to somewhere in your `PATH`, 
+or reference `balc.bat` with an absolute path name.
 
 ## Creating a Taverna 2 Workflow (t2flow) file
 
-To create a t2flow file from an existing Zapy workflow file, run the command:
+The `balc` command converts a Zapy description file to a Taverna t2flow file.
+
+To create a t2flow file from an existing Zapy description file, run the command:
 
 ```
 balc myfile.py myflow.t2flow
 ```
 
-## Creating a Balcazapy Description File
+## Creating a Zapy Description File
 Zapy files are Python files. Hence, they have a .py suffix. Using the Python
 format allows Zapy files to be edited in highlighting editors, including Idle, 
 the editor that comes with Python.
@@ -90,11 +97,11 @@ flow = Workflow(title='Create Projection Matrix', author="Maria and Jon",
 
 This workflow contains 3 main collections:
 
-- flow.input - the input ports for the workflow
+- `flow.input` - the input ports for the workflow
 
-- flow.output - the output ports for the workflow
+- `flow.output` - the output ports for the workflow
 
-- flow.task - the connected tasks within the workflow
+- `flow.task` - the connected tasks within the workflow
 
 ### Types
 
@@ -245,13 +252,14 @@ flow.task.MyTask = rserve.code(
 
 Each task contains 2 main collections:
 
-- flow.task.MyTask.input - the input ports for the task
+- `flow.task.MyTask.input` - the input ports for the task
 
-- flow.task.MyTask.output - the output ports for the task
+- `flow.task.MyTask.output` - the output ports for the task
 
 ### Input and output ports
 
-Create input and output ports using the flow.input and flow.output variables.
+Create input and output ports using the `flow.input` and `flow.output` 
+collections.
 
 ```python
 flow.input.InputValue = List[Integer]
@@ -260,7 +268,7 @@ flow.output.OutputValue = List[Integer]
 
 ### Creating data links
 
-Link ports using the >> operator. Output ports can be part of multiple links.
+Link ports using the `>>` operator. Output ports can be part of multiple links.
 Input ports must only be linked once.
 
 ```python
