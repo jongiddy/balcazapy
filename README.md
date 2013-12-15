@@ -51,6 +51,13 @@ reference `balc` with an absolute path name.
 
 	Note, this creates a folder called `balcazapy`
 
+	If you have already cloned the repository, you can update to the latest
+	version using the command:
+
+	```
+	> git pull
+	```
+
 7.	Check the file locations in `setup.bat`, then run:
 
 	```
