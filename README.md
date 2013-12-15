@@ -141,11 +141,46 @@ collections.  Assign a port type to a port name, as shown:
 flow.input.InputValues = List[Integer]
 flow.output.OutputValue = Integer
 ```
+### Tasks
+
+Tasks are created similarly to input and output ports, but instead of being
+assigned a type, they are assigned an *Activity*.  The available activities are
+described below.
+
+```python
+flow.task.MyTask = rserve.code(
+	'x <- y',
+	inputs=dict(y=Vector[Integer]),
+	outputs=dict(x=Vector[Integer])
+	)
+```
+
+Each task contains 2 collections:
+
+- `flow.task.MyTask.input` - the input ports for the task
+
+- `flow.task.MyTask.output` - the output ports for the task
+
+
+### Creating data links
+
+Link ports using the `>>` operator. Output ports can be part of multiple links.
+Input ports must only be linked once.
+
+```python
+flow.input.InputValue >> flow.task.MyTask.input.y
+flow.task.MyTask.output.x >> flow.task.AnotherTask.input.x
+flow.task.MyTask.output.x >> flow.output.OutputValue
+```
 
 ### Activities
 
 Activities are the boxes you see in a workflow. Activities describe a particular 
 task to be performed. There are several types of activities.
+
+Activities can be created and assigned to named workflow tasks.
+
+Activities can be reused, by assigning them to multiple tasks.
 
 #### Beanshell
 
@@ -246,43 +281,30 @@ rserve.file('file.r')
 For RServe activities, you do not need to specify an input or output port, if it
 is an RExpression. This is most useful when connecting two R codes.
 
-### Tasks
-
-Activities can be created and assigned to named workflow tasks.
-Activities can be reused, by assigning them to multiple tasks.
-
-```python
-flow.task.MyTask = rserve.code(
-	'x <- y',
-	inputs=dict(y=Vector[Integer]),
-	outputs=dict(x=Vector[Integer])
-	)
-```
-
-Each task contains 2 main collections:
-
-- `flow.task.MyTask.input` - the input ports for the task
-
-- `flow.task.MyTask.output` - the output ports for the task
-
-
-### Creating data links
-
-Link ports using the `>>` operator. Output ports can be part of multiple links.
-Input ports must only be linked once.
-
-```python
-flow.input.InputValue >> flow.task.MyTask.input.y
-flow.task.MyTask.output.x >> flow.task.AnotherTask.input.x
-flow.task.MyTask.output.x >> flow.output.OutputValue
-```
-
 For R scripts that contain variables with dots in the name, you can map them
 from a valid Taverna name (no dots) to the R script name, using:
 
 ```python
 flow.input.IsBeta >> flow.task.RCode.input.IsBeta['Is.Beta']
 flow.task.RCode.output.ResultTable['result.table'] >> flow.output.ResultTable
+```
+
+### Nested Workflows
+
+It is possible to create nested workflows using the NestedWorkflow activity.
+
+```python
+inner = Workflow(...)
+...
+outer = Workflow(...)
+outer.task.CoreAlgorithm = NestedWorkflow(inner)
+```
+
+It is often more convenient to develop the nested workflow in a separate file,
+and then use:
+
+```python
+outer.task.CoreAlgorithm = NestedZapyFile('inner.py')
 ```
 
 ### Shortcuts
