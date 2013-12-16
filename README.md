@@ -125,12 +125,13 @@ format allows Zapy files to be edited in highlighting editors, including Idle,
 the editor that comes with Python.
 
 ### Prologue
-Python requires that (almost) all names used but not defined in a file, are imported from libraries. To make use of Balcazapy, start with these lines:
+Python requires that (almost) all names used, but not defined, in a file are 
+imported from libraries. To make use of Balcazapy, start with these lines:
 
 ```python
 from balcaza.t2types import *
 from balcaza.t2activity import *
-from balcaza.t2flow import *
+from balcaza.t2flow import Workflow
 ```
 
 ### Workflows
@@ -399,5 +400,11 @@ Text constants can be created and linked in one step using:
 "Initial Results" >> flow.task.MyTask.input.plot_title
 ```
 
-For RServe activities, you do not need to specify an input or output port, if it
-is an RExpression. This is most useful when connecting two R codes.
+You do not need to specify an input or output ports for RExpression types in 
+RServe activities. This is most useful when connecting two RServe activities.
+
+```python
+flow.task.sum = rserve.code('x <- sum(y)', inputs = dict(y = Vector[Integer]))
+flow.task.double = rserve.code('out1 <- 2 * in1', outputs = dict(out1 = Integer))
+flow.task.sum.output.x >> flow.task.double.input.in1
+```
