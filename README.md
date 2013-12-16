@@ -13,7 +13,7 @@ Create a Taverna workflow file (t2flow format) using a script.
 
 	Click on the clipboard-arrow icon to copy the URL to the clipboard
 
-3.	Clone the Git repository, using the copied URL (right click to paste into the command window)
+3.	Clone the Git repository, using the copied URL
 
 	```
 	$ git clone https://github.com/jongiddy/balcazapy.git
