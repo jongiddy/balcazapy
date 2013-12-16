@@ -17,4 +17,4 @@ echo set PYTHON=%PYTHON_HOME%\python>> %BALC%
 echo set BALCAZAPY_HOME=%BALCAZAPY_HOME%>> %BALC%
 echo set BALCAZAPROG=%%0>> %BALC%
 echo set PYTHONPATH=%CD%\python>> %BALC%
-echo "%%PYTHON%%" "%%BALCAZAPY_HOME%%\python\balcaza\T2FlowBuilder.py" %%*>> %BALC%
+echo "%%PYTHON%%" -m balcaza.T2FlowBuilder %%*>> %BALC%

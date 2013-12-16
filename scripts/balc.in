@@ -9,4 +9,4 @@ export BALCAZAPROG
 PYTHONPATH=${BALCAZAPY_HOME}/python
 export PYTHONPATH
 
-exec @PYTHON@ ${BALCAZAPY_HOME}/python/balcaza/T2FlowBuilder.py "$@"
+exec @PYTHON@ -m balcaza.T2FlowBuilder "$@"
