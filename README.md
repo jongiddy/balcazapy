@@ -158,9 +158,9 @@ type for a port.
 
 Available types are:
 
-- `String`
 - `Integer`
 - `Number`
+- `String`
 - `TextFile`
 - `PDF_File`
 - `PNG_Image`
@@ -184,7 +184,7 @@ or another list. For example:
 ### Input and output ports
 
 Create input and output ports using the `flow.input` and `flow.output` 
-collections.  Assign a port type to a port name, as shown:
+collections.  Assign a type to a port name, as shown:
 
 ```python
 flow.input.InputValues = List[Integer]
