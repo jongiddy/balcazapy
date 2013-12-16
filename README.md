@@ -399,8 +399,8 @@ Text constants can be created and linked in one step using:
 "Initial Results" >> flow.task.MyTask.input.plot_title
 ```
 
-Transfer script variables between Rserve activities without specifying them
-in the Activity input or output ports.
+You do not need to specify input or output ports for RExpression types in RServe
+activities. This is most useful when connecting two RServe activities.
 
 ```python
 flow.task.sum = rserve.code(
