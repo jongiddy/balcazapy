@@ -138,8 +138,8 @@ from balcaza.t2flow import *
 Create a workflow using:
 
 ```python
-flow = Workflow(title='Create Projection Matrix', author="Maria and Jon",
-	description="Create a projection matrix from a stage matrix and a list of stages")
+flow = Workflow(title = 'Create Projection Matrix', author = "Maria and Jon",
+	description = "Create a projection matrix from a stage matrix and a list of stages")
 
 ```
 
@@ -198,8 +198,12 @@ described below.
 ```python
 flow.task.MyTask = rserve.code(
 	'x <- sum(y)',
-	inputs=dict(y=Vector[Integer]),
-	outputs=dict(x=Integer)
+	inputs = dict(
+		y = Vector[Integer]
+		),
+	outputs = dict(
+		x = Integer
+		)
 	)
 ```
 
@@ -250,12 +254,12 @@ for (Iterator i = stringlist.iterator(); i.hasNext();) {
 }
 concatenated = sb.toString();
 """,
-	inputs=dict(
-		stringlist=List[String],
-		seperator=String
+	inputs = dict(
+		stringlist = List[String],
+		seperator = String
 		),
-	output=dict(
-		concatenated=String
+	output = dict(
+		concatenated = String
 		)
 	)
 ```
@@ -265,12 +269,12 @@ or
 ```python
 BeanshellFile(
 	'file.bsh',
-	inputs=dict(
-		stringlist=List[String],
-		seperator=String
+	inputs = dict(
+		stringlist = List[String],
+		seperator = String
 		),
-	output=dict(
-		concatenated=String
+	output = dict(
+		concatenated = String
 		)
 	)
 ```
@@ -281,12 +285,12 @@ Create using:
 
 ```python
 InteractionPage(url,
-	inputs=dict(
-		start=Integer,
-		end=Integer
+	inputs = dict(
+		start = Integer,
+		end = Integer
 		),
-	outputs=dict(
-		sequences=List[List[Integer]]
+	outputs = dict(
+		sequences = List[List[Integer]]
 		)
 	)
 ```
@@ -315,8 +319,12 @@ Create an RServe script using
 ```python
 rserve.code(
 	'x <- sum(y)',
-	inputs=dict(y=Vector[Integer]),
-	outputs=dict(x=Integer)
+	inputs = dict(
+		y = Vector[Integer]
+		),
+	outputs = dict(
+		x = Integer
+		)
 	)
 ```
 
