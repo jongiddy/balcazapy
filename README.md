@@ -399,8 +399,36 @@ Text constants can be created and linked in one step using:
 "Initial Results" >> flow.task.MyTask.input.plot_title
 ```
 
-You do not need to specify input or output ports for RExpression types in 
-RServe activities. This is most useful when connecting two RServe activities.
+Transfer script variables between Rserve activities without specifying them
+in the Activity input or output ports.
+
+```python
+flow.task.sum = rserve.code(
+	'x <- sum(y)',
+	inputs = dict(y = Vector[Integer])
+	)
+flow.task.double = rserve.code(
+	'out1 <- 2 * in1',
+	outputs = dict(out1 = Integer)
+	)
+# Link internal script variables (transferred as RExpression types)
+flow.task.sum.output.x >> flow.task.double.input.in1
+
+```
+
+### Input Validation
+
+String types can be restricted to a set of values, and Integer types to a
+range, using:
+
+```python
+String['YES', 'NO']
+Integer[0,...,100]
+```
+
+This can be used to validate input fields, using the WrapperWorkflow. A complete
+working example, demonstrating creation of a validated workflow using shortcuts
+is given below.
 
 ```python
 from balcaza.t2types import *
@@ -411,10 +439,13 @@ flow = Workflow(title = 'DoubleTheSum')
 
 rserve = RServer()
 
-flow.task.sum = rserve.code('x <- sum(y)', inputs = dict(y = Vector[Integer]))
+flow.task.sum = rserve.code('x <- sum(y)', inputs = dict(y = Vector[Integer[-100,...,100]]))
 flow.task.double = rserve.code('out1 <- 2 * in1', outputs = dict(out1 = Integer))
 
 flow.task.sum.output.x >> flow.task.double.input.in1
 flow.task.sum.extendUnusedInputs()
 flow.task.double.extendUnusedOutputs()
+
+from balcaza.t2wrapper import WrapperWorkflow
+flow = WrapperWorkflow(flow)
 ```

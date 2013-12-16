@@ -182,10 +182,10 @@ class TextFileType(T2FlowType):
 TextFile = TextFileType()
 
 VectorBaseType = {
-    Logical: 'BOOL_LIST',
-    Integer: 'INTEGER_LIST',
-    Number: 'DOUBLE_LIST',
-    String: 'STRING_LIST'
+    LogicalType: 'BOOL_LIST',
+    IntegerType: 'INTEGER_LIST',
+    NumberType: 'DOUBLE_LIST',
+    StringType: 'STRING_LIST'
 }
 
 class ListType(T2FlowType):
@@ -206,7 +206,7 @@ class ListType(T2FlowType):
         return self.baseType.validator(inputType)
 
     def symanticType(self):
-        return VectorBaseType[self.baseType]
+        return VectorBaseType[self.baseType.__class__]
 
 class ListFactory:
 
@@ -220,7 +220,7 @@ class VectorFactory:
     def __getitem__(self, elementType):
         if isinstance(elementType, ListType):
             raise RuntimeError('Vector can not have depth > 1')
-        if not VectorBaseType.has_key(elementType):
+        if not VectorBaseType.has_key(elementType.__class__):
             raise RuntimeError('Invalid Vector type')
         return ListType(elementType)
 
