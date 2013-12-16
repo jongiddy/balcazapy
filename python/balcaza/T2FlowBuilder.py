@@ -1,7 +1,7 @@
 
 class T2FlowBuilder:
 
-    def convert(self, sourceFile, t2flow, flowName, compressed):
+    def convert(self, sourceFile, t2flow, flowName, compressed, validate):
         import codecs
         import maximal.XMLExport as XMLExport
 
@@ -11,6 +11,10 @@ class T2FlowBuilder:
         module = {}
         exec(code, module)
         flow = module[flowName]
+
+        if validate:
+            from t2wrapper import WrapperWorkflow
+            flow = WrapperWorkflow(flow)
 
         UTF8Writer = codecs.getwriter('utf8')
         output = UTF8Writer(t2flow)
@@ -25,6 +29,7 @@ if __name__ == '__main__':
     prog = os.path.basename(os.environ.get('BALCAZAPROG', sys.argv[0]))
     parser = argparse.ArgumentParser(prog=prog, description='Create a Taverna 2 workflow (t2flow) file from a Zapy description file')
     parser.add_argument('--indent', dest='compressed', action='store_false', help='create a larger but more readable indented file')
+    parser.add_argument('--validate', dest='validate', action='store_true', help='modify workflow to validate input ports')
     parser.add_argument('--flow', dest='flowName', action='store', default='flow', help='name of the workflow in the source file (default: %(default)s)')
     parser.add_argument('source', help='Zapy (.py) description file')
     parser.add_argument('target', nargs='?', help='Taverna 2 Workflow (.t2flow) filename (default: stdout)')
@@ -37,4 +42,5 @@ if __name__ == '__main__':
             target += '.t2flow'
         t2flow = open(target, 'w')
     builder = T2FlowBuilder()
-    builder.convert(args.source, t2flow, args.flowName, args.compressed)
+    builder.convert(args.source, t2flow, args.flowName, args.compressed, args.validate)
+    

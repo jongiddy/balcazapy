@@ -105,7 +105,7 @@ balc myfile.py myflow.t2flow
 Run `balc -h` to see the available options:
 
 ```
-usage: balc [-h] [--indent] [--flow FLOWNAME] source [target]
+usage: balc [-h] [--indent] [--validate] [--flow FLOWNAME] source [target]
 
 Create a Taverna 2 workflow (t2flow) file from a Zapy description file
 
@@ -116,6 +116,7 @@ positional arguments:
 optional arguments:
   -h, --help       show this help message and exit
   --indent         create a larger but more readable indented file
+  --validate       modify workflow to validate input ports
   --flow FLOWNAME  name of the workflow in the source file (default: flow)
 ```
 
@@ -417,7 +418,6 @@ flow.task.double = rserve.code(
 	)
 # Link internal script variables (transferred as RExpression types)
 flow.task.sum.output.total >> flow.task.double.input.in1
-
 ```
 
 ### Input Validation
@@ -430,31 +430,4 @@ String['YES', 'NO']
 Integer[0,...,100]
 ```
 
-This can be used to validate input fields, using the WrapperWorkflow. A complete
-working example, demonstrating creation of a validated workflow is given below.
-
-```python
-from balcaza.t2types import *
-from balcaza.t2activity import *
-from balcaza.t2flow import Workflow
-
-flow = Workflow(title = 'DoubleTheSum')
-
-rserve = RServer()
-
-flow.task.sum = rserve.code(
-	'total <- sum(vals)',
-	inputs = dict(vals = Vector[Integer[0,...,100]])
-	)
-flow.task.double = rserve.code(
-	'out1 <- 2 * in1',
-	outputs = dict(out1 = Integer)
-	)
-
-flow.task.sum.output.total >> flow.task.double.input.in1
-flow.task.sum.extendUnusedInputs()
-flow.task.double.extendUnusedOutputs()
-
-from balcaza.t2wrapper import WrapperWorkflow
-flow = WrapperWorkflow(flow)
-```
+Types can be checked on input, using the `--validate` option to `balc`.
