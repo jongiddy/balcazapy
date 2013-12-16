@@ -102,6 +102,23 @@ To create a t2flow file from an existing Zapy description file, run the command:
 balc myfile.py myflow.t2flow
 ```
 
+Run `balc -h` to see the available options:
+
+```sh
+usage: balc [-h] [--indent] [--flow FLOWNAME] source [target]
+
+Create a Taverna 2 workflow (t2flow) file from a Python script
+
+positional arguments:
+  source           Python source filename
+  target           Taverna 2 Workflow (t2flow) filename (default: stdout)
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --indent         create a larger but more readable indented file
+  --flow FLOWNAME  name of the workflow in the source file (default: flow)
+```
+
 ## Creating a Zapy Description File
 Zapy files are Python files. Hence, they have a .py suffix. Using the Python
 format allows Zapy files to be edited in highlighting editors, including Idle, 
