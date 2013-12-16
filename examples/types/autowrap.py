@@ -4,19 +4,21 @@ from balcaza.t2activity import *
 from balcaza.t2flow import *
 from balcaza.t2wrapper import WrapperWorkflow
 
-# This example creates a simple nested workflow. First, create the flow nested workflow:
+# This example demonstrates validation checks of input ports
 
-flow = Workflow(title='Projection Matrix')
+flow = Workflow(title='Validation Example')
 
 
 flow.task.Process = BeanshellCode("output = input1 + input2;",
 	inputs=dict(
 		input1=String['YES', 'NO'](description="Choose YES or NO", example="YES"),
-		input2=Logical),
+		input2=Logical(description="Choose TRUE or FALSE", example="TRUE")
+		),
 	outputs=dict(output=String))
 	
 flow.input.Choice = flow.task.Process.input.input1
-flow.input.Logicals = List[Logical]
+# Note, as we are changing the depth of the input, we need to redo the annotations
+flow.input.Logicals = List[Logical](description="Choose TRUE or FALSE", example="TRUE")
 flow.input.Logicals >> flow.task.Process.input.input2
 flow.output.Output = List[String]
 flow.task.Process.output.output >> flow.output.Output
