@@ -42,6 +42,9 @@ class StringType(T2FlowType):
     def symanticType(self):
         return 'STRING'
 
+    def symanticVectorType(self):
+        return 'STRING_LIST'
+
     def getDomain(self):
         if self.domain is not None:
             return frozenset(self.domain)
@@ -86,6 +89,9 @@ class LogicalType(T2FlowType):
     def symanticType(self):
         return 'BOOL'
 
+    def symanticVectorType(self):
+        return 'BOOL_LIST'
+
     def validator(self, inputType):
         return StringType(self.domain).validator(inputType)
 
@@ -100,8 +106,24 @@ class IntegerType(T2FlowType):
         self.lower = lower
         self.higher = higher
 
+    def __str__(self):
+        if self.lower is None:
+            if self.higher is None:
+                domain = ''
+            else:
+                domain = '[...,%d]' % self.higher
+        else:
+            if self.higher is None:
+                domain = '[%d,...]' % self.lower
+            else:
+                domain = '[%d,...,%d]' % (self.lower, self.higher)
+        return 'Integer%s' % domain
+
     def symanticType(self):
         return 'INTEGER'
+
+    def symanticVectorType(self):
+        return 'INTEGER_LIST'
 
     def __getitem__(self, domain):
         if not isinstance(domain, tuple):
@@ -164,15 +186,21 @@ class NumberType(T2FlowType):
     def symanticType(self):
         return 'DOUBLE'
 
+    def symanticVectorType(self):
+        return 'DOUBLE_LIST'
+
 Number = NumberType()
-class PNG_ImageType(T2FlowType):
+
+class BinaryFileType(T2FlowType):
     
     def symanticType(self):
         return 'PNG_FILE'
 
-PNG_Image = PNG_ImageType()
+BinaryFile = BinaryFileType()
 
-PDF_File = PNG_Image
+PDF_File = BinaryFile
+
+PNG_Image = BinaryFile
 
 class TextFileType(T2FlowType):
 
@@ -181,17 +209,12 @@ class TextFileType(T2FlowType):
 
 TextFile = TextFileType()
 
-VectorBaseType = {
-    LogicalType: 'BOOL_LIST',
-    IntegerType: 'INTEGER_LIST',
-    NumberType: 'DOUBLE_LIST',
-    StringType: 'STRING_LIST'
-}
-
 class ListType(T2FlowType):
 
     def __init__(self, elementType, depth=None):
         if depth is not None:
+            # this option allows the creation of a list of strings of the same
+            # depth as another list type, to represent the unchecked input ports 
             self.baseType = elementType
             depth = depth
         elif isinstance(elementType, ListType):
@@ -202,29 +225,36 @@ class ListType(T2FlowType):
             depth = elementType.depth + 1
         T2FlowType.__init__(self, depth)
 
+    def __str__(self):
+        x = str(self.baseType)
+        for i in range(self.depth):
+            x = 'List[%s]' % x
+        return x
+
     def validator(self, inputType):
         return self.baseType.validator(inputType)
 
-    def symanticType(self):
-        return VectorBaseType[self.baseType.__class__]
+class SeqFactory:
 
-class ListFactory:
-
-    def __getitem__(self, elementType):
-        return ListType(elementType)
-
-List = ListFactory()
-
-class VectorFactory:
+    def __init__(self, seqType):
+        self.seqType = seqType
 
     def __getitem__(self, elementType):
-        if isinstance(elementType, ListType):
-            raise RuntimeError('Vector can not have depth > 1')
-        if not VectorBaseType.has_key(elementType.__class__):
+        return self.seqType(elementType)
+
+List = SeqFactory(ListType)
+
+class VectorType(ListType):
+
+    def __init__(self, elementType):
+        if not hasattr(elementType, 'symanticVectorType'):
             raise RuntimeError('Invalid Vector type')
-        return ListType(elementType)
+        ListType.__init__(self, elementType)
 
-Vector = VectorFactory()
+    def symanticType(self):
+        return self.baseType.symanticVectorType()
+
+Vector = SeqFactory(VectorType)
 
 class RExpressionType(T2FlowType):
 

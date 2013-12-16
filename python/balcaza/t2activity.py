@@ -188,6 +188,10 @@ class RServerDict(dict):
     def __init__(self, script, dictionary):
         self.script = script
         if dictionary is not None:
+            # Check that the port types are valid R activity types
+            for name, type in dictionary.items():
+                if not hasattr(type, 'symanticType'):
+                    raise RuntimeError('Invalid R type "%s = %s"' % (name, type))
             dict.update(self, dictionary)
             self.dict = {}
         else:
