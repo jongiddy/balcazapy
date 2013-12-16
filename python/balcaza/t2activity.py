@@ -228,7 +228,10 @@ class RServerActivity(Activity):
             raise RuntimeError('reused port name "%s"' % newName)
         self.inputs[newName] = self.inputs[activityPort]
         del self.inputs[activityPort]
-        self.script = '%s <- %s # for Taverna Workbench compatibility\n' % (activityPort, newName) + self.script
+        # remove the input port variable after reassignment, to prevent masking 
+        # of objects from the base package, or any other unintended side-effects
+        # of having additional variables in the namespace
+        self.script = '%s <- %s # for Taverna Workbench compatibility\nrm(%s)\n' % (activityPort, newName, newName) + self.script
 
     def mapOutputPort(self, activityPort, newName):
         if self.outputs.has_key(newName):
