@@ -427,8 +427,7 @@ Integer[0,...,100]
 ```
 
 This can be used to validate input fields, using the WrapperWorkflow. A complete
-working example, demonstrating creation of a validated workflow using shortcuts
-is given below.
+working example, demonstrating creation of a validated workflow is given below.
 
 ```python
 from balcaza.t2types import *
