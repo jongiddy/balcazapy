@@ -302,19 +302,19 @@ Create using:
 TextConstant('Some text')
 ```
 
-#### RServe Scripts
+#### R Scripts
 
-For RServe scripts, first create an RServer using
+For R scripts, first create an RServer using
 
 ```python
 rserve = RServer(host, port)
 ```
 
-If port is omitted, the default RServe port (6311) will be used.
+If the port is omitted, the default Rserve port (6311) will be used.
 
-If host is omitted, localhost will be used.
+If the host is omitted, localhost will be used.
 
-Create an RServe script using
+Create an R activity using
 
 ```python
 rserve.code(
@@ -349,6 +349,9 @@ from a valid Taverna name (no dots) to the R script name, using:
 flow.input.IsBeta >> flow.task.RCode.input.IsBeta['Is.Beta']
 flow.task.RCode.output.ResultTable['result.table'] >> flow.output.ResultTable
 ```
+
+Note that the List type is not available for RServer activity ports.  Use the 
+Vector type instead.
 
 ### Nested Workflows
 
