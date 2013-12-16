@@ -191,6 +191,19 @@ collections.  Assign a type to a port name, as shown:
 flow.input.InputValues = List[Integer]
 flow.output.SumOfValues = Integer
 ```
+
+#### Input Validation
+
+String types can be restricted to a set of values, and Integer types to a
+range, using:
+
+```python
+String['YES', 'NO']
+Integer[0,...,100]
+```
+
+Input ports can be checked using the `--validate` option to `balc`.
+
 ### Tasks
 
 Tasks are created similarly to input and output ports, but instead of being
@@ -405,29 +418,31 @@ Text constants can be created and linked in one step using:
 ```
 
 You do not need to specify input or output ports for RExpression types in RServe
-activities. This is most useful when connecting two RServe activities.
+activities. This is most useful when connecting two RServe activities, as shown
+in the following complete example:
 
 ```python
-flow.task.sum = rserve.code(
+from balcaza.t2types import *
+from balcaza.t2activity import *
+from balcaza.t2flow import Workflow
+
+flow = Workflow(title = 'DoubleTheSum')
+
+rserve = RServer()
+
+flow.task.SumValues = rserve.code(
 	'total <- sum(vals)',
-	inputs = dict(vals = Vector[Integer])
+	inputs = dict(vals = Vector[Integer[0,...,100]])
 	)
-flow.task.double = rserve.code(
+flow.task.Double = rserve.code(
 	'out1 <- 2 * in1',
 	outputs = dict(out1 = Integer)
 	)
+
 # Link internal script variables (transferred as RExpression types)
-flow.task.sum.output.total >> flow.task.double.input.in1
+flow.task.SumValues.output.total >> flow.task.Double.input.in1
+
+flow.task.SumValues.extendUnusedInputs()
+flow.task.Double.extendUnusedOutputs()
 ```
 
-### Input Validation
-
-String types can be restricted to a set of values, and Integer types to a
-range, using:
-
-```python
-String['YES', 'NO']
-Integer[0,...,100]
-```
-
-Types can be checked on input, using the `--validate` option to `balc`.
