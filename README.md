@@ -157,28 +157,29 @@ For input and output ports, and for some activities, you will need to specify a
 type for a port.
 
 Available types are:
-- String
-- Integer
-- Number
-- TextFile
-- PDF_File
-- PNG_Image
 
-For RServe activities, you can also specify:
-- Logical
-- RExpression
-- Vector[Logical]
-- Vector[Integer]
-- Vector[Number]
-- Vector[String]
+- `String`
+- `Integer`
+- `Number`
+- `TextFile`
+- `PDF_File`
+- `PNG_Image`
 
-You can also specify lists using List[type], where type is any of the above, or
-another list.
+For interaction with R code, the following additional types are available:
 
-e.g.
-- List[Integer] - a list of integers
-- List[RExpression] - a list of RExpressions
-- List[List[String]] - a list containing lists of strings
+- `Logical`
+- `RExpression`
+- `Vector[Logical]`
+- `Vector[Integer]`
+- `Vector[Number]`
+- `Vector[String]`
+
+You can also specify lists using `List[type]`, where `type` is any of the above,
+or another list. For example:
+
+- `List[Integer]` - a list of integers
+- `List[RExpression]` - a list of RExpressions
+- `List[List[String]]` - a list containing lists of strings
 
 ### Input and output ports
 
