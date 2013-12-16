@@ -4,10 +4,38 @@ Create a Taverna workflow file (t2flow format) using a script.
 ## Installation
 
 ### Linux
-On Linux, run:
-```
-setup.sh
-```
+
+1.	Ensure Python 2.7 and Git are installed, preferbaly using your system's
+	package manager.
+
+2.	Go to http://github.com/jongiddy/balcazapy and copy the HTTPS clone 
+	URL on the right to the clipboard.
+
+	Click on the clipboard-arrow icon to copy the URL to the clipboard
+
+3.	Clone the Git repository, using the copied URL (right click to paste into the command window)
+
+	```
+	$ git clone https://github.com/jongiddy/balcazapy.git
+	```
+
+	Note, this creates a folder called `balcazapy`
+
+	If you have already cloned the repository, you can update to the latest
+	version using the command:
+
+	```
+	$ cd balcazpy
+	$ git pull
+	```
+
+4.	Run:
+
+	```
+	$ cd balcazapy
+	$ ./setup.sh
+	```
+
 This installs a command `balc` into the `bin` directory. Add the `bin` directory
 to your `PATH`, copy the `balc` executable to somewhere in your `PATH`, or 
 reference `balc` with an absolute path name.
@@ -37,13 +65,7 @@ reference `balc` with an absolute path name.
 
 4.	Open a command window (**Start menu -> Accessories -> Command Prompt**).
 
-5.	Create an empty folder, and change into it:
-
-	```
-	> cd Desktop
-	```
-
-6.	Clone the Git repository, using the copied URL (right click to paste into the command window)
+5.	Clone the Git repository, using the copied URL (right click to paste into the command window)
 
 	```
 	> git clone https://github.com/jongiddy/balcazapy.git
@@ -55,12 +77,14 @@ reference `balc` with an absolute path name.
 	version using the command:
 
 	```
+	> cd balcazapy
 	> git pull
 	```
 
-7.	Check the file locations in `setup.bat`, then run:
+6.	Check the file locations in `setup.bat`, then run:
 
 	```
+	> cd balcazapy
 	> setup.bat
 	```
 
