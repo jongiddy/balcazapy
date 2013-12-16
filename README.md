@@ -107,11 +107,11 @@ Run `balc -h` to see the available options:
 ```
 usage: balc [-h] [--indent] [--flow FLOWNAME] source [target]
 
-Create a Taverna 2 workflow (t2flow) file from a Python script
+Create a Taverna 2 workflow (t2flow) file from a Zapy description file
 
 positional arguments:
-  source           Python source filename
-  target           Taverna 2 Workflow (t2flow) filename (default: stdout)
+  source           Zapy (.py) description file
+  target           Taverna 2 Workflow (.t2flow) filename (default: stdout)
 
 optional arguments:
   -h, --help       show this help message and exit

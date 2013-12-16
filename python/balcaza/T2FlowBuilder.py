@@ -23,11 +23,11 @@ class T2FlowBuilder:
 if __name__ == '__main__':
     import argparse, os, sys
     prog = os.path.basename(os.environ.get('BALCAZAPROG', sys.argv[0]))
-    parser = argparse.ArgumentParser(prog=prog, description='Create a Taverna 2 workflow (t2flow) file from a Python script')
+    parser = argparse.ArgumentParser(prog=prog, description='Create a Taverna 2 workflow (t2flow) file from a Zapy description file')
     parser.add_argument('--indent', dest='compressed', action='store_false', help='create a larger but more readable indented file')
     parser.add_argument('--flow', dest='flowName', action='store', default='flow', help='name of the workflow in the source file (default: %(default)s)')
-    parser.add_argument('source', help='Python source filename')
-    parser.add_argument('target', nargs='?', help='Taverna 2 Workflow (t2flow) filename (default: stdout)')
+    parser.add_argument('source', help='Zapy (.py) description file')
+    parser.add_argument('target', nargs='?', help='Taverna 2 Workflow (.t2flow) filename (default: stdout)')
     args = parser.parse_args()
     target = args.target
     if target is None:
