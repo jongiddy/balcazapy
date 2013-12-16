@@ -339,3 +339,8 @@ or, even shorter, for the above case:
 flow.task.MyTask.extendUnusedPorts()
 ```
 
+Text constants can be created and linked in one step using:
+
+```python
+"Initial Results" >> flow.task.MyTask.input.plot_title
+```
