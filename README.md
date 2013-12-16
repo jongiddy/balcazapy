@@ -331,7 +331,15 @@ rserve.code(
 or
 
 ```python
-rserve.file('file.r')
+rserve.file(
+	'file.r',
+	inputs = dict(
+		y = Vector[Integer]
+		),
+	outputs = dict(
+		x = Integer
+		)
+	)
 ```
 
 For R scripts that contain variables with dots in the name, you can map them
