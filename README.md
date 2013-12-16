@@ -5,7 +5,7 @@ Create a Taverna workflow file (t2flow format) using a script.
 
 ### Linux
 
-1.	Ensure Python 2.7 and Git are installed, preferbaly using your system's
+1.	Ensure Python 2.7 and Git are installed, preferably using your system's
 	package manager.
 
 2.	Go to http://github.com/jongiddy/balcazapy and copy the HTTPS clone 
@@ -187,7 +187,7 @@ collections.  Assign a port type to a port name, as shown:
 
 ```python
 flow.input.InputValues = List[Integer]
-flow.output.OutputValue = Integer
+flow.output.SumOfValues = Integer
 ```
 ### Tasks
 
@@ -197,9 +197,9 @@ described below.
 
 ```python
 flow.task.MyTask = rserve.code(
-	'x <- y',
+	'x <- sum(y)',
 	inputs=dict(y=Vector[Integer]),
-	outputs=dict(x=Vector[Integer])
+	outputs=dict(x=Integer)
 	)
 ```
 
@@ -216,9 +216,9 @@ Link ports using the `>>` operator. Output ports can be part of multiple links.
 Input ports must only be linked once.
 
 ```python
-flow.input.InputValue >> flow.task.MyTask.input.y
+flow.input.InputValues >> flow.task.MyTask.input.y
 flow.task.MyTask.output.x >> flow.task.AnotherTask.input.x
-flow.task.MyTask.output.x >> flow.output.OutputValue
+flow.task.MyTask.output.x >> flow.output.SumOfValues
 ```
 
 ### Activities
@@ -314,9 +314,9 @@ Create an RServe script using
 
 ```python
 rserve.code(
-	'x <- y',
+	'x <- sum(y)',
 	inputs=dict(y=Vector[Integer]),
-	outputs=dict(x=Vector[Integer])
+	outputs=dict(x=Integer)
 	)
 ```
 
@@ -325,9 +325,6 @@ or
 ```python
 rserve.file('file.r')
 ```
-
-For RServe activities, you do not need to specify an input or output port, if it
-is an RExpression. This is most useful when connecting two R codes.
 
 For R scripts that contain variables with dots in the name, you can map them
 from a valid Taverna name (no dots) to the R script name, using:
@@ -361,11 +358,11 @@ For input and output ports, it is possible to assign a type and link to an activ
 port using:
 
 ```python
-flow.input.InputValue = flow.task.MyTask.input.y
+flow.input.InputValues = flow.task.MyTask.input.y
 flow.output.OutputValue = flow.task.MyTask.output.x
 ```
 
-The types are inferred from the activity types (R Vector becomes a List).
+The types are inferred from the activity types (e.g. an R Vector becomes a List).
 
 To connect all unconnected ports of a task as ports of the workflow, use:
 
@@ -385,3 +382,6 @@ Text constants can be created and linked in one step using:
 ```python
 "Initial Results" >> flow.task.MyTask.input.plot_title
 ```
+
+For RServe activities, you do not need to specify an input or output port, if it
+is an RExpression. This is most useful when connecting two R codes.
