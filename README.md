@@ -197,12 +197,12 @@ described below.
 
 ```python
 flow.task.MyTask = rserve.code(
-	'x <- sum(y)',
+	'total <- sum(vals)',
 	inputs = dict(
-		y = Vector[Integer]
+		vals = Vector[Integer]
 		),
 	outputs = dict(
-		x = Integer
+		total = Integer
 		)
 	)
 ```
@@ -220,9 +220,9 @@ Link ports using the `>>` operator. Output ports can be part of multiple links.
 Input ports must only be linked once.
 
 ```python
-flow.input.InputValues >> flow.task.MyTask.input.y
-flow.task.MyTask.output.x >> flow.task.AnotherTask.input.x
-flow.task.MyTask.output.x >> flow.output.SumOfValues
+flow.input.InputValues >> flow.task.MyTask.input.vals
+flow.task.MyTask.output.total >> flow.task.AnotherTask.input.x
+flow.task.MyTask.output.total >> flow.output.SumOfValues
 ```
 
 ### Activities
@@ -318,12 +318,12 @@ Create an RServe script using
 
 ```python
 rserve.code(
-	'x <- sum(y)',
+	'total <- sum(vals)',
 	inputs = dict(
-		y = Vector[Integer]
+		vals = Vector[Integer]
 		),
 	outputs = dict(
-		x = Integer
+		total = Integer
 		)
 	)
 ```
@@ -334,10 +334,10 @@ or
 rserve.file(
 	'file.r',
 	inputs = dict(
-		y = Vector[Integer]
+		vals = Vector[Integer]
 		),
 	outputs = dict(
-		x = Integer
+		total = Integer
 		)
 	)
 ```
@@ -374,7 +374,7 @@ For input and output ports, it is possible to assign a type and link to an activ
 port using:
 
 ```python
-flow.input.InputValues = flow.task.MyTask.input.y
+flow.input.InputValues = flow.task.MyTask.input.vals
 flow.output.OutputValue = flow.task.MyTask.output.x
 ```
 
@@ -404,15 +404,15 @@ in the Activity input or output ports.
 
 ```python
 flow.task.sum = rserve.code(
-	'x <- sum(y)',
-	inputs = dict(y = Vector[Integer])
+	'total <- sum(vals)',
+	inputs = dict(vals = Vector[Integer])
 	)
 flow.task.double = rserve.code(
 	'out1 <- 2 * in1',
 	outputs = dict(out1 = Integer)
 	)
 # Link internal script variables (transferred as RExpression types)
-flow.task.sum.output.x >> flow.task.double.input.in1
+flow.task.sum.output.total >> flow.task.double.input.in1
 
 ```
 
@@ -439,10 +439,16 @@ flow = Workflow(title = 'DoubleTheSum')
 
 rserve = RServer()
 
-flow.task.sum = rserve.code('x <- sum(y)', inputs = dict(y = Vector[Integer[-100,...,100]]))
-flow.task.double = rserve.code('out1 <- 2 * in1', outputs = dict(out1 = Integer))
+flow.task.sum = rserve.code(
+	'total <- sum(vals)',
+	inputs = dict(vals = Vector[Integer[0,...,100]])
+	)
+flow.task.double = rserve.code(
+	'out1 <- 2 * in1',
+	outputs = dict(out1 = Integer)
+	)
 
-flow.task.sum.output.x >> flow.task.double.input.in1
+flow.task.sum.output.total >> flow.task.double.input.in1
 flow.task.sum.extendUnusedInputs()
 flow.task.double.extendUnusedOutputs()
 
