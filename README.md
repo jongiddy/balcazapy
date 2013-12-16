@@ -141,7 +141,6 @@ Create a workflow using:
 ```python
 flow = Workflow(title = 'Create Projection Matrix', author = "Maria and Jon",
 	description = "Create a projection matrix from a stage matrix and a list of stages")
-
 ```
 
 This workflow contains 3 main collections:
@@ -400,11 +399,22 @@ Text constants can be created and linked in one step using:
 "Initial Results" >> flow.task.MyTask.input.plot_title
 ```
 
-You do not need to specify an input or output ports for RExpression types in 
+You do not need to specify input or output ports for RExpression types in 
 RServe activities. This is most useful when connecting two RServe activities.
 
 ```python
+from balcaza.t2types import *
+from balcaza.t2activity import *
+from balcaza.t2flow import Workflow
+
+flow = Workflow(title = 'DoubleTheSum')
+
+rserve = RServer()
+
 flow.task.sum = rserve.code('x <- sum(y)', inputs = dict(y = Vector[Integer]))
 flow.task.double = rserve.code('out1 <- 2 * in1', outputs = dict(out1 = Integer))
+
 flow.task.sum.output.x >> flow.task.double.input.in1
+flow.task.sum.extendUnusedInputs()
+flow.task.double.extendUnusedOutputs()
 ```
