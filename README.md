@@ -104,7 +104,7 @@ balc myfile.py myflow.t2flow
 
 Run `balc -h` to see the available options:
 
-```sh
+```
 usage: balc [-h] [--indent] [--flow FLOWNAME] source [target]
 
 Create a Taverna 2 workflow (t2flow) file from a Python script
