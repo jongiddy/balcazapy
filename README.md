@@ -416,19 +416,10 @@ Text constants can be created and linked in one step using:
 "Initial Results" >> flow.task.MyTask.input.plot_title
 ```
 
-After creating a task, you can assign it to a variable, to make mapping of the
-input and output ports simpler
+To make access to activity ports less verbose, assign the task to a variable:
 
 ```python
-MyTask = flow.task.MyTask << rserve.code(
-	'total <- sum(vals)',
-	inputs = dict(
-		vals = Vector[Integer]
-		),
-	outputs = dict(
-		total = Integer
-		)
-	)
+MyTask = flow.task.MyTask << rserve.code(...)
 flow.input.values = MyTask.input.vals
 MyTask.output.total >> AnotherTask.input.in1
 ```

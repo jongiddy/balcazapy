@@ -7,7 +7,7 @@ flow = Workflow(title='Life Table Response Experiment')
 
 rserve = RServer()
 
-flow.task.LTRE << rserve.code('''
+LTRE = flow.task.LTRE << rserve.code('''
 library(popbio)
 LTRE_Analysis <- LTRE(matrices, pooled_matrix)
 ''',
@@ -20,10 +20,10 @@ LTRE_Analysis <- LTRE(matrices, pooled_matrix)
 		)
 	)
 
-flow.task.LTRE.extendUnusedInputs()
-flow.output.LTRE_Analysis = flow.task.LTRE.output.LTRE_Analysis
+LTRE.extendUnusedInputs()
+flow.output.LTRE_Analysis = LTRE.output.LTRE_Analysis
 
-flow.task.PlotLTRE << rserve.file(
+PlotLTRE = flow.task.PlotLTRE << rserve.file(
 	'PlotLTRE.r',
 	inputs = dict(
 		LTRE_Analysis=RExpression,
@@ -40,5 +40,5 @@ flow.task.PlotLTRE << rserve.file(
 		)
 	)
 
-flow.task.LTRE.output.LTRE_Analysis >> flow.task.PlotLTRE.input.LTRE_Analysis
-flow.task.PlotLTRE.extendUnusedPorts()
+LTRE.output.LTRE_Analysis >> PlotLTRE.input.LTRE_Analysis
+PlotLTRE.extendUnusedPorts()
