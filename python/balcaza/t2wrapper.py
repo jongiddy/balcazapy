@@ -7,8 +7,8 @@ class WrapperWorkflow(Workflow):
 	def __init__(self, flow):
 		self.flow = flow
 		Workflow.__init__(self, flow.title, flow.author, flow.description)
-		setattr(self.task, flow.name, NestedWorkflow(flow))
-		nested = getattr(self.task, flow.name)
+		self.task[flow.name] = NestedWorkflow(flow)
+		nested = self.task[flow.name]
 		for port in flow.input:
 			# Set type to same depth, but basetype of String
 			depth = port.type.getDepth()
