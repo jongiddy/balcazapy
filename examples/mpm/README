@@ -18,7 +18,7 @@ A nested workflow file is just like a normal Balcazapy file, and can be
 converted to its own t2flow file if required.  It is included as a task in the 
 outer workflow using a command like:
 
-flow.task.CalculatePlaceEffect = NestedZapyFile('LTRE.py')
+flow.task.CalculatePlaceEffect << NestedZapyFile('LTRE.py')
 
 Several of the common activities are contained in sub-directories as a Python
 library. The library contains reusable RShell activities to read an R matrix 
@@ -39,4 +39,4 @@ See util/r/format.py for an example.
 To use the library activity, import it from the library directory, using:
 
 from util.r.format import PrettyPrint
-flow.task.PrintAnalysis = PrettyPrint(rserve)
+flow.task.PrintAnalysis << PrettyPrint(rserve)

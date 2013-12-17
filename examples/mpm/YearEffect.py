@@ -36,7 +36,7 @@ The stages of this matrix are:
 
 flow.input.pooled_matrix_file = TextFile
 
-flow.task.RequestStageMatrices = InteractionPage(
+flow.task.RequestStageMatrices << InteractionPage(
 	'http://biovel.googlecode.com/svn/tags/mpm-20131215/select_matrices.html',
 	inputs = dict(
 		title=String(description="Message displayed at top of page"),
@@ -57,7 +57,7 @@ Each element of the top-level list is related to each element of the input port 
 "false" >> flow.task.RequestStageMatrices.input.multiple
 flow.input.years >> flow.task.RequestStageMatrices.input.values
 
-flow.task.FlattenList = BeanshellCode(
+flow.task.FlattenList << BeanshellCode(
 '''flatten(inputs, outputs, depth) {
 	for (i = inputs.iterator(); i.hasNext();) {
 	    element = i.next();
@@ -89,28 +89,28 @@ import sys
 sys.path.append('')
 from util.r.file import ReadMatrixFromFile
 
-flow.task.ReadStageMatrix = ReadMatrixFromFile(rserve)
+flow.task.ReadStageMatrix << ReadMatrixFromFile(rserve)
 # List[String] -> String = 1 level of iteration
 flow.task.FlattenList.output.outputlist >> flow.task.ReadStageMatrix.input.matrix_file
 flow.input.stages >> flow.task.ReadStageMatrix.input.xlabels
 flow.input.stages >> flow.task.ReadStageMatrix.input.ylabels
 
-flow.task.ReadPooledMatrix = ReadMatrixFromFile(rserve)
+flow.task.ReadPooledMatrix << ReadMatrixFromFile(rserve)
 flow.input.pooled_matrix_file >> flow.task.ReadPooledMatrix.input.matrix_file
 flow.input.stages >> flow.task.ReadPooledMatrix.input.xlabels
 flow.input.stages >> flow.task.ReadPooledMatrix.input.ylabels
 
 from util.r.format import ListR_to_RList
 
-flow.task.CreateRListOfMatrices = ListR_to_RList(rserve)
+flow.task.CreateRListOfMatrices << ListR_to_RList(rserve)
 flow.task.ReadStageMatrix.output.matrix >> flow.task.CreateRListOfMatrices.input.list_of_r_expressions
 
 
-flow.task.AddNames = rserve.code('names(expr) <- labels', inputs=dict(labels=Vector[String]))
+flow.task.AddNames << rserve.code('names(expr) <- labels', inputs=dict(labels=Vector[String]))
 flow.task.CreateRListOfMatrices.output.r_list_of_expressions >> flow.task.AddNames.input.expr
 flow.input.years >> flow.task.AddNames.input.labels
 
-flow.task.CalculateYearEffect = NestedZapyFile('LTRE.py')
+flow.task.CalculateYearEffect << NestedZapyFile('LTRE.py')
 flow.task.AddNames.output.expr >> flow.task.CalculateYearEffect.input.matrices
 flow.task.ReadPooledMatrix.output.matrix >> flow.task.CalculateYearEffect.input.pooled_matrix
 'Years' >> flow.task.CalculateYearEffect.input.xlabel
@@ -121,11 +121,11 @@ flow.task.CalculateYearEffect.extendUnusedInputs()
 
 from util.r.format import PrettyPrint
 
-flow.task.PrintAnalysis = PrettyPrint(rserve)
+flow.task.PrintAnalysis << PrettyPrint(rserve)
 flow.task.CalculateYearEffect.output.LTRE_Analysis >> flow.task.PrintAnalysis.input.rexpr
 flow.output.LTRE_Analysis = flow.task.PrintAnalysis.output.text
 
-flow.task.PrintResults = PrettyPrint(rserve)
+flow.task.PrintResults << PrettyPrint(rserve)
 flow.task.CalculateYearEffect.output.LTRE_Results_RLn >> flow.task.PrintResults.input.rexpr
 flow.output.LTRE_Results = flow.task.PrintResults.output.text
 

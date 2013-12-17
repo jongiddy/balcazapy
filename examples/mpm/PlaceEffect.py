@@ -36,7 +36,7 @@ The stages of this matrix are:
 
 flow.input.pooled_matrix_file = TextFile
 
-flow.task.RequestStageMatrices = InteractionPage(
+flow.task.RequestStageMatrices << InteractionPage(
 	'http://biovel.googlecode.com/svn/tags/mpm-20131215/select_matrices.html',
 	inputs = dict(
 		title=String(description="Message displayed at top of page"),
@@ -63,23 +63,23 @@ import sys
 sys.path.append('')
 from util.r.file import ReadMatrixFromFile
 
-flow.task.ReadStageMatrix = ReadMatrixFromFile(rserve)
+ReadStageMatrix = flow.task.ReadStageMatrix << ReadMatrixFromFile(rserve)
 # List[List[String]] -> String = 2 levels of iteration
-flow.task.RequestStageMatrices.output.matrices >> flow.task.ReadStageMatrix.input.matrix_file
-flow.input.stages >> flow.task.ReadStageMatrix.input.xlabels
-flow.input.stages >> flow.task.ReadStageMatrix.input.ylabels
+flow.task.RequestStageMatrices.output.matrices >> ReadStageMatrix.input.matrix_file
+flow.input.stages >> ReadStageMatrix.input.xlabels
+flow.input.stages >> ReadStageMatrix.input.ylabels
 
-flow.task.ReadPooledMatrix = ReadMatrixFromFile(rserve)
+flow.task.ReadPooledMatrix << ReadMatrixFromFile(rserve)
 flow.input.pooled_matrix_file >> flow.task.ReadPooledMatrix.input.matrix_file
 flow.input.stages >> flow.task.ReadPooledMatrix.input.xlabels
 flow.input.stages >> flow.task.ReadPooledMatrix.input.ylabels
 
 from util.r.format import ListR_to_RList
 
-flow.task.CreateListOfRMatrices = ListR_to_RList(rserve)
+flow.task.CreateListOfRMatrices << ListR_to_RList(rserve)
 flow.task.ReadStageMatrix.output.matrix >> flow.task.CreateListOfRMatrices.input.list_of_r_expressions
 
-flow.task.MeanMatrix = rserve.code('''
+flow.task.MeanMatrix << rserve.code('''
 # mean(matrix) usually returns the mean of all values in the matrix
 # mean(list of matrices) isn't present in base R, but the logical return value
 # would be a list (or vector) of the mean of each matrix in the list.  However,
@@ -96,15 +96,15 @@ mean_matrix <- mean.list(matrices)
 
 flow.task.CreateListOfRMatrices.output.r_list_of_expressions >> flow.task.MeanMatrix.input.matrices
 
-flow.task.CreateRListOfMatrices = ListR_to_RList(rserve)
+flow.task.CreateRListOfMatrices << ListR_to_RList(rserve)
 flow.task.MeanMatrix.output.mean_matrix >> flow.task.CreateRListOfMatrices.input.list_of_r_expressions
 
 
-flow.task.AddNames = rserve.code('names(expr) <- labels', inputs=dict(labels=Vector[String]))
+flow.task.AddNames << rserve.code('names(expr) <- labels', inputs=dict(labels=Vector[String]))
 flow.task.CreateRListOfMatrices.output.r_list_of_expressions >> flow.task.AddNames.input.expr
 flow.input.places >> flow.task.AddNames.input.labels
 
-flow.task.CalculatePlaceEffect = NestedZapyFile('LTRE.py')
+flow.task.CalculatePlaceEffect << NestedZapyFile('LTRE.py')
 flow.task.AddNames.output.expr >> flow.task.CalculatePlaceEffect.input.matrices
 flow.task.ReadPooledMatrix.output.matrix >> flow.task.CalculatePlaceEffect.input.pooled_matrix
 'Places' >> flow.task.CalculatePlaceEffect.input.xlabel
@@ -115,11 +115,11 @@ flow.task.CalculatePlaceEffect.extendUnusedInputs()
 
 from util.r.format import PrettyPrint
 
-flow.task.PrintAnalysis = PrettyPrint(rserve)
+flow.task.PrintAnalysis << PrettyPrint(rserve)
 flow.task.CalculatePlaceEffect.output.LTRE_Analysis >> flow.task.PrintAnalysis.input.rexpr
 flow.output.LTRE_Analysis = flow.task.PrintAnalysis.output.text
 
-flow.task.PrintResults = PrettyPrint(rserve)
+flow.task.PrintResults << PrettyPrint(rserve)
 flow.task.CalculatePlaceEffect.output.LTRE_Results_RLn >> flow.task.PrintResults.input.rexpr
 flow.output.LTRE_Results = flow.task.PrintResults.output.text
 

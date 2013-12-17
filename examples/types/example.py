@@ -2,14 +2,14 @@
 from balcaza.t2types import *
 from balcaza.t2activity import *
 from balcaza.t2flow import *
-from balcaza.t2wrapper import WrapperWorkflow
 
 # This example demonstrates validation checks of input ports
+# Create the t2flow file using the --validate option
 
 flow = Workflow(title='Validation Example')
 
 
-flow.task.Process = BeanshellCode("output = input1 + input2;",
+flow.task.Process << BeanshellCode("output = input1 + input2;",
 	inputs=dict(
 		input1=String['YES', 'NO'](description="Choose YES or NO", example="YES"),
 		input2=Logical(description="Choose TRUE or FALSE", example="TRUE")
@@ -22,5 +22,3 @@ flow.input.Logicals = List[Logical](description="Choose TRUE or FALSE", example=
 flow.input.Logicals >> flow.task.Process.input.input2
 flow.output.Output = List[String]
 flow.task.Process.output.output >> flow.output.Output
-
-flow = WrapperWorkflow(flow)

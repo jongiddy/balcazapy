@@ -206,12 +206,11 @@ Input ports can be checked using the `--validate` option to `balc`.
 
 ### Tasks
 
-Tasks are created similarly to input and output ports, but instead of being
-assigned a type, they are assigned an *Activity*.  The available activities are
-described below.
+Tasks are created by passing an *Activity* to a workflow task name.  The 
+available activities are described below.
 
 ```python
-flow.task.MyTask = rserve.code(
+flow.task.MyTask << rserve.code(
 	'total <- sum(vals)',
 	inputs = dict(
 		vals = Vector[Integer]
@@ -376,14 +375,14 @@ It is possible to create nested workflows using the NestedWorkflow activity.
 inner = Workflow(...)
 ...
 outer = Workflow(...)
-outer.task.CoreAlgorithm = NestedWorkflow(inner)
+outer.task.CoreAlgorithm << NestedWorkflow(inner)
 ```
 
 It is often more convenient to develop the nested workflow in a separate file,
 and then use:
 
 ```python
-outer.task.CoreAlgorithm = NestedZapyFile('inner.py')
+outer.task.CoreAlgorithm << NestedZapyFile('inner.py')
 ```
 
 ### Shortcuts
@@ -417,6 +416,23 @@ Text constants can be created and linked in one step using:
 "Initial Results" >> flow.task.MyTask.input.plot_title
 ```
 
+After creating a task, you can assign it to a variable, to make mapping of the
+input and output ports simpler
+
+```python
+MyTask = flow.task.MyTask << rserve.code(
+	'total <- sum(vals)',
+	inputs = dict(
+		vals = Vector[Integer]
+		),
+	outputs = dict(
+		total = Integer
+		)
+	)
+flow.input.values = MyTask.input.vals
+MyTask.output.total >> AnotherTask.input.in1
+```
+
 You do not need to specify input or output ports for RExpression types in RServe
 activities. This is most useful when connecting two RServe activities, as shown
 in the following complete example:
@@ -426,23 +442,23 @@ from balcaza.t2types import *
 from balcaza.t2activity import *
 from balcaza.t2flow import Workflow
 
-flow = Workflow(title = 'DoubleTheSum')
+flow = Workflow(title = 'TwiceTheSum')
 
 rserve = RServer()
 
-flow.task.SumValues = rserve.code(
+SumValues = flow.task.SumValues << rserve.code(
 	'total <- sum(vals)',
 	inputs = dict(vals = Vector[Integer[0,...,100]])
 	)
-flow.task.Double = rserve.code(
+Double = flow.task.Double << rserve.code(
 	'out1 <- 2 * in1',
 	outputs = dict(out1 = Integer)
 	)
 
 # Link internal script variables (transferred as RExpression types)
-flow.task.SumValues.output.total >> flow.task.Double.input.in1
+SumValues.output.total >> Double.input.in1
 
-flow.task.SumValues.extendUnusedInputs()
-flow.task.Double.extendUnusedOutputs()
+SumValues.extendUnusedInputs()
+Double.extendUnusedOutputs()
 ```
 

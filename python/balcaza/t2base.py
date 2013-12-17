@@ -53,6 +53,9 @@ class Ports(object):
     def __len__(self):
         return len(self._.ports)
 
+    def __contains__(self, name):
+        return self._.ports.has_key(name)
+        
     def __iter__(self):
         return OrderedMapIterator(self._.ports, self._.order)
 

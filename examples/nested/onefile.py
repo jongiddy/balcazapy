@@ -32,13 +32,13 @@ inner.input.speciesName = SpeciesName
 rserve = RServer()
 
 # Create a reusable activity and assign it to a workflow task, using
-# <wflow>.task.<taskname> = <activity>
+# <wflow>.task.<taskname> << <activity>
 # 
 # In this example, we create an RShell activity from a script and details of 
 # the inputs and outputs. Note that the {} form and dict() form are similar, 
 # but {} requires quotes, while dict() cannot handle names containing dots
 
-inner.task.CalculatePlotSize = rserve.code(
+inner.task.CalculatePlotSize << rserve.code(
 	"plot_size <- 128 + 32 * dim(stage.matrix)[1]",
 	inputs = {'stage.matrix': RExpression},
 	outputs = dict(plot_size = Integer)
@@ -54,7 +54,7 @@ inner.input.stageMatrix >> inner.task.CalculatePlotSize.input.stage_matrix['stag
 
 # Create another RShell, this time from an external R file
 
-inner.task.ProjectionMatrix = rserve.file(
+inner.task.ProjectionMatrix << rserve.file(
 	"projectionMatrix.R",
 	inputs=dict(plot_title=String, stage_matrix=RExpression, plot_size=Integer),
 	outputs=dict(plot_image=PNG_Image)
@@ -79,7 +79,7 @@ flow = Workflow(title='Create Projection Matrix', author="Maria and Jon",
 
 # and add the nested workflow (treat the nested workflow just like any other acivity)
 
-flow.task.ProjectionMatrix = NestedWorkflow(inner)
+flow.task.ProjectionMatrix << NestedWorkflow(inner)
 
 # Hey, we can reuse our SpeciesName defined near the top of this file
 
@@ -111,7 +111,7 @@ rshell = rserve.file(
 	outputs = dict(stage_matrix=RExpression)
 	)
 
-flow.task.ReadMatrix = rshell
+flow.task.ReadMatrix << rshell
 
 flow.input.stageMatrixFile >> flow.task.ReadMatrix.input.stage_matrix_file
 flow.input.stages >> flow.task.ReadMatrix.input.stages

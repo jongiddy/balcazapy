@@ -264,6 +264,16 @@ class WorkflowTask(object):
                                     for port in connected:
                                         tav.port(name=port.getName(), depth=port.getDepth())
 
+class UnassignedTask:
+
+    def __init__(self, tasks, name):
+        self.tasks = tasks
+        self.name = name
+
+    def __lshift__(self, activity):
+        self.tasks[self.name] = activity
+        return self.tasks[self.name]
+
 class WorkflowTasks(object):
 
     def __init__(self, flow):
@@ -275,6 +285,9 @@ class WorkflowTasks(object):
     def __iter__(self):
         return OrderedMapIterator(self._.tasks, self._.order)
 
+    def __contains__(self, name):
+        return self._.tasks.has_key(name)
+
     def __getitem__(self, name):
         return self.__getattr__(name)
 
@@ -282,7 +295,6 @@ class WorkflowTasks(object):
         return self.__setattr__(name, activity)
 
     def __setattr__(self, name, activity):
-        # flow.input.name = type
         if self._.tasks.has_key(name):
             raise RuntimeError('task "%s" defined twice for workflow "%s"' % (name, self._.flow.name))
         if not isinstance(activity, Activity):
@@ -293,4 +305,5 @@ class WorkflowTasks(object):
     def __getattr__(self, name):
         if self._.tasks.has_key(name):
             return self._.tasks[name]
-        raise AttributeError(name)
+        else:
+            return UnassignedTask(self, name)

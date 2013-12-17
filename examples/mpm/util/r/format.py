@@ -36,7 +36,7 @@ def ListR_to_RList(rserve):
 	Version 2: reduce number of BeanShells
 	""")
 
-	flow.task.FlattenListOfStringsToString = BeanshellFile(
+	flow.task.FlattenListOfStringsToString << BeanshellFile(
 	    "FlattenList.bsh",
 	    inputs = dict(stringlist=RExpression),
 	    outputs = dict(concatenated=String)
@@ -45,7 +45,7 @@ def ListR_to_RList(rserve):
 	flow.input.list_of_r_expressions = List[RExpression]
 	flow.input.list_of_r_expressions >> flow.task.FlattenListOfStringsToString.input.stringlist
 
-	flow.task.CombineListOfStringsIntoRList = BeanshellFile(
+	flow.task.CombineListOfStringsIntoRList << BeanshellFile(
 	    "StringsToRList.bsh",
 	    inputs = dict(stringlist=List[String]),
 	    outputs = dict(output=List[String])

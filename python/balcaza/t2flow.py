@@ -238,16 +238,16 @@ class Workflow(object):
     def selectUniqueLabel(self, namespace, candidate):
         i = 1
         label = candidate
-        while hasattr(namespace, label):
+        while label in namespace:
             i += 1
-            label = candidate + str(i)
+            label = '%s_%d' % (candidate, i)
         return label
 
     def linkData(self, source, sink):
         if not isinstance(source, Source):
             textConstant = TextConstant(source)
             label = self.selectUniqueLabel(self.task, sink.name)
-            self.task[label] = textConstant
+            self.task[label] << textConstant
             source = self.task[label].output.value
             source.connect()
         if not isinstance(sink, Sink):
@@ -255,7 +255,7 @@ class Workflow(object):
         validator = sink.type.validator(source.type)
         if validator is not None:
             label = self.selectUniqueLabel(self.task, 'Validate_' + source.name)
-            self.task[label] = validator
+            self.task[label] << validator
             task = self.task[label]
             task.input.input.connect()
             task.output.output.connect()
