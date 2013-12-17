@@ -36,23 +36,23 @@ def ListR_to_RList(rserve):
 	Version 2: reduce number of BeanShells
 	""")
 
-	flow.task.FlattenListOfStringsToString << BeanshellFile(
+	Flatten = flow.task.FlattenListOfStringsToString << BeanshellFile(
 	    "FlattenList.bsh",
 	    inputs = dict(stringlist=RExpression),
 	    outputs = dict(concatenated=String)
 	    )
 
 	flow.input.list_of_r_expressions = List[RExpression]
-	flow.input.list_of_r_expressions >> flow.task.FlattenListOfStringsToString.input.stringlist
+	flow.input.list_of_r_expressions >> Flatten.input.stringlist
 
-	flow.task.CombineListOfStringsIntoRList << BeanshellFile(
+	Combine = flow.task.CombineListOfStringsIntoRList << BeanshellFile(
 	    "StringsToRList.bsh",
 	    inputs = dict(stringlist=List[String]),
 	    outputs = dict(output=List[String])
 	    )
 
-	flow.task.FlattenListOfStringsToString.output.concatenated >> flow.task.CombineListOfStringsIntoRList.input.stringlist
+	Flatten.output.concatenated >> Combine.input.stringlist
 
-	flow.output.r_list_of_expressions = flow.task.CombineListOfStringsIntoRList.output.output
+	flow.output.r_list_of_expressions = Combine.output.output
 
 	return NestedWorkflow(flow)

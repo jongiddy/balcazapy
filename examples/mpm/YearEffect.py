@@ -36,7 +36,7 @@ The stages of this matrix are:
 
 flow.input.pooled_matrix_file = TextFile
 
-flow.task.RequestStageMatrices << InteractionPage(
+RequestStageMatrices = flow.task.RequestStageMatrices << InteractionPage(
 	'http://biovel.googlecode.com/svn/tags/mpm-20131215/select_matrices.html',
 	inputs = dict(
 		title=String(description="Message displayed at top of page"),
@@ -52,12 +52,12 @@ Each element of the top-level list is related to each element of the input port 
 		)
 	)
 
-"Select a stage matrix for each year" >> flow.task.RequestStageMatrices.input.title
-"Year" >> flow.task.RequestStageMatrices.input.field
-"false" >> flow.task.RequestStageMatrices.input.multiple
-flow.input.years >> flow.task.RequestStageMatrices.input.values
+"Select a stage matrix for each year" >> RequestStageMatrices.input.title
+"Year" >> RequestStageMatrices.input.field
+"false" >> RequestStageMatrices.input.multiple
+flow.input.years >> RequestStageMatrices.input.values
 
-flow.task.FlattenList << BeanshellCode(
+FlattenList = flow.task.FlattenList << BeanshellCode(
 '''flatten(inputs, outputs, depth) {
 	for (i = inputs.iterator(); i.hasNext();) {
 	    element = i.next();
@@ -81,7 +81,7 @@ flatten(inputlist, outputlist, 1);
 		)
 	)
 
-flow.task.RequestStageMatrices.output.matrices >> flow.task.FlattenList.input.inputlist
+RequestStageMatrices.output.matrices >> FlattenList.input.inputlist
 
 rserve = RServer()
 
@@ -89,46 +89,57 @@ import sys
 sys.path.append('')
 from util.r.file import ReadMatrixFromFile
 
-flow.task.ReadStageMatrix << ReadMatrixFromFile(rserve)
-# List[String] -> String = 1 level of iteration
-flow.task.FlattenList.output.outputlist >> flow.task.ReadStageMatrix.input.matrix_file
-flow.input.stages >> flow.task.ReadStageMatrix.input.xlabels
-flow.input.stages >> flow.task.ReadStageMatrix.input.ylabels
 
-flow.task.ReadPooledMatrix << ReadMatrixFromFile(rserve)
-flow.input.pooled_matrix_file >> flow.task.ReadPooledMatrix.input.matrix_file
-flow.input.stages >> flow.task.ReadPooledMatrix.input.xlabels
-flow.input.stages >> flow.task.ReadPooledMatrix.input.ylabels
+ReadStageMatrix = flow.task.ReadStageMatrix << ReadMatrixFromFile(rserve)
+
+# List[String] -> String = 1 level of iteration
+FlattenList.output.outputlist >> ReadStageMatrix.input.matrix_file
+flow.input.stages >> ReadStageMatrix.input.xlabels
+flow.input.stages >> ReadStageMatrix.input.ylabels
+
+
+ReadPooledMatrix = flow.task.ReadPooledMatrix << ReadMatrixFromFile(rserve)
+
+flow.input.pooled_matrix_file >> ReadPooledMatrix.input.matrix_file
+flow.input.stages >> ReadPooledMatrix.input.xlabels
+flow.input.stages >> ReadPooledMatrix.input.ylabels
+
 
 from util.r.format import ListR_to_RList
+CreateRListOfMatrices = flow.task.CreateRListOfMatrices << ListR_to_RList(rserve)
 
-flow.task.CreateRListOfMatrices << ListR_to_RList(rserve)
-flow.task.ReadStageMatrix.output.matrix >> flow.task.CreateRListOfMatrices.input.list_of_r_expressions
+ReadStageMatrix.output.matrix >> CreateRListOfMatrices.input.list_of_r_expressions
 
 
-flow.task.AddNames << rserve.code('names(expr) <- labels', inputs=dict(labels=Vector[String]))
-flow.task.CreateRListOfMatrices.output.r_list_of_expressions >> flow.task.AddNames.input.expr
-flow.input.years >> flow.task.AddNames.input.labels
+AddNames = flow.task.AddNames << rserve.code(
+	'names(expr) <- labels',
+	inputs=dict(labels=Vector[String])
+	)
 
-flow.task.CalculateYearEffect << NestedZapyFile('LTRE.py')
-flow.task.AddNames.output.expr >> flow.task.CalculateYearEffect.input.matrices
-flow.task.ReadPooledMatrix.output.matrix >> flow.task.CalculateYearEffect.input.pooled_matrix
-'Years' >> flow.task.CalculateYearEffect.input.xlabel
-flow.input.years >> flow.task.CalculateYearEffect.input.xticks
-'Year Effect' >> flow.task.CalculateYearEffect.input.ylabel
-'lightblue' >> flow.task.CalculateYearEffect.input.plot_colour
-flow.task.CalculateYearEffect.extendUnusedInputs()
+CreateRListOfMatrices.output.r_list_of_expressions >> AddNames.input.expr
+flow.input.years >> AddNames.input.labels
+
+
+CalculateYearEffect = flow.task.CalculateYearEffect << NestedZapyFile('LTRE.py')
+
+AddNames.output.expr >> CalculateYearEffect.input.matrices
+ReadPooledMatrix.output.matrix >> CalculateYearEffect.input.pooled_matrix
+'Years' >> CalculateYearEffect.input.xlabel
+flow.input.years >> CalculateYearEffect.input.xticks
+'Year Effect' >> CalculateYearEffect.input.ylabel
+'lightblue' >> CalculateYearEffect.input.plot_colour
+CalculateYearEffect.extendUnusedInputs()
 
 from util.r.format import PrettyPrint
 
-flow.task.PrintAnalysis << PrettyPrint(rserve)
-flow.task.CalculateYearEffect.output.LTRE_Analysis >> flow.task.PrintAnalysis.input.rexpr
-flow.output.LTRE_Analysis = flow.task.PrintAnalysis.output.text
+PrintAnalysis = flow.task.PrintAnalysis << PrettyPrint(rserve)
+CalculateYearEffect.output.LTRE_Analysis >> PrintAnalysis.input.rexpr
+flow.output.LTRE_Analysis = PrintAnalysis.output.text
 
-flow.task.PrintResults << PrettyPrint(rserve)
-flow.task.CalculateYearEffect.output.LTRE_Results_RLn >> flow.task.PrintResults.input.rexpr
-flow.output.LTRE_Results = flow.task.PrintResults.output.text
+PrintResults = flow.task.PrintResults << PrettyPrint(rserve)
+CalculateYearEffect.output.LTRE_Results_RLn >> PrintResults.input.rexpr
+flow.output.LTRE_Results = PrintResults.output.text
 
-flow.output.LTRE_Graph = flow.task.CalculateYearEffect.output.graph
+flow.output.LTRE_Graph = CalculateYearEffect.output.graph
 
 

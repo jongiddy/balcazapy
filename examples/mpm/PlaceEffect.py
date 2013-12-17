@@ -36,7 +36,7 @@ The stages of this matrix are:
 
 flow.input.pooled_matrix_file = TextFile
 
-flow.task.RequestStageMatrices << InteractionPage(
+RequestStageMatrices = flow.task.RequestStageMatrices << InteractionPage(
 	'http://biovel.googlecode.com/svn/tags/mpm-20131215/select_matrices.html',
 	inputs = dict(
 		title=String(description="Message displayed at top of page"),
@@ -52,10 +52,10 @@ Each element of the top-level list is related to each element of the input port 
 		)
 	)
 
-"Select multiple stage matrices from different years for each location" >> flow.task.RequestStageMatrices.input.title
-"Location" >> flow.task.RequestStageMatrices.input.field
-"true" >> flow.task.RequestStageMatrices.input.multiple
-flow.input.places >> flow.task.RequestStageMatrices.input.values
+"Select multiple stage matrices from different years for each location" >> RequestStageMatrices.input.title
+"Location" >> RequestStageMatrices.input.field
+"true" >> RequestStageMatrices.input.multiple
+flow.input.places >> RequestStageMatrices.input.values
 
 rserve = RServer()
 
@@ -65,21 +65,21 @@ from util.r.file import ReadMatrixFromFile
 
 ReadStageMatrix = flow.task.ReadStageMatrix << ReadMatrixFromFile(rserve)
 # List[List[String]] -> String = 2 levels of iteration
-flow.task.RequestStageMatrices.output.matrices >> ReadStageMatrix.input.matrix_file
+RequestStageMatrices.output.matrices >> ReadStageMatrix.input.matrix_file
 flow.input.stages >> ReadStageMatrix.input.xlabels
 flow.input.stages >> ReadStageMatrix.input.ylabels
 
-flow.task.ReadPooledMatrix << ReadMatrixFromFile(rserve)
-flow.input.pooled_matrix_file >> flow.task.ReadPooledMatrix.input.matrix_file
-flow.input.stages >> flow.task.ReadPooledMatrix.input.xlabels
-flow.input.stages >> flow.task.ReadPooledMatrix.input.ylabels
+ReadPooledMatrix = flow.task.ReadPooledMatrix << ReadMatrixFromFile(rserve)
+flow.input.pooled_matrix_file >> ReadPooledMatrix.input.matrix_file
+flow.input.stages >> ReadPooledMatrix.input.xlabels
+flow.input.stages >> ReadPooledMatrix.input.ylabels
 
 from util.r.format import ListR_to_RList
 
-flow.task.CreateListOfRMatrices << ListR_to_RList(rserve)
-flow.task.ReadStageMatrix.output.matrix >> flow.task.CreateListOfRMatrices.input.list_of_r_expressions
+CreateListOfRMatrices = flow.task.CreateListOfRMatrices << ListR_to_RList(rserve)
+ReadStageMatrix.output.matrix >> CreateListOfRMatrices.input.list_of_r_expressions
 
-flow.task.MeanMatrix << rserve.code('''
+MeanMatrix = flow.task.MeanMatrix << rserve.code('''
 # mean(matrix) usually returns the mean of all values in the matrix
 # mean(list of matrices) isn't present in base R, but the logical return value
 # would be a list (or vector) of the mean of each matrix in the list.  However,
@@ -94,35 +94,35 @@ mean_matrix <- mean.list(matrices)
 	outputs = dict(mean_matrix = RExpression)
 	)
 
-flow.task.CreateListOfRMatrices.output.r_list_of_expressions >> flow.task.MeanMatrix.input.matrices
+CreateListOfRMatrices.output.r_list_of_expressions >> MeanMatrix.input.matrices
 
-flow.task.CreateRListOfMatrices << ListR_to_RList(rserve)
-flow.task.MeanMatrix.output.mean_matrix >> flow.task.CreateRListOfMatrices.input.list_of_r_expressions
+CreateRListOfMatrices = flow.task.CreateRListOfMatrices << ListR_to_RList(rserve)
+MeanMatrix.output.mean_matrix >> CreateRListOfMatrices.input.list_of_r_expressions
 
 
-flow.task.AddNames << rserve.code('names(expr) <- labels', inputs=dict(labels=Vector[String]))
-flow.task.CreateRListOfMatrices.output.r_list_of_expressions >> flow.task.AddNames.input.expr
-flow.input.places >> flow.task.AddNames.input.labels
+AddNames = flow.task.AddNames << rserve.code('names(expr) <- labels', inputs=dict(labels=Vector[String]))
+CreateRListOfMatrices.output.r_list_of_expressions >> AddNames.input.expr
+flow.input.places >> AddNames.input.labels
 
-flow.task.CalculatePlaceEffect << NestedZapyFile('LTRE.py')
-flow.task.AddNames.output.expr >> flow.task.CalculatePlaceEffect.input.matrices
-flow.task.ReadPooledMatrix.output.matrix >> flow.task.CalculatePlaceEffect.input.pooled_matrix
-'Places' >> flow.task.CalculatePlaceEffect.input.xlabel
-flow.input.places >> flow.task.CalculatePlaceEffect.input.xticks
-'Place Effect' >> flow.task.CalculatePlaceEffect.input.ylabel
-'lightgreen' >> flow.task.CalculatePlaceEffect.input.plot_colour
-flow.task.CalculatePlaceEffect.extendUnusedInputs()
+CalculatePlaceEffect = flow.task.CalculatePlaceEffect << NestedZapyFile('LTRE.py')
+AddNames.output.expr >> CalculatePlaceEffect.input.matrices
+ReadPooledMatrix.output.matrix >> CalculatePlaceEffect.input.pooled_matrix
+'Places' >> CalculatePlaceEffect.input.xlabel
+flow.input.places >> CalculatePlaceEffect.input.xticks
+'Place Effect' >> CalculatePlaceEffect.input.ylabel
+'lightgreen' >> CalculatePlaceEffect.input.plot_colour
+CalculatePlaceEffect.extendUnusedInputs()
 
 from util.r.format import PrettyPrint
 
-flow.task.PrintAnalysis << PrettyPrint(rserve)
-flow.task.CalculatePlaceEffect.output.LTRE_Analysis >> flow.task.PrintAnalysis.input.rexpr
-flow.output.LTRE_Analysis = flow.task.PrintAnalysis.output.text
+PrintAnalysis = flow.task.PrintAnalysis << PrettyPrint(rserve)
+CalculatePlaceEffect.output.LTRE_Analysis >> PrintAnalysis.input.rexpr
+flow.output.LTRE_Analysis = PrintAnalysis.output.text
 
-flow.task.PrintResults << PrettyPrint(rserve)
-flow.task.CalculatePlaceEffect.output.LTRE_Results_RLn >> flow.task.PrintResults.input.rexpr
-flow.output.LTRE_Results = flow.task.PrintResults.output.text
+PrintResults = flow.task.PrintResults << PrettyPrint(rserve)
+CalculatePlaceEffect.output.LTRE_Results_RLn >> PrintResults.input.rexpr
+flow.output.LTRE_Results = PrintResults.output.text
 
-flow.output.LTRE_Graph = flow.task.CalculatePlaceEffect.output.graph
+flow.output.LTRE_Graph = CalculatePlaceEffect.output.graph
 
 
