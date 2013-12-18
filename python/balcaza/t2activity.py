@@ -1,10 +1,11 @@
 __all__ = ('BeanshellCode', 'BeanshellFile', 'InteractionPage',
-    'NestedWorkflow', 'NestedZapyFile', 'RestActivity', 'TextConstant', 
+    'NestedWorkflow', 'NestedZapyFile', 'HTTP', 'TextConstant', 
     'RServer')
 
+from t2types import *
 from t2util import alphanumeric, getAbsolutePathRelativeToCaller
 
-class Activity:
+class Activity(object):
 
     activityGroup = 'net.sf.taverna.t2.activities'
     activityArtifact = 'stringconstant-activity'
@@ -124,36 +125,121 @@ class InteractionPage(Activity):
                 conf.progressNotification >> 'false'
 
 
-class RestActivity(Activity):
+class HTTP_Activity(Activity):
 
     activityArtifact = 'rest-activity'
-    activityClass = 'net.sf.taverna.t2.activities.rest.RESTActivity'
+    activityClass = 'net.sf.taverna.t2.activities.rest.HTTP_Activity'
 
-    def __init__(self, httpMethod, urlTemplate, **kw):
+    def __init__(self, httpMethod, urlTemplate, inputContentType='application/xml',
+        inputBinary=False, outputContentType='application/xml', headers=None, 
+        sendExpectHeader=False, escapeParameters=True, inputs=None):
         assert httpMethod in ('GET', 'POST', 'PUT', 'DELETE'), httpMethod
-        Activity.__init__(self, **kw)
+        Activity.__init__(self, inputs=inputs, outputs=dict(
+            responseBody = String,
+            status = Integer[100,...,599]
+            )
+        )
         self.httpMethod = httpMethod
         self.urlTemplate = urlTemplate
+        self.inputContentType = inputContentType
+        self.inputBinary = inputBinary
+        self.outputContentType = outputContentType
+        self.sendExpectHeader = sendExpectHeader
+        self.escapeParameters = escapeParameters
+        self.headers = headers
+
+    @property
+    def status(self):
+        return self.output.status
+    @status.setter
+    def status(self, value):
+        raise RuntimeError('status port is read-only')
+
+    @property
+    def redirection(self):
+        type = String
+        self.outputs['redirection'] = type
+        return type
+    @redirection.setter
+    def redirection(self, value):
+        raise RuntimeError('redirection port is read-only')
+    
+    @property
+    def actualUrl(self):
+        type = String
+        self.outputs['actualUrl'] = type
+        return type
+    @actualUrl.setter
+    def actualUrl(self, value):
+        raise RuntimeError('actualUrl port is read-only')
+
+    @property
+    def responseHeaders(self):
+        type = List[String]
+        self.outputs['responseHeaders'] = type
+        return type
+    @responseHeaders.setter
+    def responseHeaders(self, value):
+        raise RuntimeError('responseHeaders port is read-only')
 
     def exportConfigurationXML(self, xml):
         with xml.namespace() as conf:
-            with conf.net.sf.taverna.t2.activities.rest.RESTActivityConfigurationBean:
+            with conf.net.sf.taverna.t2.activities.rest.HTTP_ActivityConfigurationBean:
                 conf.httpMethod >> self.httpMethod
                 conf.urlTemplate >> self.urlTemplate
-                conf.acceptsHeaderValue >> 'application/xml'
-                conf.contentTypeForUpdates >> 'application/xml'
-                conf.outgoingDataFormat >> 'String'
-                conf.sendHTTPExpectRequestHeader >> 'false'
-                conf.showRedirectionOutputPort >> 'false'
-                conf.showActualUrlPort >> 'false'
-                conf.showResponseHeadersPort >> 'false'
-                conf.escapeParameters >> 'true'
-                conf.otherHTTPHeaders
+                conf.acceptsHeaderValue >> self.outputContentType
+                conf.contentTypeForUpdates >> self.inputContentType
+                conf.outgoingDataFormat >> 'Binary' if self.inputBinary else 'String'
+                conf.sendHTTPExpectRequestHeader >> 'true' if self.sendExpectHeader else 'false'
+                conf.showRedirectionOutputPort >> 'true' if self.outputs.has_key('redirection') else 'false'
+                conf.showActualUrlPort >> 'true' if self.outputs.has_key('actualUrl') else 'false'
+                conf.showResponseHeadersPort >> 'true' if self.outputs.has_key('responseHeaders') else 'false'
+                conf.escapeParameters >> 'true' if self.escapeParameters else 'false'
+                with conf.otherHTTPHeaders:
+                    if self.headers is not None:
+                        for name, value in self.headers.items():
+                            with conf.list:
+                                conf.string >> name
+                                conf.string >> value
                 with conf.activityInputs:
-                    with conf.entry:
-                      conf.string >> 'id'
-                      conf['java-class'] >> 'java.lang.String'
+                    for name in self.inputs.keys():
+                        with conf.entry:
+                            conf.string >> name
+                            conf['java-class'] >> 'java.lang.String'
 
+class HTTP_Factory:
+
+    def GET(self, urlTemplate, outputContentType='application/xml', 
+        headers=None, inputs=None, escapeParameters=True):
+        return HTTP_Activity('GET', urlTemplate, headers=headers, 
+            outputContentType=outputContentType, 
+            escapeParameters=escapeParameters, inputs=inputs)
+
+    def DELETE(self, urlTemplate, outputContentType='application/xml', 
+        headers=None, inputs=None, escapeParameters=True):
+        return HTTP_Activity('DELETE', urlTemplate, headers=headers,
+            outputContentType=outputContentType,
+            escapeParameters=escapeParameters, inputs=inputs)
+
+    def POST(self, urlTemplate, inputContentType='application/xml',
+        inputBinary=False, outputContentType='application/xml', 
+        headers=None, inputs=None, sendExpectHeader=False, escapeParameters=True):
+        return HTTP_Activity('POST', urlTemplate,
+            inputContentType=inputContentType, inputBinary=inputBinary,
+            outputContentType=outputContentType, 
+            headers=headers, sendExpectHeader=sendExpectHeader, 
+            escapeParameters=escapeParameters, inputs=inputs)
+
+    def PUT(self, urlTemplate, inputContentType='application/xml',
+        inputBinary=False, outputContentType='application/xml', 
+        headers=None, inputs=None, sendExpectHeader=False, escapeParameters=True):
+        return HTTP_Activity('PUT', urlTemplate,
+            inputContentType=inputContentType, inputBinary=inputBinary,
+            outputContentType=outputContentType, 
+            headers=headers, sendExpectHeader=sendExpectHeader, 
+            escapeParameters=escapeParameters, inputs=inputs)
+
+HTTP = HTTP_Factory()
 
 class TextConstant(Activity):
 
@@ -161,7 +247,6 @@ class TextConstant(Activity):
     activityClass = 'net.sf.taverna.t2.activities.stringconstant.StringConstantActivity'
 
     def __init__(self, text):
-        from t2types import String
         Activity.__init__(self, outputs=dict(value=String))
         self.text = str(text)
 
@@ -174,7 +259,7 @@ class TextConstant(Activity):
             del parts[0]
             candidate.append('_')
             if len(candidate) > 30:
-                break
+               break
             label = ''.join(candidate)
         return label
 
@@ -204,8 +289,7 @@ class RServerDict(dict):
             # script. If it does, act as though the variable had been mentioned
             # as an input/output of type RExpression.
             if name in self.script:
-                import t2types
-                dict.__setitem__(self, name, t2types.RExpression)
+                dict.__setitem__(self, name, RExpression)
         return dict.__getitem__(self, name)
 
 class RServerActivity(Activity):
@@ -293,5 +377,4 @@ class RServer:
 
     def file(self, filename, encoding='utf-8', **kw):
         import codecs
-        with codecs.open(getAbsolutePathRelativeToCaller(filename), encoding=encoding) as f:
-            return RServerActivity(self, f.read(), **kw)
+        with codecs.open(getAbsolutePathRelativeToCaller(filename), encoding=encoding) as f:            return RServerActivity(self, f.read(), **kw)
