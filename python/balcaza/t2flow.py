@@ -114,7 +114,6 @@ class WorkflowPorts(Ports):
             raise RuntimeError('port "%s" redefined' % name)
         if isinstance(type, Port):
             other = type
-            other.connect()
             type = other.type
         elif isinstance(type, T2FlowType):
             other = None
@@ -123,7 +122,6 @@ class WorkflowPorts(Ports):
         port = self._.ports[name] = self._.PortClass(self._.flow, name, type)
         self._.order.append(name)
         if other is not None:
-            port.connect()
             port.link(other)
 
     def __getattr__(self, name):

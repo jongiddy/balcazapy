@@ -4,41 +4,25 @@ from t2activity import Activity
 
 class TaskPort(Port):
 
-    def __init__(self, task, name):
+    def __init__(self, task, name, type):
         Port.__init__(self, name)
         self.task = task
-        self.activityPortName = name
-        self.connected = False
-
-    def __getitem__(self, name):
-        self.activityPortName = name
-        return self
+        self.type = type
 
     def getName(self):
         return self.name
 
     def getDepth(self):
-        assert self.connected
         return self.type.getDepth()
-
-    def connect(self):
-        self.connected = True
-        self.type = self.mapActivityPort()
-
-    def isConnected(self):
-        return self.connected
 
 class TaskInputPort(TaskPort, Sink):
 
     def __init__(self, flow, task, name):
+        type = task.activity.getInputType(name)
         Sink.__init__(self, flow)
-        TaskPort.__init__(self, task, name)
-
-    def mapActivityPort(self):
-        return self.task.mapInput(self.name, self.activityPortName)
+        TaskPort.__init__(self, task, name, type)
 
     def exportInputPortXML(self, xml):
-        assert self.connected
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.port as port:
                 port.name >> self.name
@@ -53,14 +37,11 @@ class TaskInputPort(TaskPort, Sink):
 class TaskOutputPort(TaskPort, Source):
 
     def __init__(self, flow, task, name):
+        type = task.activity.getOutputType(name)
         Source.__init__(self, flow)
-        TaskPort.__init__(self, task, name)
+        TaskPort.__init__(self, task, name, type)
         
-    def mapActivityPort(self):
-        return self.task.mapOutput(self.name, self.activityPortName)
-
     def exportOutputPortXML(self, xml):
-        assert self.connected
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.port as port:
                 port.name >> self.name
@@ -111,44 +92,22 @@ class WorkflowTask(object):
         self.annotations = {}
         self.input = TaskInputPorts(flow, self)
         self.output = TaskOutputPorts(flow, self)
-        self.inputMap = {}
-        self.outputMap = {}
-
-    def mapInput(self, processorPort, activityPort):
-        type = self.activity.getInputType(activityPort)
-        if self.inputMap.has_key(processorPort):
-            raise RuntimeError('task input "%s" already mapped' % processorPort)
-        self.inputMap[processorPort] = activityPort
-        return type
-
-    def mapOutput(self, processorPort, activityPort):
-        type = self.activity.getOutputType(activityPort)
-        if self.outputMap.has_key(processorPort):
-            if self.outputMap[processorPort] != activityPort:
-                raise RuntimeError('task output "%s" already mapped to %s' % (processorPort, activityPort))
-            else:
-                # OK to map processor port to same activity port multiple times.
-                # This happens when an output is linked to multiple inputs
-                pass
-        else:
-            self.outputMap[processorPort] = activityPort
-        return type
 
     def extendUnusedPorts(self):
         self.extendUnusedInputs()
         self.extendUnusedOutputs()
 
     def extendUnusedInputs(self):
-        for taskPort in self.activity.inputs.keys():
-            if not self.inputMap.has_key(taskPort):
-                flowPort = self.flow.selectUniqueLabel(self.flow.input, taskPort)
-                self.flow.input[flowPort] = self.input[taskPort]
+        for portName in self.activity.inputs.keys():
+            if portName not in self.input:
+                flowPort = self.flow.selectUniqueLabel(self.flow.input, portName)
+                self.flow.input[flowPort] = self.input[portName]
 
     def extendUnusedOutputs(self):
-        for taskPort in self.activity.outputs.keys():
-            if not self.outputMap.has_key(taskPort):
-                flowPort = self.flow.selectUniqueLabel(self.flow.output, taskPort)
-                self.flow.output[flowPort] = self.output[taskPort]
+        for portName in self.activity.outputs.keys():
+            if portName not in self.output:
+                flowPort = self.flow.selectUniqueLabel(self.flow.output, portName)
+                self.flow.output[flowPort] = self.output[portName]
 
     @property
     def description(self):
@@ -173,12 +132,10 @@ class WorkflowTask(object):
                 proc.name >> self.name
                 with proc.inputPorts:
                     for port in self.input:
-                        if port.isConnected():
-                            port.exportInputPortXML(xml)
+                        port.exportInputPortXML(xml)
                 with proc.outputPorts:
                     for port in self.output:
-                        if port.isConnected():
-                            port.exportOutputPortXML(xml)
+                        port.exportOutputPortXML(xml)
                 with proc.annotations:
                     for annotationClass, annotation in self.annotations.items():
                         annotation.exportXML(xml, annotationClass)
@@ -238,10 +195,9 @@ class WorkflowTask(object):
                 with proc.iterationStrategyStack:
                     with proc.iteration:
                         with proc.strategy:
-                            connected = [port for port in self.input if port.isConnected()]
-                            if connected:
+                            if self.input:
                                 with proc.cross:
-                                    for port in connected:
+                                    for port in self.input:
                                         tav.port(name=port.getName(), depth=port.getDepth())
 
 class UnassignedTask:
