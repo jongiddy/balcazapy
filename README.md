@@ -242,12 +242,25 @@ Manage failover by adding additional activities to the same task
 flow.task.MyTask << HTTP.GET(url1) << HTTP.GET(url2)
 ```
 
-> Note that you have access to the full Python language if needed:
-> 
-> ```python
-> for url in url_list:
->     flow.task.MyTask << HTTP.GET(url)
-> ```
+Throughout the Zapy file you have access to the full Python language 
+to help you simplify the workflow description:
+
+```python
+# Try lots of sites until one works
+for url in long_url_list:
+    flow.task.MyTask << HTTP.GET(url)
+# Try each site twice
+flow.MyTask.retry(maxRetries=1)
+```
+
+The above will try each site twice in turn. To try each site in the list, then
+retry from the start of the list, use:
+
+```python
+for i in range(2):
+    for url in long_url_list:
+        flow.task.MyTask << HTTP.GET(url)
+```
 
 ### Creating data links
 
