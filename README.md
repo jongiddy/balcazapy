@@ -5,36 +5,36 @@ Create a Taverna workflow file (t2flow format) using a script.
 
 ### Linux
 
-1.	Ensure Python 2.7 and Git are installed, preferably using your system's
-	package manager.
+1.  Ensure Python 2.7 and Git are installed, preferably using your system's
+    package manager.
 
-2.	Go to http://github.com/jongiddy/balcazapy and copy the HTTPS clone 
-	URL on the right to the clipboard.
+2.  Go to http://github.com/jongiddy/balcazapy and copy the HTTPS clone 
+    URL on the right to the clipboard.
 
-	Click on the clipboard-arrow icon to copy the URL to the clipboard
+    Click on the clipboard-arrow icon to copy the URL to the clipboard
 
-3.	Clone the Git repository, using the copied URL
+3.  Clone the Git repository, using the copied URL
 
-	```
-	$ git clone https://github.com/jongiddy/balcazapy.git
-	```
+    ```
+    $ git clone https://github.com/jongiddy/balcazapy.git
+    ```
 
-	Note, this creates a folder called `balcazapy`
+    Note, this creates a folder called `balcazapy`
 
-	If you have already cloned the repository, you can update to the latest
-	version using the command:
+    If you have already cloned the repository, you can update to the latest
+    version using the command:
 
-	```
-	$ cd balcazpy
-	$ git pull
-	```
+    ```
+    $ cd balcazpy
+    $ git pull
+    ```
 
-4.	Run:
+4.  Run:
 
-	```
-	$ cd balcazapy
-	$ ./setup.sh
-	```
+    ```
+    $ cd balcazapy
+    $ ./setup.sh
+    ```
 
 This installs a command `balc` into the `bin` directory. Add the `bin` directory
 to your `PATH`, copy the `balc` executable to somewhere in your `PATH`, or 
@@ -42,51 +42,51 @@ reference `balc` with an absolute path name.
 
 ### Windows
 
-1.	Install Python 2.7 from http://www.python.org/
+1.  Install Python 2.7 from http://www.python.org/
 
-	Python 3 is also available. Balcazapy does not yet work with Python 3.
-	
-	On Windows, use the appropriate 32-bit or 64-bit MSI Installer. Use 
-	**Control Panel -> System and Security -> System** to check whether your 
-	Windows version is 32-bit or 64-bit. You do not need the MSI program database.
-	
-	Use the default values for installation.
+    Python 3 is also available. Balcazapy does not yet work with Python 3.
+    
+    On Windows, use the appropriate 32-bit or 64-bit MSI Installer. Use 
+    **Control Panel -> System and Security -> System** to check whether your 
+    Windows version is 32-bit or 64-bit. You do not need the MSI program database.
+    
+    Use the default values for installation.
 
-2.	Install Git from http://git-scm.com/
+2.  Install Git from http://git-scm.com/
 
-	Use the default values for installation, *EXCEPT* for the page titled 
-	**Adjusting your PATH environment**, where you should select 
-	**Run Git from the Windows Command Prompt**
+    Use the default values for installation, *EXCEPT* for the page titled 
+    **Adjusting your PATH environment**, where you should select 
+    **Run Git from the Windows Command Prompt**
 
-3.	Go to http://github.com/jongiddy/balcazapy and copy the HTTPS clone 
-	URL on the right to the clipboard.
+3.  Go to http://github.com/jongiddy/balcazapy and copy the HTTPS clone 
+    URL on the right to the clipboard.
 
-	Click on the clipboard-arrow icon to copy the URL to the clipboard
+    Click on the clipboard-arrow icon to copy the URL to the clipboard
 
-4.	Open a command window (**Start menu -> Accessories -> Command Prompt**).
+4.  Open a command window (**Start menu -> Accessories -> Command Prompt**).
 
-5.	Clone the Git repository, using the copied URL (right click to paste into the command window)
+5.  Clone the Git repository, using the copied URL (right click to paste into the command window)
 
-	```
-	> git clone https://github.com/jongiddy/balcazapy.git
-	```
+    ```
+    > git clone https://github.com/jongiddy/balcazapy.git
+    ```
 
-	Note, this creates a folder called `balcazapy`
+    Note, this creates a folder called `balcazapy`
 
-	If you have already cloned the repository, you can update to the latest
-	version using the command:
+    If you have already cloned the repository, you can update to the latest
+    version using the command:
 
-	```
-	> cd balcazapy
-	> git pull
-	```
+    ```
+    > cd balcazapy
+    > git pull
+    ```
 
-6.	Check the file locations in `setup.bat`, then run:
+6.  Check the file locations in `setup.bat`, then run:
 
-	```
-	> cd balcazapy
-	> setup.bat
-	```
+    ```
+    > cd balcazapy
+    > setup.bat
+    ```
 
 This installs a batch script `balc.bat` into the `bin` folder. Add the `bin` 
 folder to your `PATH`, copy the `balc.bat` script to somewhere in your `PATH`, 
@@ -141,7 +141,7 @@ Create a workflow using:
 
 ```python
 flow = Workflow(title = 'Create Projection Matrix', author = "Maria and Jon",
-	description = "Create a projection matrix from a stage matrix and a list of stages")
+    description = "Create a projection matrix from a stage matrix and a list of stages")
 ```
 
 This workflow contains 3 main collections:
@@ -211,14 +211,14 @@ available activities are described below.
 
 ```python
 flow.task.MyTask << rserve.code(
-	'total <- sum(vals)',
-	inputs = dict(
-		vals = Vector[Integer]
-		),
-	outputs = dict(
-		total = Integer
-		)
-	)
+    'total <- sum(vals)',
+    inputs = dict(
+        vals = Vector[Integer]
+        ),
+    outputs = dict(
+        total = Integer
+        )
+    )
 ```
 
 Each task contains 2 collections:
@@ -232,7 +232,7 @@ Manage task parallelisation and retries using:
 ```python
 flow.task.MyTask.parallel(maxJobs = 5)
 flow.task.MyTask.retry(maxRetries = 3, initialDelay = 1000, maxDelay = 5000,
-	backoffFactor = 1.0)
+    backoffFactor = 1.0)
 ```
 
 ### Creating data links
@@ -261,43 +261,43 @@ Create using:
 
 ```python
 BeanshellCode(
-	"""String seperatorString = "\n";
+    """String seperatorString = "\n";
 if (seperator != void) {
-	seperatorString = seperator;
+    seperatorString = seperator;
 }
 StringBuffer sb = new StringBuffer();
 for (Iterator i = stringlist.iterator(); i.hasNext();) {
-	String item = (String) i.next();
-	sb.append(item);
-	if (i.hasNext()) {
-		sb.append(seperatorString);
-	}
+    String item = (String) i.next();
+    sb.append(item);
+    if (i.hasNext()) {
+        sb.append(seperatorString);
+    }
 }
 concatenated = sb.toString();
 """,
-	inputs = dict(
-		stringlist = List[String],
-		seperator = String
-		),
-	output = dict(
-		concatenated = String
-		)
-	)
+    inputs = dict(
+        stringlist = List[String],
+        seperator = String
+        ),
+    output = dict(
+        concatenated = String
+        )
+    )
 ```
 
 or
 
 ```python
 BeanshellFile(
-	'file.bsh',
-	inputs = dict(
-		stringlist = List[String],
-		seperator = String
-		),
-	output = dict(
-		concatenated = String
-		)
-	)
+    'file.bsh',
+    inputs = dict(
+        stringlist = List[String],
+        seperator = String
+        ),
+    output = dict(
+        concatenated = String
+        )
+    )
 ```
 
 #### Interaction Pages
@@ -306,14 +306,14 @@ Create using:
 
 ```python
 InteractionPage(url,
-	inputs = dict(
-		start = Integer,
-		end = Integer
-		),
-	outputs = dict(
-		sequences = List[List[Integer]]
-		)
-	)
+    inputs = dict(
+        start = Integer,
+        end = Integer
+        ),
+    outputs = dict(
+        sequences = List[List[Integer]]
+        )
+    )
 ```
 
 #### HTTP (REST) Calls
@@ -323,12 +323,12 @@ Create using:
 ```python
 HTTP.GET('http://www.biovel.eu/')
 HTTP.PUT(
-	'http://testjst.ba.infn.it/openacces/{file_name}',
-	inputs = dict(
-		file_name = String
-		),
-	escapeParameters = False
-	)
+    'http://testjst.ba.infn.it/openacces/{file_name}',
+    inputs = dict(
+        file_name = String
+        ),
+    escapeParameters = False
+    )
 ```
 
 #### Text Constant
@@ -354,28 +354,28 @@ Create an R activity using
 
 ```python
 rserve.code(
-	'total <- sum(vals)',
-	inputs = dict(
-		vals = Vector[Integer]
-		),
-	outputs = dict(
-		total = Integer
-		)
-	)
+    'total <- sum(vals)',
+    inputs = dict(
+        vals = Vector[Integer]
+        ),
+    outputs = dict(
+        total = Integer
+        )
+    )
 ```
 
 or
 
 ```python
 rserve.file(
-	'file.r',
-	inputs = dict(
-		vals = Vector[Integer]
-		),
-	outputs = dict(
-		total = Integer
-		)
-	)
+    'file.r',
+    inputs = dict(
+        vals = Vector[Integer]
+        ),
+    outputs = dict(
+        total = Integer
+        )
+    )
 ```
 
 For R scripts that contain variables with dots in the name, you can map them
@@ -383,28 +383,28 @@ from a valid Taverna name (no dots) to the R script name, using:
 
 ```python
 rserve.file(
-	'file.r',
-	inputs = dict(IsBeta = Logical),
-	inputMap = dict(IsBeta = 'Is.Beta'),
-	outputs = dict(ResultTable = RExpression),
-	outputMap = dict(ResultTable = 'result.table')
-	)
+    'file.r',
+    inputs = dict(IsBeta = Logical),
+    inputMap = dict(IsBeta = 'Is.Beta'),
+    outputs = dict(ResultTable = RExpression),
+    outputMap = dict(ResultTable = 'result.table')
+    )
 ```
 
 This can also be used to output results as multiple types:
 ```python
 rserve.code(
-	'total <- sum(vals)',
-	outputs = dict(
-		total = RExpression,
-		totalAsInt = Integer,
-		totalAsVector = Vector[Integer]
-		),
-	outputMap = dict(
-		totalAsInt = total,
-		totalAsVector = total
-		)
-	)
+    'total <- sum(vals)',
+    outputs = dict(
+        total = RExpression,
+        totalAsInt = Integer,
+        totalAsVector = Vector[Integer]
+        ),
+    outputMap = dict(
+        totalAsInt = total,
+        totalAsVector = total
+        )
+    )
 ```
 
 Note that the List type is not available for RServer activity ports.  Use the 
@@ -490,13 +490,13 @@ flow = Workflow(title = 'TwiceTheSum')
 rserve = RServer()
 
 SumValues = flow.task.SumValues << rserve.code(
-	'total <- sum(vals)',
-	inputs = dict(vals = Vector[Integer[0,...,100]])
-	)
+    'total <- sum(vals)',
+    inputs = dict(vals = Vector[Integer[0,...,100]])
+    )
 Double = flow.task.Double << rserve.code(
-	'out1 <- 2 * in1',
-	outputs = dict(out1 = Integer)
-	)
+    'out1 <- 2 * in1',
+    outputs = dict(out1 = Integer)
+    )
 
 # Link internal script variables (transferred as RExpression types)
 SumValues.output.total >> Double.input.in1
