@@ -11,7 +11,7 @@ class TaskPort(Port):
 class TaskInputPort(TaskPort, Sink):
 
     def __init__(self, flow, task, name):
-        type = task.activity.getInputType(name)
+        type = task.activities[0].getInputType(name)
         Sink.__init__(self, flow)
         TaskPort.__init__(self, task, name, type)
 
@@ -30,7 +30,7 @@ class TaskInputPort(TaskPort, Sink):
 class TaskOutputPort(TaskPort, Source):
 
     def __init__(self, flow, task, name):
-        type = task.activity.getOutputType(name)
+        type = task.activities[0].getOutputType(name)
         Source.__init__(self, flow)
         TaskPort.__init__(self, task, name, type)
         
@@ -77,11 +77,10 @@ class TaskOutputPorts(TaskPorts):
 
 class WorkflowTask(object):
 
-    def __init__(self, flow, name, activity=None):
+    def __init__(self, flow, name, activity):
         self.name = name
         self.flow = flow
-        if activity is not None:
-            self.activity = activity
+        self.activities = [ activity ]
         self.annotations = {}
         self.input = TaskInputPorts(flow, self)
         self.output = TaskOutputPorts(flow, self)
@@ -95,18 +94,24 @@ class WorkflowTask(object):
             'maxJobs': 1
         }
 
+    def __lshift__(self, activity):
+        if not isinstance(activity, Activity):
+            raise TypeError('cannot assign non-Activity %s to task "%s"' % (repr(activity), self.name))
+        self.activities.append(activity)
+        return self
+
     def extendUnusedPorts(self):
         self.extendUnusedInputs()
         self.extendUnusedOutputs()
 
     def extendUnusedInputs(self):
-        for portName in self.activity.inputs.keys():
+        for portName in self.activities[0].inputs.keys():
             if portName not in self.input:
                 flowPort = self.flow.selectUniqueLabel(self.flow.input, portName)
                 self.flow.input[flowPort] = self.input[portName]
 
     def extendUnusedOutputs(self):
-        for portName in self.activity.outputs.keys():
+        for portName in self.activities[0].outputs.keys():
             if portName not in self.output:
                 flowPort = self.flow.selectUniqueLabel(self.flow.output, portName)
                 self.flow.output[flowPort] = self.output[portName]
@@ -126,10 +131,7 @@ class WorkflowTask(object):
 
     @property
     def description(self):
-        try:
-            return self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription']
-        except KeyError:
-            raise AttributeError('description')
+        return self.annotations.get('net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription')
 
     @description.setter
     def description(self, value):
@@ -137,10 +139,6 @@ class WorkflowTask(object):
             value = Annotation(value)
         self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = value
     
-    def __setitem__(self, description, activity):
-        self.description = description
-        self.activity = activity
-
     def exportXML(self, xml):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.processor as proc:
@@ -155,7 +153,8 @@ class WorkflowTask(object):
                     for annotationClass, annotation in self.annotations.items():
                         annotation.exportXML(xml, annotationClass)
                 with proc.activities:
-                    self.activity.exportActivityXML(xml, self.input, self.output)
+                    for activity in self.activities:
+                        activity.exportActivityXML(xml, self.input, self.output)
                 with proc.dispatchStack:
                     with proc.dispatchLayer:
                         with proc.raven as raven:
@@ -227,6 +226,8 @@ class UnassignedTask:
         task = WorkflowTask(self._.flow, self.name, activity)
         self._.tasks[self.name] = task
         self._.order.append(self.name)
+        if activity.description is not None:
+            task.description = activity.description
         return task
 
 class WorkflowTasks(object):

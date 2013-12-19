@@ -235,6 +235,20 @@ flow.task.MyTask.retry(maxRetries = 3, initialDelay = 1000, maxDelay = 5000,
     backoffFactor = 1.0)
 ```
 
+Manage failover by adding additional activities to the same task
+
+```python
+# If this web request fails then try an alternative address
+flow.task.MyTask << HTTP.GET(url1) << HTTP.GET(url2)
+```
+
+> Note that you have access to the full Python language if needed:
+> 
+> ```python
+> for url in url_list:
+>     flow.task.MyTask << HTTP.GET(url)
+> ```
+
 ### Creating data links
 
 Link ports using the `>>` operator. Output ports can be part of multiple links.
@@ -323,7 +337,7 @@ Create using:
 ```python
 HTTP.GET('http://www.biovel.eu/')
 HTTP.PUT(
-    'http://testjst.ba.infn.it/openacces/{file_name}',
+    'http://balca.biovel.eu/openacces/{file_name}',
     inputs = dict(
         file_name = String
         ),
@@ -505,3 +519,26 @@ SumValues.extendUnusedInputs()
 Double.extendUnusedOutputs()
 ```
 
+### Annotations
+
+Workflow annotations are defined during creation, but can be overridden:
+
+```python
+flow = Workflow(title = 'Create Projection Matrix', author = "Maria and Jon",
+    description = "Create a projection matrix from a stage matrix and a list of stages")
+flow.title = 'Create Projection Matrix v1'
+```
+
+A task annotation can come from an activity, but can be overridden:
+
+```python
+flow.task.MyTask = HTTP.GET(url, description="Fetch the page")
+flow.task.MyTask.description = "Fetch a page" # override above
+```
+
+Port annotations can come from the type, but can be overridden
+
+```python
+flow.input.Location = String(description="The site name", example="Terschelling")
+flow.input.Location.example = "Dwingeloo"
+```

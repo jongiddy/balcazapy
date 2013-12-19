@@ -266,10 +266,11 @@ class Workflow(object):
         if descendants is None:
             descendants = []
         for task in self.task:
-            if isinstance(task.activity, NestedWorkflow): 
-                flow = task.activity.flow
-                descendants.append(flow)
-                flow.allDescendants(descendants)
+            for activity in task.activities:
+                if isinstance(activity, NestedWorkflow): 
+                    flow = activity.flow
+                    descendants.append(flow)
+                    flow.allDescendants(descendants)
         return descendants
 
     def exportXML(self, xml):
