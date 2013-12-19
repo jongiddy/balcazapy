@@ -201,8 +201,8 @@ class Namespace:
 
 	def __getitem__(self, name):
 		# tav['my-name'] => <tav:my-name>
-		if name.startswith('xml'):
-			raise RuntimeError('element name must not start with xml [http://www.w3.org/TR/REC-xml-names/]')
+		if name.startswith('xmlns'):
+			raise RuntimeError('element name must not start with xmlns [http://www.w3.org/TR/REC-xml-names/]')
 		xml = self.__xml
 		xml.closePendingTag()
 		xml.setPendingNamespace(self.__uri)
