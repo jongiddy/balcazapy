@@ -259,7 +259,11 @@ class XPathActivity(Activity):
     def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace() as conf:
             with conf.net.sf.taverna.t2.activities.xpath.XPathActivityConfigurationBean:
-                conf.xmlDocument
+                # the xmlDocument is used solely for Workbench generation of
+                # the XPath expression. It is not required for operation. But
+                # if is empty, Workbench gives a validation warning. To prevent
+                # the warning, we add a tiny XML document.
+                conf.xmlDocument >> '<x/>'
                 conf.xpathExpression >> self.xpath
                 with conf.xpathNamespaceMap:
                     if self.xmlns is not None:
@@ -320,12 +324,12 @@ class RserveServerActivity(Activity):
         # ends with a newline.
         script = script.strip() + '\n'
         if inputMap is not None:
-            for tName, rName in inputMap:
+            for tName, rName in inputMap.items():
                 if tName not in inputs:
                     raise RuntimeError('inputMap specifies "%s", but not in inputs' % tName)
                 script = '%s <- %s\nrm(%s)\n' % (rName, tName, tName) + script
         if outputMap is not None:
-            for tName, rName in outputMap:
+            for tName, rName in outputMap.items():
                 if tName not in outputs:
                     raise RuntimeError('outputMap specifies "%s", but not in outputs' % tName)
                 script += '%s <- %s\n' % (tName, rName)
@@ -366,8 +370,6 @@ class RserveServerActivity(Activity):
         for port in connectedOutputs:
             outputs[port.name] = RExpression
         outputs.update(self.outputs)
-        import sys
-        sys.stderr.write("%s\n%s\n" % (inputs, outputs))
         with xml.namespace() as config:
             with config.net.sf.taverna.t2.activities.rshell.RshellActivityConfigurationBean:
                 with config.inputs:

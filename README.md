@@ -309,6 +309,21 @@ InteractionPage(url,
 	)
 ```
 
+#### HTTP (REST) Calls
+
+Create using:
+
+```python
+HTTP.GET('http://www.biovel.eu/')
+HTTP.PUT(
+	'http://testjst.ba.infn.it/openacces/{file_name}',
+	inputs = dict(
+		file_name = String
+		),
+	escapeParameters = False
+	)
+```
+
 #### Text Constant
 Create using:
 
@@ -366,6 +381,15 @@ flow.task.RCode.output.ResultTable['result.table'] >> flow.output.ResultTable
 
 Note that the List type is not available for RServer activity ports.  Use the 
 Vector type instead.
+
+#### XPath
+
+Create using:
+
+```python
+XPath('/Job/JobId')
+XPath('/xhtml:html/xhtml:head/xhtml:title', {'xhtml': 'http://www.w3.org/1999/xhtml'})
+```
 
 ### Nested Workflows
 
