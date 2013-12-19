@@ -217,13 +217,17 @@ class WorkflowTask(object):
 
 class UnassignedTask:
 
-    def __init__(self, tasks, name):
-        self.tasks = tasks
+    def __init__(self, ns, name):
+        self._ = ns
         self.name = name
 
     def __lshift__(self, activity):
-        self.tasks[self.name] = activity
-        return self.tasks[self.name]
+        if not isinstance(activity, Activity):
+            raise TypeError('cannot assign non-Activity %s to task "%s"' % (repr(activity), self.name))
+        task = WorkflowTask(self._.flow, self.name, activity)
+        self._.tasks[self.name] = task
+        self._.order.append(self.name)
+        return task
 
 class WorkflowTasks(object):
 
@@ -245,16 +249,8 @@ class WorkflowTasks(object):
     def __setitem__(self, name, activity):
         return self.__setattr__(name, activity)
 
-    def __setattr__(self, name, activity):
-        if self._.tasks.has_key(name):
-            raise RuntimeError('task "%s" defined twice for workflow "%s"' % (name, self._.flow.name))
-        if not isinstance(activity, Activity):
-            raise TypeError('cannot assign non-Activity %s to task "%s"' % (repr(activity), name))
-        self._.tasks[name] = WorkflowTask(self._.flow, name, activity)
-        self._.order.append(name)
-
     def __getattr__(self, name):
         if self._.tasks.has_key(name):
             return self._.tasks[name]
         else:
-            return UnassignedTask(self, name)
+            return UnassignedTask(self._, name)
