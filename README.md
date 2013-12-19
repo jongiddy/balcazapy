@@ -375,8 +375,29 @@ For R scripts that contain variables with dots in the name, you can map them
 from a valid Taverna name (no dots) to the R script name, using:
 
 ```python
-flow.input.IsBeta >> flow.task.RCode.input.IsBeta['Is.Beta']
-flow.task.RCode.output.ResultTable['result.table'] >> flow.output.ResultTable
+rserve.file(
+	'file.r',
+	inputs = dict(IsBeta = Logical),
+	inputMap = dict(IsBeta = 'Is.Beta'),
+	outputs = dict(ResultTable = RExpression),
+	outputMap = dict(ResultTable = 'result.table')
+	)
+```
+
+This can also be used to output results as multiple types:
+```python
+rserve.code(
+	'total <- sum(vals)',
+	outputs = dict(
+		total = RExpression,
+		totalAsInt = Integer,
+		totalAsVector = Vector[Integer]
+		),
+	outputMap = dict(
+		totalAsInt = total,
+		totalAsVector = total
+		)
+	)
 ```
 
 Note that the List type is not available for RServer activity ports.  Use the 
