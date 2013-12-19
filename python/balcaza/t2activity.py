@@ -297,27 +297,11 @@ class TextConstant(Activity):
             with conf.net.sf.taverna.t2.activities.stringconstant.StringConstantConfigurationBean:
                 conf.value >> self.text
 
-class RServerDict(dict):
-
-    def __init__(self, script, dictionary):
-        dict.__init__(self)
-        self.script = script
-        if dictionary is not None:
-            # Check that the port types are valid R activity types
-            for name, type in dictionary.items():
-                if not hasattr(type, 'symanticType'):
-                    raise RuntimeError('Invalid R type "%s = %s"' % (name, type))
-            dict.update(self, dictionary)
-
-    def __getitem__(self, name):
-        if not dict.__contains__(self, name):
-            # If the variable has not been named as an input/output for the 
-            # RShell, we check (poorly) whether the variable appears in the
-            # script. If it does, act as though the variable had been defined
-            # as an input/output of type RExpression.
-            if name in self.script:
-                dict.__setitem__(self, name, RExpression)
-        return dict.__getitem__(self, name)
+def checkPortTypesValidForR(ports):
+    if ports is not None:
+        for name, type in ports.items():
+            if not hasattr(type, 'symanticType'):
+                raise RuntimeError('Invalid R type "%s = %s"' % (name, type))
 
 class RserveServerActivity(Activity):
 
@@ -326,40 +310,79 @@ class RserveServerActivity(Activity):
 
     def __init__(self, rserve, script, inputs=None, inputMap=None, outputs=None,
         outputMap=None):
+        checkPortTypesValidForR(inputs)
+        checkPortTypesValidForR(outputs)
+        Activity.__init__(self, inputs=inputs, outputs=outputs)
+        self.rserve = rserve
         # Taverna 2.4 adds lines to the to the end of a script to access output
         # values, but does not add a newline to separate the last line of our
         # script from the first line added by Taverna. So, we ensure the script
         # ends with a newline.
         script = script.strip() + '\n'
-        # We replace the input and output dictionaries with alternatives that
-        # can check the script for additional variables.
-        Activity.__init__(self, inputs=RServerDict(script, inputs),
-            outputs=RServerDict(script, outputs))
-        self.rserve = rserve
         if inputMap is not None:
             for tName, rName in inputMap:
+                if tName not in inputs:
+                    raise RuntimeError('inputMap specifies "%s", but not in inputs' % tName)
                 script = '%s <- %s\nrm(%s)\n' % (rName, tName, tName) + script
         if outputMap is not None:
             for tName, rName in outputMap:
+                if tName not in outputs:
+                    raise RuntimeError('outputMap specifies "%s", but not in outputs' % tName)
                 script += '%s <- %s\n' % (tName, rName)
         self.script = script
 
+    def getInputType(self, name):
+        # If the variable has not been named as an input port for the RShell,
+        # check (poorly) whether the variable appears in the script. If it
+        # does, act as though the variable had been defined as an input port of
+        # type RExpression.
+        try:
+            return Activity.getInputType(self, name)
+        except KeyError:
+            if name in self.script:
+                return RExpression
+
+    def getOutputType(self, name):
+        # If the variable has not been named as an output port for the RShell,
+        # check (poorly) whether the variable appears in the script. If it
+        # does, act as though the variable had been defined as an output port
+        # of type RExpression.
+        try:
+            return Activity.getOutputType(self, name)
+        except KeyError:
+            if name in self.script:
+                return RExpression
+
     def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
+        # For inputs and outputs, first create a dictionary of connected ports,
+        # all of type RExpression.  The overwrite these values with the ports
+        # defined for the activity.  This leaves only the undefined ports
+        # specified with type RExpression.
+        inputs = {}
+        for port in connectedInputs:
+            inputs[port.name] = RExpression
+        inputs.update(self.inputs)
+        outputs = {}
+        for port in connectedOutputs:
+            outputs[port.name] = RExpression
+        outputs.update(self.outputs)
+        import sys
+        sys.stderr.write("%s\n%s\n" % (inputs, outputs))
         with xml.namespace() as config:
             with config.net.sf.taverna.t2.activities.rshell.RshellActivityConfigurationBean:
                 with config.inputs:
-                    for name, type_ in self.inputs.items():
+                    for name, type in inputs.items():
                         with config.net.sf.taverna.t2.workflowmodel.processor.activity.config.ActivityInputPortDefinitionBean as inputPort:
                             inputPort.name >> name
-                            inputPort.depth >> type_.getDepth()
+                            inputPort.depth >> type.getDepth()
                             inputPort.allowsLiteralValues >> 'false'
                 with config.outputs:
-                    for name, type_ in self.outputs.items():
+                    for name, type in outputs.items():
                         with config.net.sf.taverna.t2.workflowmodel.processor.activity.config.ActivityOutputPortDefinitionBean as outputPort:
                             outputPort.name >> name
-                            outputPort.depth >> type_.getDepth()
+                            outputPort.depth >> type.getDepth()
                             outputPort.mimeTypes
-                            outputPort.granularDepth >> type_.getDepth()
+                            outputPort.granularDepth >> type.getDepth()
                 config.rVersion >> 'false'
                 config.script >> self.script
                 with config.connectionSettings as conn:
@@ -367,15 +390,15 @@ class RserveServerActivity(Activity):
                     conn.keepSessionAlive >> 'false'
                     conn.newRVersion >> 'false'
                 with config.inputSymanticTypes:
-                    for name, type_ in self.inputs.items():
+                    for name, type in inputs.items():
                         with config.net.sf.taverna.t2.activities.rshell.RShellPortSymanticTypeBean:
                             config.name >> name
-                            config.symanticType >> type_.symanticType()
+                            config.symanticType >> type.symanticType()
                 with config.outputSymanticTypes:
-                    for name, type_ in self.outputs.items():
+                    for name, type in outputs.items():
                         with config.net.sf.taverna.t2.activities.rshell.RShellPortSymanticTypeBean:
                             config.name >> name
-                            config.symanticType >> type_.symanticType()
+                            config.symanticType >> type.symanticType()
 
 class RServer:
 
