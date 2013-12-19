@@ -1,5 +1,5 @@
 __all__ = ('BeanshellCode', 'BeanshellFile', 'InteractionPage',
-    'NestedWorkflow', 'NestedZapyFile', 'HTTP', 'TextConstant', 
+    'NestedWorkflow', 'NestedZapyFile', 'HTTP', 'XPath', 'TextConstant', 
     'RServer')
 
 from t2types import *
@@ -23,6 +23,30 @@ class Activity(object):
         else:
             self.outputs = outputs
 
+    def getInputType(self, name):
+        return self.inputs[name]
+
+    def getOutputType(self, name):
+        return self.outputs[name]
+
+    def exportActivityXML(self, xml, connectedInputs, connectedOutputs):
+        with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
+            with tav.activity:
+                with tav.raven as raven:
+                    raven.group >> self.activityGroup
+                    raven.artifact >> self.activityArtifact
+                    raven.version >> self.activityVersion
+                tav['class'] >> self.activityClass
+                with tav.inputMap:
+                    for port in connectedInputs:
+                        tav.map({'from': port.name}, to=port.name)
+                with tav.outputMap:
+                    for port in connectedOutputs:
+                        tav.map({'from': port.name}, to=port.name)
+                with tav.configBean(encoding=self.configEncoding):
+                    self.exportConfigurationXML(xml, connectedInputs, connectedOutputs)
+                tav.annotations
+
 class BeanshellCode(Activity):
 
     activityArtifact = 'beanshell-activity'
@@ -34,7 +58,7 @@ class BeanshellCode(Activity):
         self.script = script
         self.localDependencies = localDependencies
 
-    def exportConfigurationXML(self, xml):
+    def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace() as conf:
             with conf.net.sf.taverna.t2.activities.beanshell.BeanshellActivityConfigurationBean:
                 with conf.inputs:
@@ -77,7 +101,7 @@ class NestedWorkflow(Activity):
         Activity.__init__(self, inputs=flow.getInputs(), outputs=flow.getOutputs())
         self.flow = flow
 
-    def exportConfigurationXML(self, xml):
+    def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace('http://taverna.sf.net/2008/xml/t2flow') as tav:
             tav.dataflow(ref=self.flow.getId())
 
@@ -100,7 +124,7 @@ class InteractionPage(Activity):
         Activity.__init__(self, **kw)
         self.url = url
 
-    def exportConfigurationXML(self, xml):
+    def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace() as conf:
             with conf.net.sf.taverna.t2.activities.interaction.InteractionActivityConfigurationBean:
                 with conf.inputs:
@@ -128,12 +152,16 @@ class InteractionPage(Activity):
 class HTTP_Activity(Activity):
 
     activityArtifact = 'rest-activity'
-    activityClass = 'net.sf.taverna.t2.activities.rest.HTTP_Activity'
+    activityClass = 'net.sf.taverna.t2.activities.rest.RESTActivity'
 
     def __init__(self, httpMethod, urlTemplate, inputContentType='application/xml',
         inputBinary=False, outputContentType='application/xml', headers=None, 
         sendExpectHeader=False, escapeParameters=True, inputs=None):
         assert httpMethod in ('GET', 'POST', 'PUT', 'DELETE'), httpMethod
+        if inputs is not None:
+            if inputs.has_key('inputBody'):
+                raise RuntimeError('Do not specify input port "inputBody" for HTTP Activity')
+            inputs['inputBody'] = String(description="Input for HTTP request in MIME %s format" % inputContentType)
         Activity.__init__(self, inputs=inputs, outputs=dict(
             responseBody = String,
             status = Integer[100,...,599]
@@ -148,53 +176,27 @@ class HTTP_Activity(Activity):
         self.escapeParameters = escapeParameters
         self.headers = headers
 
-    @property
-    def status(self):
-        return self.output.status
-    @status.setter
-    def status(self, value):
-        raise RuntimeError('status port is read-only')
+    def getOutputType(self, name):
+        if name in ('redirection', 'actualUrl'):
+            return String
+        elif name == 'responseHeaders':
+            return List[String]
+        else:
+            return Activity.getOutputType(self, name)
 
-    @property
-    def redirection(self):
-        type = String
-        self.outputs['redirection'] = type
-        return type
-    @redirection.setter
-    def redirection(self, value):
-        raise RuntimeError('redirection port is read-only')
-    
-    @property
-    def actualUrl(self):
-        type = String
-        self.outputs['actualUrl'] = type
-        return type
-    @actualUrl.setter
-    def actualUrl(self, value):
-        raise RuntimeError('actualUrl port is read-only')
-
-    @property
-    def responseHeaders(self):
-        type = List[String]
-        self.outputs['responseHeaders'] = type
-        return type
-    @responseHeaders.setter
-    def responseHeaders(self, value):
-        raise RuntimeError('responseHeaders port is read-only')
-
-    def exportConfigurationXML(self, xml):
+    def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace() as conf:
-            with conf.net.sf.taverna.t2.activities.rest.HTTP_ActivityConfigurationBean:
+            with conf.net.sf.taverna.t2.activities.rest.RESTActivityConfigurationBean:
                 conf.httpMethod >> self.httpMethod
-                conf.urlTemplate >> self.urlTemplate
+                conf.urlSignature >> self.urlTemplate
                 conf.acceptsHeaderValue >> self.outputContentType
                 conf.contentTypeForUpdates >> self.inputContentType
-                conf.outgoingDataFormat >> 'Binary' if self.inputBinary else 'String'
-                conf.sendHTTPExpectRequestHeader >> 'true' if self.sendExpectHeader else 'false'
-                conf.showRedirectionOutputPort >> 'true' if self.outputs.has_key('redirection') else 'false'
-                conf.showActualUrlPort >> 'true' if self.outputs.has_key('actualUrl') else 'false'
-                conf.showResponseHeadersPort >> 'true' if self.outputs.has_key('responseHeaders') else 'false'
-                conf.escapeParameters >> 'true' if self.escapeParameters else 'false'
+                conf.outgoingDataFormat >> ('Binary' if self.inputBinary else 'String')
+                conf.sendHTTPExpectRequestHeader >> ('true' if self.sendExpectHeader else 'false')
+                conf.showRedirectionOutputPort >> ('true' if 'redirection' in connectedOutputs else 'false')
+                conf.showActualUrlPort >> ('true' if 'actualUrl' in connectedOutputs else 'false')
+                conf.showResponseHeadersPort >> ('true' if 'responseHeaders' in connectedOutputs else 'false')
+                conf.escapeParameters >> ('true' if self.escapeParameters else 'false')
                 with conf.otherHTTPHeaders:
                     if self.headers is not None:
                         for name, value in self.headers.items():
@@ -241,6 +243,33 @@ class HTTP_Factory:
 
 HTTP = HTTP_Factory()
 
+class XPathActivity(Activity):
+
+    activityArtifact = 'xpath-activity'
+    activityClass = 'net.sf.taverna.t2.activities.xpath.XPathActivity'
+
+    def __init__(self, xpath, xmlns=None):
+        Activity.__init__(self, inputs={'xml_text': String}, outputs={
+            'nodelist': List[String],
+            'nodelistAsXML': List[String]
+            })
+        self.xpath = xpath
+        self.xmlns = xmlns
+
+    def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
+        with xml.namespace() as conf:
+            with conf.net.sf.taverna.t2.activities.xpath.XPathActivityConfigurationBean:
+                conf.xmlDocument
+                conf.xpathExpression >> self.xpath
+                with conf.xpathNamespaceMap:
+                    if self.xmlns is not None:
+                        for abbr, url in self.xmlns.items():
+                            with conf.entry:
+                                conf.string >> abbr
+                                conf.string >> url
+
+XPath = XPathActivity
+
 class TextConstant(Activity):
 
     activityArtifact = 'stringconstant-activity'
@@ -263,7 +292,7 @@ class TextConstant(Activity):
             label = ''.join(candidate)
         return label
 
-    def exportConfigurationXML(self, xml):
+    def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace() as conf:
             with conf.net.sf.taverna.t2.activities.stringconstant.StringConstantConfigurationBean:
                 conf.value >> self.text
@@ -271,6 +300,7 @@ class TextConstant(Activity):
 class RServerDict(dict):
 
     def __init__(self, script, dictionary):
+        dict.__init__(self)
         self.script = script
         if dictionary is not None:
             # Check that the port types are valid R activity types
@@ -278,26 +308,24 @@ class RServerDict(dict):
                 if not hasattr(type, 'symanticType'):
                     raise RuntimeError('Invalid R type "%s = %s"' % (name, type))
             dict.update(self, dictionary)
-            self.dict = {}
-        else:
-            self.dict = dictionary
 
     def __getitem__(self, name):
         if not dict.__contains__(self, name):
             # If the variable has not been named as an input/output for the 
             # RShell, we check (poorly) whether the variable appears in the
-            # script. If it does, act as though the variable had been mentioned
+            # script. If it does, act as though the variable had been defined
             # as an input/output of type RExpression.
             if name in self.script:
                 dict.__setitem__(self, name, RExpression)
         return dict.__getitem__(self, name)
 
-class RServerActivity(Activity):
+class RserveServerActivity(Activity):
 
     activityArtifact = 'rshell-activity'
     activityClass = 'net.sf.taverna.t2.activities.rshell.RshellActivity'
 
-    def __init__(self, rserve, script, **kw):
+    def __init__(self, rserve, script, inputs=None, inputMap=None, outputs=None,
+        outputMap=None):
         # Taverna 2.4 adds lines to the to the end of a script to access output
         # values, but does not add a newline to separate the last line of our
         # script from the first line added by Taverna. So, we ensure the script
@@ -305,30 +333,18 @@ class RServerActivity(Activity):
         script = script.strip() + '\n'
         # We replace the input and output dictionaries with alternatives that
         # can check the script for additional variables.
-        kw['inputs'] = RServerDict(script, kw.get('inputs'))
-        kw['outputs'] = RServerDict(script, kw.get('outputs'))
-        Activity.__init__(self, **kw)
+        Activity.__init__(self, inputs=RServerDict(script, inputs),
+            outputs=RServerDict(script, outputs))
         self.rserve = rserve
-        self.script = script.strip() + '\n'
+        if inputMap is not None:
+            for tName, rName in inputMap:
+                script = '%s <- %s\nrm(%s)\n' % (rName, tName, tName) + script
+        if outputMap is not None:
+            for tName, rName in outputMap:
+                script += '%s <- %s\n' % (tName, rName)
+        self.script = script
 
-    def mapInputPort(self, activityPort, newName):
-        if self.inputs.has_key(newName):
-            raise RuntimeError('reused port name "%s"' % newName)
-        self.inputs[newName] = self.inputs[activityPort]
-        del self.inputs[activityPort]
-        # remove the input port variable after reassignment, to prevent masking 
-        # of objects from the base package, or any other unintended side-effects
-        # of having additional variables in the namespace
-        self.script = '%s <- %s # for Taverna Workbench compatibility\nrm(%s)\n' % (activityPort, newName, newName) + self.script
-
-    def mapOutputPort(self, activityPort, newName):
-        if self.outputs.has_key(newName):
-            raise RuntimeError('reused port name "%s"' % newName)
-        self.outputs[newName] = self.outputs[activityPort]
-        del self.outputs[activityPort]
-        self.script += '%s <- %s # for Taverna Workbench compatibility\n' % (newName, activityPort)
-
-    def exportConfigurationXML(self, xml):
+    def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace() as config:
             with config.net.sf.taverna.t2.activities.rshell.RshellActivityConfigurationBean:
                 with config.inputs:
@@ -373,8 +389,8 @@ class RServer:
             conn.port >> self.port
 
     def code(self, script, **kw):
-        return RServerActivity(self, script, **kw)
+        return RserveServerActivity(self, script, **kw)
 
     def file(self, filename, encoding='utf-8', **kw):
         import codecs
-        with codecs.open(getAbsolutePathRelativeToCaller(filename), encoding=encoding) as f:            return RServerActivity(self, f.read(), **kw)
+        with codecs.open(getAbsolutePathRelativeToCaller(filename), encoding=encoding) as f:            return RserveServerActivity(self, f.read(), **kw)

@@ -115,24 +115,24 @@ class WorkflowTask(object):
         self.outputMap = {}
 
     def mapInput(self, processorPort, activityPort):
-        self.activity.inputs[activityPort]
-        if self.inputMap.has_key(activityPort):
-            raise RuntimeError('activity input "%s" already mapped' % activityPort)
-        self.inputMap[activityPort] = processorPort
-        return self.activity.inputs[activityPort]
+        type = self.activity.getInputType(activityPort)
+        if self.inputMap.has_key(processorPort):
+            raise RuntimeError('task input "%s" already mapped' % processorPort)
+        self.inputMap[processorPort] = activityPort
+        return type
 
     def mapOutput(self, processorPort, activityPort):
-        self.activity.outputs[activityPort]
-        if self.outputMap.has_key(activityPort):
-            if self.outputMap[activityPort] != processorPort:
-                raise RuntimeError('activity output "%s" already mapped' % activityPort)
+        type = self.activity.getOutputType(activityPort)
+        if self.outputMap.has_key(processorPort):
+            if self.outputMap[processorPort] != activityPort:
+                raise RuntimeError('task output "%s" already mapped to %s' % (processorPort, activityPort))
             else:
-                # OK to map activity port to same processor port multiple times.
-                # This happens when an output is an input to multiple inputs
+                # OK to map processor port to same activity port multiple times.
+                # This happens when an output is linked to multiple inputs
                 pass
         else:
-            self.outputMap[activityPort] = processorPort
-        return self.activity.outputs[activityPort]
+            self.outputMap[processorPort] = activityPort
+        return type
 
     def extendUnusedPorts(self):
         self.extendUnusedInputs()
@@ -183,27 +183,7 @@ class WorkflowTask(object):
                     for annotationClass, annotation in self.annotations.items():
                         annotation.exportXML(xml, annotationClass)
                 with proc.activities:
-                    with proc.activity:
-                        with proc.raven as raven:
-                            raven.group >> self.activity.activityGroup
-                            raven.artifact >> self.activity.activityArtifact
-                            raven.version >> self.activity.activityVersion
-                        proc['class'] >> self.activity.activityClass
-                        with proc.inputMap:
-                            for activityPort, processorPort in self.inputMap.items():
-                                if self.flow.isWorkbenchSafe() and activityPort != processorPort:
-                                    self.activity.mapInputPort(activityPort, processorPort)
-                                    activityPort = processorPort
-                                proc.map({'from': processorPort}, to=activityPort)
-                        with proc.outputMap:
-                            for activityPort, processorPort in self.outputMap.items():
-                                if self.flow.isWorkbenchSafe() and activityPort != processorPort:
-                                    self.activity.mapOutputPort(activityPort, processorPort)
-                                    activityPort = processorPort
-                                proc.map({'from': activityPort}, to=processorPort)
-                        with proc.configBean(encoding=self.activity.configEncoding):
-                            self.activity.exportConfigurationXML(xml)
-                        proc.annotations
+                    self.activity.exportActivityXML(xml, self.input, self.output)
                 with proc.dispatchStack:
                     with proc.dispatchLayer:
                         with proc.raven as raven:
