@@ -227,6 +227,13 @@ Each task contains 2 collections:
 
 - `flow.task.MyTask.output` - the output ports for the task
 
+Manage task parallelisation and retries using:
+
+```python
+flow.task.MyTask.parallel(maxJobs = 5)
+flow.task.MyTask.retry(maxRetries = 3, initialDelay = 1000, maxDelay = 5000,
+	backoffFactor = 1.0)
+```
 
 ### Creating data links
 

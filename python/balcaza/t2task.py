@@ -85,6 +85,15 @@ class WorkflowTask(object):
         self.annotations = {}
         self.input = TaskInputPorts(flow, self)
         self.output = TaskOutputPorts(flow, self)
+        self.retryConfig = {
+            'maxRetries': 0,
+            'initialDelay': 1000,
+            'maxDelay': 5000,
+            'backoffFactor': 1.0
+        }
+        self.parallelizeConfig = {
+            'maxJobs': 1
+        }
 
     def extendUnusedPorts(self):
         self.extendUnusedInputs()
@@ -101,6 +110,19 @@ class WorkflowTask(object):
             if portName not in self.output:
                 flowPort = self.flow.selectUniqueLabel(self.flow.output, portName)
                 self.flow.output[flowPort] = self.output[portName]
+
+    def parallel(self, maxJobs):
+        self.parallelizeConfig['maxJobs'] = maxJobs
+
+    def retry(self, maxRetries=None, initialDelay=None, maxDelay=None, backoffFactor=None):
+        if maxRetries is not None:
+            self.retryConfig['maxRetries'] = maxRetries
+        if initialDelay is not None:
+            self.retryConfig['initialDelay'] = initialDelay
+        if maxDelay is not None:
+            self.retryConfig['maxDelay'] = maxDelay
+        if backoffFactor is not None:
+            self.retryConfig['backoffFactor'] = backoffFactor
 
     @property
     def description(self):
@@ -144,7 +166,7 @@ class WorkflowTask(object):
                         with proc.configBean(encoding="xstream"):
                             with xml.namespace() as Parallelize:
                                 with Parallelize.net.sf.taverna.t2.workflowmodel.processor.dispatch.layers.ParallelizeConfig:
-                                    Parallelize.maxJobs >> 1
+                                    Parallelize.maxJobs >> self.parallelizeConfig['maxJobs']
                     with proc.dispatchLayer:
                         with proc.raven as raven:
                             raven.group >> 'net.sf.taverna.t2.core'
@@ -172,10 +194,10 @@ class WorkflowTask(object):
                         with proc.configBean(encoding="xstream"):
                             with xml.namespace() as Retry:
                                 with Retry.net.sf.taverna.t2.workflowmodel.processor.dispatch.layers.RetryConfig:
-                                    Retry.backoffFactor >> '1.0'
-                                    Retry.initialDelay >> '1000'
-                                    Retry.maxDelay >> '5000'
-                                    Retry.maxRetries >> '0'
+                                    Retry.backoffFactor >> self.retryConfig['backoffFactor']
+                                    Retry.initialDelay >> self.retryConfig['initialDelay']
+                                    Retry.maxDelay >> self.retryConfig['maxDelay']
+                                    Retry.maxRetries >> self.retryConfig['maxRetries']
                     with proc.dispatchLayer:
                         with proc.raven as raven:
                             raven.group >> 'net.sf.taverna.t2.core'
