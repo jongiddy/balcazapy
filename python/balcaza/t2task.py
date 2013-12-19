@@ -5,15 +5,8 @@ from t2activity import Activity
 class TaskPort(Port):
 
     def __init__(self, task, name, type):
-        Port.__init__(self, name)
+        Port.__init__(self, name, type)
         self.task = task
-        self.type = type
-
-    def getName(self):
-        return self.name
-
-    def getDepth(self):
-        return self.type.getDepth()
 
 class TaskInputPort(TaskPort, Sink):
 
@@ -26,7 +19,7 @@ class TaskInputPort(TaskPort, Sink):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.port as port:
                 port.name >> self.name
-                port.depth >> self.type.getDepth()
+                port.depth >> self.getDepth()
 
     def exportSinkXML(self, xml):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
@@ -45,7 +38,7 @@ class TaskOutputPort(TaskPort, Source):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.port as port:
                 port.name >> self.name
-                depth = self.type.getDepth()
+                depth = self.getDepth()
                 port.depth >> depth
                 port.granularDepth >> depth
 
@@ -198,7 +191,7 @@ class WorkflowTask(object):
                             if self.input:
                                 with proc.cross:
                                     for port in self.input:
-                                        tav.port(name=port.getName(), depth=port.getDepth())
+                                        tav.port(name=port.name, depth=port.getDepth())
 
 class UnassignedTask:
 

@@ -16,8 +16,7 @@ def getUUID():
 class WorkflowPort(Port):
 
     def __init__(self, name, type):
-        Port.__init__(self, name)
-        self.type = type
+        Port.__init__(self, name, type)
         self.annotations = {}
         dict = type.dict
         for name in ('description', 'example'):
@@ -65,7 +64,7 @@ class WorkflowInputPort(WorkflowPort, Source):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.port as port:
                 port.name >> self.name
-                depth = self.type.getDepth()
+                depth = self.getDepth()
                 port.depth >> depth
                 port.granularDepth >> depth
                 with port.annotations:

@@ -17,8 +17,12 @@ class Sink:
 
 class Port(object):
 
-    def __init__(self, name):
+    def __init__(self, name, type):
         self.name = name
+        self.type = type
+
+    def getDepth(self):
+        return self.type.getDepth()
 
 class OrderedMapIterator(object):
 
