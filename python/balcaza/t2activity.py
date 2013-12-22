@@ -30,6 +30,16 @@ class Activity(object):
     def getOutputType(self, name):
         return self.outputs[name]
 
+    def defaultInput(self):
+        if len(self.inputs) == 1:
+            return self.inputs.keys()[0]
+        return None
+
+    def defaultOutput(self):
+        if len(self.outputs) == 1:
+            return self.outputs.keys()[0]
+        return None
+
     def exportActivityXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.activity:
@@ -155,13 +165,16 @@ class HTTP_Activity(Activity):
     activityArtifact = 'rest-activity'
     activityClass = 'net.sf.taverna.t2.activities.rest.RESTActivity'
 
-    def __init__(self, httpMethod, urlTemplate, inputContentType='application/xml',
+    def __init__(self, httpMethod, urlTemplate, inputContentType=None,
         inputBinary=False, outputContentType='application/xml', headers=None, 
         sendExpectHeader=False, escapeParameters=True, inputs=None):
         assert httpMethod in ('GET', 'POST', 'PUT', 'DELETE'), httpMethod
-        if inputs is not None:
+        if inputs is None:
+            inputs = {}
+        else:
             if inputs.has_key('inputBody'):
                 raise RuntimeError('Do not specify input port "inputBody" for HTTP Activity')
+        if inputContentType:
             inputs['inputBody'] = String(description="Input for HTTP request in MIME %s format" % inputContentType)
         Activity.__init__(self, inputs=inputs, outputs=dict(
             responseBody = String,
@@ -185,13 +198,21 @@ class HTTP_Activity(Activity):
         else:
             return Activity.getOutputType(self, name)
 
+    def defaultInput(self):
+        if self.inputs.has_key('inputBody'):
+            return 'inputBody'
+        return None
+
+    def defaultOutput(self):
+        return 'responseBody'
+
     def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace() as conf:
             with conf.net.sf.taverna.t2.activities.rest.RESTActivityConfigurationBean:
                 conf.httpMethod >> self.httpMethod
                 conf.urlSignature >> self.urlTemplate
                 conf.acceptsHeaderValue >> self.outputContentType
-                conf.contentTypeForUpdates >> self.inputContentType
+                conf.contentTypeForUpdates >> (self.inputContentType if self.inputContentType else 'application/xml')
                 conf.outgoingDataFormat >> ('Binary' if self.inputBinary else 'String')
                 conf.sendHTTPExpectRequestHeader >> ('true' if self.sendExpectHeader else 'false')
                 conf.showRedirectionOutputPort >> ('true' if 'redirection' in connectedOutputs else 'false')
@@ -256,6 +277,12 @@ class XPathActivity(Activity):
             })
         self.xpath = xpath
         self.xmlns = xmlns
+
+    def defaultInput(self):
+        return 'xml_text'
+
+    def defaultOutput(self):
+        return 'nodelist'
 
     def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace() as conf:
