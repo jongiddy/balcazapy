@@ -124,10 +124,10 @@ CalculateYearEffect = flow.task.CalculateYearEffect << NestedZapyFile('LTRE.py')
 
 AddNames.output.expr | CalculateYearEffect.input.matrices
 ReadPooledMatrix.output.matrix | CalculateYearEffect.input.pooled_matrix
-'Years' | CalculateYearEffect.input.xlabel
+CalculateYearEffect.input.xlabel = 'Years'
 flow.input.years | CalculateYearEffect.input.xticks
-'Year Effect' | CalculateYearEffect.input.ylabel
-'lightblue' | CalculateYearEffect.input.plot_colour
+CalculateYearEffect.input.ylabel = 'Year Effect'
+CalculateYearEffect.input.plot_colour = 'lightblue'
 CalculateYearEffect.extendUnusedInputs()
 
 from util.r.format import PrettyPrint

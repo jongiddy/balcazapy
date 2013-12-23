@@ -107,10 +107,10 @@ flow.input.places | AddNames.input.labels
 CalculatePlaceEffect = flow.task.CalculatePlaceEffect << NestedZapyFile('LTRE.py')
 AddNames.output.expr | CalculatePlaceEffect.input.matrices
 ReadPooledMatrix.output.matrix | CalculatePlaceEffect.input.pooled_matrix
-'Places' | CalculatePlaceEffect.input.xlabel
+CalculatePlaceEffect.input.xlabel = 'Places'
 flow.input.places | CalculatePlaceEffect.input.xticks
-'Place Effect' | CalculatePlaceEffect.input.ylabel
-'lightgreen' | CalculatePlaceEffect.input.plot_colour
+CalculatePlaceEffect.input.ylabel = 'Place Effect'
+CalculatePlaceEffect.input.plot_colour = 'lightgreen'
 CalculatePlaceEffect.extendUnusedInputs()
 
 from util.r.format import PrettyPrint
