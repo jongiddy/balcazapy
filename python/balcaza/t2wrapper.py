@@ -19,7 +19,7 @@ class WrapperWorkflow(Workflow):
 			# Copy any annotations
 			type.dict = port.type.dict
 			self.input[port.name] = type
-			self.input[port.name] >> nested.input[port.name]
+			self.input[port.name] | nested.input[port.name]
 		for port in flow.output:
 			# Set type to same depth, but basetype of String
 			depth = port.type.getDepth()
@@ -30,5 +30,5 @@ class WrapperWorkflow(Workflow):
 			# Copy any annotations
 			type.dict = port.type.dict
 			self.output[port.name] = type
-			nested.output[port.name] >> self.output[port.name]
+			nested.output[port.name] | self.output[port.name]
 

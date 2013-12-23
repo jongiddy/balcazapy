@@ -40,5 +40,5 @@ PlotLTRE = flow.task.PlotLTRE << rserve.file(
 		)
 	)
 
-LTRE.output.LTRE_Analysis >> PlotLTRE.input.LTRE_Analysis
+LTRE.output.LTRE_Analysis | PlotLTRE.input.LTRE_Analysis
 PlotLTRE.extendUnusedPorts()

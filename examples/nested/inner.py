@@ -36,7 +36,7 @@ flow.task.CalculatePlotSize << rserve.code(
 	)
 
 # Task input ports are <wflow>.task.<taskname>.input.<portname>
-# Connect ports using the >> operator
+# Connect ports using the | operator
 # 
 # For RShell, if an R variable name is not a valid Taverna name (e.g. it contains a dot)
 # use [] to provide the R variable name after the Taverna name
@@ -44,7 +44,7 @@ flow.task.CalculatePlotSize << rserve.code(
 # Note that RExpression inputs and outputs do not need to be specified as inputs
 # or outputs above.
 
-flow.input.stageMatrix >> flow.task.CalculatePlotSize.input.stage_matrix['stage.matrix']
+flow.input.stageMatrix | flow.task.CalculatePlotSize.input.stage_matrix['stage.matrix']
 
 # Create another RShell, this time from an external R file
 
@@ -57,14 +57,14 @@ flow.task.ProjectionMatrix.description = 'Create a projection matrix'
 
 # There is a handy shortcut for text constant inputs
 
-"Projection Matrix" >> flow.task.ProjectionMatrix.input.plot_title
+"Projection Matrix" | flow.task.ProjectionMatrix.input.plot_title
 
-flow.input.stageMatrix >> flow.task.ProjectionMatrix.input.stage_matrix
-flow.task.CalculatePlotSize.output.plot_size >> flow.task.ProjectionMatrix.input.plot_size
+flow.input.stageMatrix | flow.task.ProjectionMatrix.input.stage_matrix
+flow.task.CalculatePlotSize.output.plot_size | flow.task.ProjectionMatrix.input.plot_size
 
 flow.output.projectionMatrix = PNG_Image(description='Plot of results')
 
-flow.task.ProjectionMatrix.output.plot_image >> flow.output.projectionMatrix
+flow.task.ProjectionMatrix.output.plot_image | flow.output.projectionMatrix
 
 # Create a nested workflow that can be imported into other workflows
 

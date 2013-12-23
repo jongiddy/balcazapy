@@ -13,7 +13,8 @@ class Activity(object):
     activityClass = 'net.sf.taverna.t2.activities.stringconstant.StringConstantActivity'
     configEncoding = 'xstream'
 
-    def __init__(self, description=None, inputs=None, outputs=None):
+    def __init__(self, description=None, inputs=None, outputs=None,
+        defaultInput=None, defaultOutput=None):
         self.description = description
         if inputs is None:
             self.inputs = {}
@@ -23,6 +24,8 @@ class Activity(object):
             self.outputs = {}
         else:
             self.outputs = outputs
+        self.defaultIn = defaultInput
+        self.defaultOut = defaultOutput
 
     def getInputType(self, name):
         return self.inputs[name]
@@ -31,12 +34,16 @@ class Activity(object):
         return self.outputs[name]
 
     def defaultInput(self):
-        if len(self.inputs) == 1:
+        if self.defaultIn:
+            return self.defaultIn
+        elif len(self.inputs) == 1:
             return self.inputs.keys()[0]
         return None
 
     def defaultOutput(self):
-        if len(self.outputs) == 1:
+        if self.defaultOut:
+            return self.defaultOut
+        elif len(self.outputs) == 1:
             return self.outputs.keys()[0]
         return None
 
@@ -167,7 +174,7 @@ class HTTP_Activity(Activity):
 
     def __init__(self, httpMethod, urlTemplate, inputContentType=None,
         inputBinary=False, outputContentType='application/xml', headers=None, 
-        sendExpectHeader=False, escapeParameters=True, inputs=None):
+        sendExpectHeader=False, escapeParameters=True, inputs=None, defaultInput=None):
         assert httpMethod in ('GET', 'POST', 'PUT', 'DELETE'), httpMethod
         if inputs is None:
             inputs = {}
@@ -176,10 +183,14 @@ class HTTP_Activity(Activity):
                 raise RuntimeError('Do not specify input port "inputBody" for HTTP Activity')
         if inputContentType:
             inputs['inputBody'] = String(description="Input for HTTP request in MIME %s format" % inputContentType)
+            if defaultInput is None:
+                defaultInput = 'inputBody'
         Activity.__init__(self, inputs=inputs, outputs=dict(
             responseBody = String,
             status = Integer[100,...,599]
-            )
+            ),
+            defaultInput = defaultInput,
+            defaultOutput = 'responseBody'
         )
         self.httpMethod = httpMethod
         self.urlTemplate = urlTemplate
@@ -197,14 +208,6 @@ class HTTP_Activity(Activity):
             return List[String]
         else:
             return Activity.getOutputType(self, name)
-
-    def defaultInput(self):
-        if self.inputs.has_key('inputBody'):
-            return 'inputBody'
-        return None
-
-    def defaultOutput(self):
-        return 'responseBody'
 
     def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace() as conf:
@@ -274,15 +277,11 @@ class XPathActivity(Activity):
         Activity.__init__(self, inputs={'xml_text': String}, outputs={
             'nodelist': List[String],
             'nodelistAsXML': List[String]
-            })
+            },
+            defaultInput='xml_text',
+            defaultOutput='nodelist')
         self.xpath = xpath
         self.xmlns = xmlns
-
-    def defaultInput(self):
-        return 'xml_text'
-
-    def defaultOutput(self):
-        return 'nodelist'
 
     def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace() as conf:

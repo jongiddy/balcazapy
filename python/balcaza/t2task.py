@@ -116,6 +116,28 @@ class WorkflowTask(object):
                 flowPort = self.flow.selectUniqueLabel(self.flow.output, portName)
                 self.flow.output[flowPort] = self.output[portName]
 
+    def __or__(self, sink):
+        return self.flow.linkData(self, sink)
+
+    def __ror__(self, source):
+        return self.flow.linkData(source, self)
+
+    def asSource(self):
+        activity = self.activities[0]
+        portName = activity.defaultOutput()
+        if portName is None:
+            raise RuntimeError('task "%s" has no default output port' % self.name)
+        else:
+            return self.output[portName]
+
+    def asSink(self):
+        activity = self.activities[0]
+        portName = activity.defaultInput()
+        if portName is None:
+            raise RuntimeError('task "%s" has no default input port' % self.name)
+        else:
+            return self.input[portName]
+
     def parallel(self, maxJobs):
         self.parallelizeConfig['maxJobs'] = maxJobs
 

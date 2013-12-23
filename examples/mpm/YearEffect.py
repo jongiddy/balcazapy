@@ -52,10 +52,10 @@ Each element of the top-level list is related to each element of the input port 
 		)
 	)
 
-"Select a stage matrix for each year" >> RequestStageMatrices.input.title
-"Year" >> RequestStageMatrices.input.field
-"false" >> RequestStageMatrices.input.multiple
-flow.input.years >> RequestStageMatrices.input.values
+"Select a stage matrix for each year" | RequestStageMatrices.input.title
+"Year" | RequestStageMatrices.input.field
+"false" | RequestStageMatrices.input.multiple
+flow.input.years | RequestStageMatrices.input.values
 
 FlattenList = flow.task.FlattenList << BeanshellCode(
 '''flatten(inputs, outputs, depth) {
@@ -81,7 +81,7 @@ flatten(inputlist, outputlist, 1);
 		)
 	)
 
-RequestStageMatrices.output.matrices >> FlattenList.input.inputlist
+RequestStageMatrices.output.matrices | FlattenList.input.inputlist
 
 rserve = RServer()
 
@@ -93,22 +93,22 @@ from util.r.file import ReadMatrixFromFile
 ReadStageMatrix = flow.task.ReadStageMatrix << ReadMatrixFromFile(rserve)
 
 # List[String] -> String = 1 level of iteration
-FlattenList.output.outputlist >> ReadStageMatrix.input.matrix_file
-flow.input.stages >> ReadStageMatrix.input.xlabels
-flow.input.stages >> ReadStageMatrix.input.ylabels
+FlattenList.output.outputlist | ReadStageMatrix.input.matrix_file
+flow.input.stages | ReadStageMatrix.input.xlabels
+flow.input.stages | ReadStageMatrix.input.ylabels
 
 
 ReadPooledMatrix = flow.task.ReadPooledMatrix << ReadMatrixFromFile(rserve)
 
-flow.input.pooled_matrix_file >> ReadPooledMatrix.input.matrix_file
-flow.input.stages >> ReadPooledMatrix.input.xlabels
-flow.input.stages >> ReadPooledMatrix.input.ylabels
+flow.input.pooled_matrix_file | ReadPooledMatrix.input.matrix_file
+flow.input.stages | ReadPooledMatrix.input.xlabels
+flow.input.stages | ReadPooledMatrix.input.ylabels
 
 
 from util.r.format import ListR_to_RList
 CreateRListOfMatrices = flow.task.CreateRListOfMatrices << ListR_to_RList(rserve)
 
-ReadStageMatrix.output.matrix >> CreateRListOfMatrices.input.list_of_r_expressions
+ReadStageMatrix.output.matrix | CreateRListOfMatrices.input.list_of_r_expressions
 
 
 AddNames = flow.task.AddNames << rserve.code(
@@ -116,28 +116,28 @@ AddNames = flow.task.AddNames << rserve.code(
 	inputs=dict(labels=Vector[String])
 	)
 
-CreateRListOfMatrices.output.r_list_of_expressions >> AddNames.input.expr
-flow.input.years >> AddNames.input.labels
+CreateRListOfMatrices.output.r_list_of_expressions | AddNames.input.expr
+flow.input.years | AddNames.input.labels
 
 
 CalculateYearEffect = flow.task.CalculateYearEffect << NestedZapyFile('LTRE.py')
 
-AddNames.output.expr >> CalculateYearEffect.input.matrices
-ReadPooledMatrix.output.matrix >> CalculateYearEffect.input.pooled_matrix
-'Years' >> CalculateYearEffect.input.xlabel
-flow.input.years >> CalculateYearEffect.input.xticks
-'Year Effect' >> CalculateYearEffect.input.ylabel
-'lightblue' >> CalculateYearEffect.input.plot_colour
+AddNames.output.expr | CalculateYearEffect.input.matrices
+ReadPooledMatrix.output.matrix | CalculateYearEffect.input.pooled_matrix
+'Years' | CalculateYearEffect.input.xlabel
+flow.input.years | CalculateYearEffect.input.xticks
+'Year Effect' | CalculateYearEffect.input.ylabel
+'lightblue' | CalculateYearEffect.input.plot_colour
 CalculateYearEffect.extendUnusedInputs()
 
 from util.r.format import PrettyPrint
 
 PrintAnalysis = flow.task.PrintAnalysis << PrettyPrint(rserve)
-CalculateYearEffect.output.LTRE_Analysis >> PrintAnalysis.input.rexpr
+CalculateYearEffect.output.LTRE_Analysis | PrintAnalysis.input.rexpr
 flow.output.LTRE_Analysis = PrintAnalysis.output.text
 
 PrintResults = flow.task.PrintResults << PrettyPrint(rserve)
-CalculateYearEffect.output.LTRE_Results_RLn >> PrintResults.input.rexpr
+CalculateYearEffect.output.LTRE_Results_RLn | PrintResults.input.rexpr
 flow.output.LTRE_Results = PrintResults.output.text
 
 flow.output.LTRE_Graph = CalculateYearEffect.output.graph

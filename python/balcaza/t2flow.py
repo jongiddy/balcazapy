@@ -2,10 +2,10 @@ __all__ = ("Workflow",)
 
 import uuid
 
-from t2base import Port, Ports, Source, Sink
+from t2base import Port, Ports, Pipeline, Source, Sink
 from t2types import T2FlowType
 from t2annotation import Annotation
-from t2activity import NestedWorkflow, TextConstant
+from t2activity import Activity, NestedWorkflow, TextConstant
 from t2task import WorkflowTasks
 from t2util import alphanumeric
 
@@ -240,26 +240,31 @@ class Workflow(object):
             label = '%s_%d' % (candidate, i)
         return label
 
+    def addActivity(self, activity, candidate=None):
+        if candidate is None:
+            candidate = activity.__class__.__name__
+        label = self.selectUniqueLabel(self.task, candidate)
+        task = self.task[label] << activity
+        return task
+
     def linkData(self, source, sink):
-        if not isinstance(source, Source):
-            textConstant = TextConstant(source)
-            label = self.selectUniqueLabel(self.task, sink.name)
-            self.task[label] << textConstant
-            source = self.task[label].output.value
-            source.connect()
-        if not isinstance(sink, Sink):
-            raise TypeError("link sink must be a Sink")
+        if isinstance(source, basestring):
+            source = self.addActivity(TextConstant(source), sink.name)
+        elif isinstance(source, Activity):
+            source = self.addActivity(source)
+        if isinstance(sink, Activity):
+            sink = self.addActivity(sink)
+        pipe = Pipeline(self, source, sink)
+        source = source.asSource()
+        sink = sink.asSink()
         validator = sink.type.validator(source.type)
         if validator is not None:
-            label = self.selectUniqueLabel(self.task, 'Validate_' + source.name)
-            self.task[label] << validator
-            task = self.task[label]
-            task.input.input.connect()
-            task.output.output.connect()
+            task = self.addActivity(validator, 'Validate_' + source.name)
             self.dataLinks.append(DataLink(source, task.input.input))
             self.dataLinks.append(DataLink(task.output.output, sink))
         else:
             self.dataLinks.append(DataLink(source, sink))
+        return pipe
 
     def allDescendants(self, descendants=None):
         # Create a list of all nested workflows and their nested workflows, ad infinitum

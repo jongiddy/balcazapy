@@ -264,13 +264,13 @@ for i in range(2):
 
 ### Creating data links
 
-Link ports using the `>>` operator. Output ports can be part of multiple links.
-Input ports must only be linked once.
+Link ports using the `|` (pipe) symbol. Output ports can be part of multiple
+links. Input ports must only be linked once.
 
 ```python
-flow.input.InputValues >> flow.task.MyTask.input.vals
-flow.task.MyTask.output.total >> flow.task.AnotherTask.input.x
-flow.task.MyTask.output.total >> flow.output.SumOfValues
+flow.input.InputValues | flow.task.MyTask.input.vals
+flow.task.MyTask.output.total | flow.task.AnotherTask.input.x
+flow.task.MyTask.output.total | flow.output.SumOfValues
 ```
 
 ### Activities
@@ -492,7 +492,7 @@ flow.task.MyTask.extendUnusedPorts()
 Text constants can be created and linked in one step using:
 
 ```python
-"Initial Results" >> flow.task.MyTask.input.plot_title
+"Initial Results" | flow.task.MyTask.input.plot_title
 ```
 
 To make access to activity ports less verbose, assign the task to a variable:
@@ -500,7 +500,7 @@ To make access to activity ports less verbose, assign the task to a variable:
 ```python
 MyTask = flow.task.MyTask << rserve.code(...)
 flow.input.values = MyTask.input.vals
-MyTask.output.total >> AnotherTask.input.in1
+MyTask.output.total | AnotherTask.input.in1
 ```
 
 You do not need to specify input or output ports for RExpression types in RServe
@@ -525,8 +525,11 @@ Double = flow.task.Double << rserve.code(
     outputs = dict(out1 = Integer)
     )
 
+Tasks and activities can be chained using their default input and output ports.
+See examples/rest/web.py for an example.
+
 # Link internal script variables (transferred as RExpression types)
-SumValues.output.total >> Double.input.in1
+SumValues.output.total | Double.input.in1
 
 SumValues.extendUnusedInputs()
 Double.extendUnusedOutputs()

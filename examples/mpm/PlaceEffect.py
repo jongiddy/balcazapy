@@ -52,10 +52,10 @@ Each element of the top-level list is related to each element of the input port 
 		)
 	)
 
-"Select multiple stage matrices from different years for each location" >> RequestStageMatrices.input.title
-"Location" >> RequestStageMatrices.input.field
-"true" >> RequestStageMatrices.input.multiple
-flow.input.places >> RequestStageMatrices.input.values
+"Select multiple stage matrices from different years for each location" | RequestStageMatrices.input.title
+"Location" | RequestStageMatrices.input.field
+"true" | RequestStageMatrices.input.multiple
+flow.input.places | RequestStageMatrices.input.values
 
 rserve = RServer()
 
@@ -65,19 +65,19 @@ from util.r.file import ReadMatrixFromFile
 
 ReadStageMatrix = flow.task.ReadStageMatrix << ReadMatrixFromFile(rserve)
 # List[List[String]] -> String = 2 levels of iteration
-RequestStageMatrices.output.matrices >> ReadStageMatrix.input.matrix_file
-flow.input.stages >> ReadStageMatrix.input.xlabels
-flow.input.stages >> ReadStageMatrix.input.ylabels
+RequestStageMatrices.output.matrices | ReadStageMatrix.input.matrix_file
+flow.input.stages | ReadStageMatrix.input.xlabels
+flow.input.stages | ReadStageMatrix.input.ylabels
 
 ReadPooledMatrix = flow.task.ReadPooledMatrix << ReadMatrixFromFile(rserve)
-flow.input.pooled_matrix_file >> ReadPooledMatrix.input.matrix_file
-flow.input.stages >> ReadPooledMatrix.input.xlabels
-flow.input.stages >> ReadPooledMatrix.input.ylabels
+flow.input.pooled_matrix_file | ReadPooledMatrix.input.matrix_file
+flow.input.stages | ReadPooledMatrix.input.xlabels
+flow.input.stages | ReadPooledMatrix.input.ylabels
 
 from util.r.format import ListR_to_RList
 
 CreateListOfRMatrices = flow.task.CreateListOfRMatrices << ListR_to_RList(rserve)
-ReadStageMatrix.output.matrix >> CreateListOfRMatrices.input.list_of_r_expressions
+ReadStageMatrix.output.matrix | CreateListOfRMatrices.input.list_of_r_expressions
 
 MeanMatrix = flow.task.MeanMatrix << rserve.code('''
 # mean(matrix) usually returns the mean of all values in the matrix
@@ -94,33 +94,33 @@ mean_matrix <- mean.list(matrices)
 	outputs = dict(mean_matrix = RExpression)
 	)
 
-CreateListOfRMatrices.output.r_list_of_expressions >> MeanMatrix.input.matrices
+CreateListOfRMatrices.output.r_list_of_expressions | MeanMatrix.input.matrices
 
 CreateRListOfMatrices = flow.task.CreateRListOfMatrices << ListR_to_RList(rserve)
-MeanMatrix.output.mean_matrix >> CreateRListOfMatrices.input.list_of_r_expressions
+MeanMatrix.output.mean_matrix | CreateRListOfMatrices.input.list_of_r_expressions
 
 
 AddNames = flow.task.AddNames << rserve.code('names(expr) <- labels', inputs=dict(labels=Vector[String]))
-CreateRListOfMatrices.output.r_list_of_expressions >> AddNames.input.expr
-flow.input.places >> AddNames.input.labels
+CreateRListOfMatrices.output.r_list_of_expressions | AddNames.input.expr
+flow.input.places | AddNames.input.labels
 
 CalculatePlaceEffect = flow.task.CalculatePlaceEffect << NestedZapyFile('LTRE.py')
-AddNames.output.expr >> CalculatePlaceEffect.input.matrices
-ReadPooledMatrix.output.matrix >> CalculatePlaceEffect.input.pooled_matrix
-'Places' >> CalculatePlaceEffect.input.xlabel
-flow.input.places >> CalculatePlaceEffect.input.xticks
-'Place Effect' >> CalculatePlaceEffect.input.ylabel
-'lightgreen' >> CalculatePlaceEffect.input.plot_colour
+AddNames.output.expr | CalculatePlaceEffect.input.matrices
+ReadPooledMatrix.output.matrix | CalculatePlaceEffect.input.pooled_matrix
+'Places' | CalculatePlaceEffect.input.xlabel
+flow.input.places | CalculatePlaceEffect.input.xticks
+'Place Effect' | CalculatePlaceEffect.input.ylabel
+'lightgreen' | CalculatePlaceEffect.input.plot_colour
 CalculatePlaceEffect.extendUnusedInputs()
 
 from util.r.format import PrettyPrint
 
 PrintAnalysis = flow.task.PrintAnalysis << PrettyPrint(rserve)
-CalculatePlaceEffect.output.LTRE_Analysis >> PrintAnalysis.input.rexpr
+CalculatePlaceEffect.output.LTRE_Analysis | PrintAnalysis.input.rexpr
 flow.output.LTRE_Analysis = PrintAnalysis.output.text
 
 PrintResults = flow.task.PrintResults << PrettyPrint(rserve)
-CalculatePlaceEffect.output.LTRE_Results_RLn >> PrintResults.input.rexpr
+CalculatePlaceEffect.output.LTRE_Results_RLn | PrintResults.input.rexpr
 flow.output.LTRE_Results = PrintResults.output.text
 
 flow.output.LTRE_Graph = CalculatePlaceEffect.output.graph

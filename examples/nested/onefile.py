@@ -37,20 +37,22 @@ rserve = RServer()
 # In this example, we create an RShell activity from a script and details of 
 # the inputs and outputs. Note that the {} form and dict() form are similar, 
 # but {} requires quotes, while dict() cannot handle names containing dots
+#
+# For RShell, if an R variable name is not a valid Taverna name (e.g. it 
+# contains a dot) use inputMap to map the R variable name to a valid name
 
 inner.task.CalculatePlotSize << rserve.code(
 	"plot_size <- 128 + 32 * dim(stage.matrix)[1]",
-	inputs = {'stage.matrix': RExpression},
-	outputs = dict(plot_size = Integer)
+	inputs = dict(stage_matrix = RExpression),
+	outputs = dict(plot_size = Integer),
+	inputMap = dict(stage_matrix='stage.matrix')
 	)
 
 # Task input ports are <wflow>.task.<taskname>.input.<portname>
-# Connect ports using the >> operator
+# Connect ports using the | operator
 # 
-# For RShell, if an R variable name is not a valid Taverna name (e.g. it contains a dot)
-# use [] to provide the R variable name after the Taverna name
 
-inner.input.stageMatrix >> inner.task.CalculatePlotSize.input.stage_matrix['stage.matrix']
+inner.input.stageMatrix | inner.task.CalculatePlotSize.input.stage_matrix
 
 # Create another RShell, this time from an external R file
 
@@ -63,14 +65,14 @@ inner.task.ProjectionMatrix.description = 'Create a projection matrix'
 
 # There is a handy shortcut for text constant inputs
 
-"Projection Matrix" >> inner.task.ProjectionMatrix.input.plot_title
+"Projection Matrix" | inner.task.ProjectionMatrix.input.plot_title
 
-inner.input.stageMatrix >> inner.task.ProjectionMatrix.input.stage_matrix
-inner.task.CalculatePlotSize.output.plot_size >> inner.task.ProjectionMatrix.input.plot_size
+inner.input.stageMatrix | inner.task.ProjectionMatrix.input.stage_matrix
+inner.task.CalculatePlotSize.output.plot_size | inner.task.ProjectionMatrix.input.plot_size
 
 inner.output.projectionMatrix = PNG_Image(description='Plot of results')
 
-inner.task.ProjectionMatrix.output.plot_image >> inner.output.projectionMatrix
+inner.task.ProjectionMatrix.output.plot_image | inner.output.projectionMatrix
 
 # Create another workflow
 
@@ -113,12 +115,12 @@ rshell = rserve.file(
 
 flow.task.ReadMatrix << rshell
 
-flow.input.stageMatrixFile >> flow.task.ReadMatrix.input.stage_matrix_file
-flow.input.stages >> flow.task.ReadMatrix.input.stages
+flow.input.stageMatrixFile | flow.task.ReadMatrix.input.stage_matrix_file
+flow.input.stages | flow.task.ReadMatrix.input.stages
 
-flow.task.ReadMatrix.output.stage_matrix >> flow.task.ProjectionMatrix.input.stageMatrix # not inner.input.stageMatrix !
-flow.input.speciesName >> flow.task.ProjectionMatrix.input.speciesName
+flow.task.ReadMatrix.output.stage_matrix | flow.task.ProjectionMatrix.input.stageMatrix # not inner.input.stageMatrix !
+flow.input.speciesName | flow.task.ProjectionMatrix.input.speciesName
 
 flow.output.projectionMatrix = PNG_Image(description = "A projection matrix")
 
-flow.task.ProjectionMatrix.output.projectionMatrix >> flow.output.projectionMatrix
+flow.task.ProjectionMatrix.output.projectionMatrix | flow.output.projectionMatrix

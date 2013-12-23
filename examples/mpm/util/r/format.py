@@ -43,7 +43,7 @@ def ListR_to_RList(rserve):
 	    )
 
 	flow.input.list_of_r_expressions = List[RExpression]
-	flow.input.list_of_r_expressions >> Flatten.input.stringlist
+	flow.input.list_of_r_expressions | Flatten.input.stringlist
 
 	Combine = flow.task.CombineListOfStringsIntoRList << BeanshellFile(
 	    "StringsToRList.bsh",
@@ -51,8 +51,6 @@ def ListR_to_RList(rserve):
 	    outputs = dict(output=List[String])
 	    )
 
-	Flatten.output.concatenated >> Combine.input.stringlist
-
-	flow.output.r_list_of_expressions = Combine.output.output
+	flow.output.r_list_of_expressions = Flatten | Combine
 
 	return NestedWorkflow(flow)

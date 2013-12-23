@@ -1,8 +1,50 @@
+class Pipeline:
+
+    def __init__(self, flow, first, last):
+        self.flow = flow
+        self.first = first
+        self.last = last
+
+    def __or__(self, sink):
+        return self.flow.linkData(self.last, sink)
+
+    def __ror__(self, source):
+        return self.flow.linkData(source, self.first)
+
+    @property
+    def input(self):
+        return self.first.input
+    @input.setter
+    def input(self, value):
+        raise RuntimeError('cannot set pipeline input')
+
+    @property
+    def output(self):
+        return self.last.output
+    @output.setter
+    def output(self, value):
+        raise RuntimeError('cannot set pipeline output')
+    
+    def extendUnusedPorts(self):
+        self.extendUnusedInputs()
+        self.extendUnusedOutputs()
+
+    def extendUnusedInputs(self):
+        self.first.extendUnusedInputs()
+
+    def extendUnusedOutputs(self):
+        self.last.extendUnusedOutputs()
 
 class Source:
 
     def __init__(self, flow):
         self.flow = flow
+
+    def asSource(self):
+        return self
+
+    def __or__(self, sink):
+        return self.flow.linkData(self, sink)
 
     def __rshift__(self, sink):
         self.flow.linkData(self, sink)
@@ -11,6 +53,12 @@ class Sink:
 
     def __init__(self, flow):
         self.flow = flow
+
+    def asSink(self):
+        return self
+
+    def __ror__(self, source):
+        return self.flow.linkData(source, self)
 
     def __rrshift__(self, text):
         self.flow.linkData(text, self)

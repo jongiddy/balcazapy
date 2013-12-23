@@ -20,7 +20,7 @@ flow.task.double << rserve.code('out1 <- 2 * in1', outputs = dict(out1 = Integer
 
 # We can use R variable names directly, even if they are not mentioned in the
 # inputs and outputs, and they will be transferred as RExpressions
-flow.task.sum.output.total >> flow.task.double.input.in1
+flow.task.sum.output.total | flow.task.double.input.in1
 
 flow.task.sum.extendUnusedPorts()
 flow.task.double.extendUnusedOutputs()
