@@ -1,6 +1,6 @@
 from t2base import Namespace, OrderedMapIterator, Port, Ports, Source, Sink
 from t2annotation import Annotation
-from t2activity import Activity
+from t2activity import Activity, TextConstant
 
 class TaskPort(Port):
 
@@ -67,6 +67,9 @@ class TaskInputPorts(TaskPorts):
     def __init__(self, flow, task):
         TaskPorts.__init__(self, flow, task)
         self._.PortClass = TaskInputPort
+
+    def __setattr__(self, name, value):
+        self._.flow.addActivity(TextConstant(value), name) | self[name]
 
 class TaskOutputPorts(TaskPorts):
 

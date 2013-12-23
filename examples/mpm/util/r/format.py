@@ -51,6 +51,7 @@ def ListR_to_RList(rserve):
 	    outputs = dict(output=List[String])
 	    )
 
-	flow.output.r_list_of_expressions = Flatten | Combine
+	Flatten | Combine
+	flow.output.r_list_of_expressions = Combine.output.output
 
 	return NestedWorkflow(flow)

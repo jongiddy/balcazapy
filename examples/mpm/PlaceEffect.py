@@ -52,9 +52,9 @@ Each element of the top-level list is related to each element of the input port 
 		)
 	)
 
-"Select multiple stage matrices from different years for each location" | RequestStageMatrices.input.title
-"Location" | RequestStageMatrices.input.field
-"true" | RequestStageMatrices.input.multiple
+RequestStageMatrices.input.title = "Select multiple stage matrices from different years for each location"
+RequestStageMatrices.input.field = "Location"
+RequestStageMatrices.input.multiple = "true"
 flow.input.places | RequestStageMatrices.input.values
 
 rserve = RServer()

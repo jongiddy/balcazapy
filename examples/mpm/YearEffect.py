@@ -52,9 +52,9 @@ Each element of the top-level list is related to each element of the input port 
 		)
 	)
 
-"Select a stage matrix for each year" | RequestStageMatrices.input.title
-"Year" | RequestStageMatrices.input.field
-"false" | RequestStageMatrices.input.multiple
+RequestStageMatrices.input.title = "Select a stage matrix for each year"
+RequestStageMatrices.input.field = "Year"
+RequestStageMatrices.input.multiple = "false"
 flow.input.years | RequestStageMatrices.input.values
 
 FlattenList = flow.task.FlattenList << BeanshellCode(

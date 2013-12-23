@@ -31,7 +31,7 @@ rserve = RServer()
 # but {} requires quotes, while dict() cannot handle names containing dots
 
 flow.task.CalculatePlotSize << rserve.code(
-	"plot_size <- 128 + 32 * dim(stage.matrix)[1]",
+	"plot_size <- 128 + 32 * dim(stage_matrix)[1]",
 	outputs = dict(plot_size = Integer)
 	)
 
@@ -44,7 +44,7 @@ flow.task.CalculatePlotSize << rserve.code(
 # Note that RExpression inputs and outputs do not need to be specified as inputs
 # or outputs above.
 
-flow.input.stageMatrix | flow.task.CalculatePlotSize.input.stage_matrix['stage.matrix']
+flow.input.stageMatrix | flow.task.CalculatePlotSize.input.stage_matrix
 
 # Create another RShell, this time from an external R file
 
@@ -57,7 +57,7 @@ flow.task.ProjectionMatrix.description = 'Create a projection matrix'
 
 # There is a handy shortcut for text constant inputs
 
-"Projection Matrix" | flow.task.ProjectionMatrix.input.plot_title
+flow.task.ProjectionMatrix.input.plot_title = "Projection Matrix"
 
 flow.input.stageMatrix | flow.task.ProjectionMatrix.input.stage_matrix
 flow.task.CalculatePlotSize.output.plot_size | flow.task.ProjectionMatrix.input.plot_size

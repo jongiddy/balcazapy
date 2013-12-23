@@ -492,7 +492,7 @@ flow.task.MyTask.extendUnusedPorts()
 Text constants can be created and linked in one step using:
 
 ```python
-"Initial Results" | flow.task.MyTask.input.plot_title
+flow.task.MyTask.input.plot_title = "Initial Results"
 ```
 
 To make access to activity ports less verbose, assign the task to a variable:

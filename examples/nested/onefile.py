@@ -65,7 +65,7 @@ inner.task.ProjectionMatrix.description = 'Create a projection matrix'
 
 # There is a handy shortcut for text constant inputs
 
-"Projection Matrix" | inner.task.ProjectionMatrix.input.plot_title
+inner.task.ProjectionMatrix.input.plot_title = "Projection Matrix"
 
 inner.input.stageMatrix | inner.task.ProjectionMatrix.input.stage_matrix
 inner.task.CalculatePlotSize.output.plot_size | inner.task.ProjectionMatrix.input.plot_size
