@@ -6,10 +6,12 @@ class Pipeline:
         self.last = last
 
     def __or__(self, sink):
-        return self.flow.linkData(self.last, sink)
+        p = self.flow.linkData(self.last, sink)
+        return Pipeline(self.flow, self.first, p.last)
 
     def __ror__(self, source):
-        return self.flow.linkData(source, self.first)
+        p = self.flow.linkData(source, self.first)
+        return Pipeline(self.flow, p.first, self.last)
 
     @property
     def input(self):
@@ -40,9 +42,6 @@ class Source:
     def __init__(self, flow):
         self.flow = flow
 
-    def asSource(self):
-        return self
-
     def __or__(self, sink):
         return self.flow.linkData(self, sink)
 
@@ -53,9 +52,6 @@ class Sink:
 
     def __init__(self, flow):
         self.flow = flow
-
-    def asSink(self):
-        return self
 
     def __ror__(self, source):
         return self.flow.linkData(source, self)

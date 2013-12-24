@@ -15,6 +15,9 @@ class TaskInputPort(TaskPort, Sink):
         Sink.__init__(self, flow)
         TaskPort.__init__(self, task, name, type)
 
+    def asSinkPort(self):
+        return self
+
     def exportInputPortXML(self, xml):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.port as port:
@@ -33,7 +36,10 @@ class TaskOutputPort(TaskPort, Source):
         type = task.activities[0].getOutputType(name)
         Source.__init__(self, flow)
         TaskPort.__init__(self, task, name, type)
-        
+
+    def asSourcePort(self):
+        return self
+
     def exportOutputPortXML(self, xml):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.port as port:
@@ -125,7 +131,7 @@ class WorkflowTask(object):
     def __ror__(self, source):
         return self.flow.linkData(source, self)
 
-    def asSource(self):
+    def asSourcePort(self):
         activity = self.activities[0]
         portName = activity.defaultOutput()
         if portName is None:
@@ -133,7 +139,7 @@ class WorkflowTask(object):
         else:
             return self.output[portName]
 
-    def asSink(self):
+    def asSinkPort(self):
         activity = self.activities[0]
         portName = activity.defaultInput()
         if portName is None:

@@ -6,8 +6,6 @@ flow = Workflow(title = 'Web Page Headers and Title')
 
 GetWebPage = flow.task.RetrieveWebPage << HTTP.GET('http://www.biovel.eu/')
 
-flow.output.headers = GetWebPage.output.responseHeaders
-
 StringListToString = BeanshellCode(
 	'''String seperatorString = "\\n";
 if (seperator != void) {
@@ -24,15 +22,16 @@ for (Iterator i = stringlist.iterator(); i.hasNext();) {
 concatenated = sb.toString();''',
 	inputs = dict(seperator = String, stringlist = List[String]),
 	outputs = dict(concatenated = String),
-	defaultInput = 'stringlist'
+	defaultInput = 'stringlist',
+	description = 'Convert String List to String'
 	)
 
 # We can chain several tasks together
-# We can use activities, which get converted to tasks, as long as a task appears
-# in the first two objects in the chain
+# We can use activities, which get converted to tasks, as long as a non-activity
+# appears in the first two objects in the chain
+# Activities are good, because they can be reused, like StringListToString
 # Some activities have a default port defined, but we can define a default port
 # as above in the Beanshell
-GetTitle = GetWebPage | XPath('/xhtml:html/xhtml:head/xhtml:title', {'xhtml': 'http://www.w3.org/1999/xhtml'}) | StringListToString
+GetWebPage | XPath('/xhtml:html/xhtml:head/xhtml:title', {'xhtml': 'http://www.w3.org/1999/xhtml'}) | StringListToString | flow.output.title
 
-flow.output.title = GetTitle.output.concatenated
-GetTitle.extendUnusedPorts()
+GetWebPage.output.responseHeaders | StringListToString | flow.output.headers

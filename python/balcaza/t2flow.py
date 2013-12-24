@@ -56,6 +56,9 @@ class WorkflowInputPort(WorkflowPort, Source):
         Source.__init__(self, flow)
         WorkflowPort.__init__(self, name, type)
 
+    def asSourcePort(self):
+        return self
+
     def link(self, other):
         assert isinstance(other, Sink), other
         self.flow.linkData(self, other)
@@ -81,6 +84,9 @@ class WorkflowOutputPort(WorkflowPort, Sink):
     def __init__(self, flow, name, type):
         Sink.__init__(self, flow)
         WorkflowPort.__init__(self, name, type)
+
+    def asSinkPort(self):
+        return self
 
     def link(self, other):
         assert isinstance(other, Source), other
@@ -125,8 +131,17 @@ class WorkflowPorts(Ports):
 
     def __getattr__(self, name):
         if self._.ports.has_key(name):
-            return self._.ports[name]
-        raise AttributeError(name)
+            return self._.ports[name] # return an existing typed port
+        return self(name) # return a new untyped port
+
+class UntypedInputPort:
+
+    def __init__(self, flow, name):
+        self.flow = flow
+        self.name = name
+
+    def __or__(self, sink):
+        return self.flow.linkData(self, sink)
 
 class WorkflowInputPorts(WorkflowPorts):
 
@@ -134,11 +149,30 @@ class WorkflowInputPorts(WorkflowPorts):
         WorkflowPorts.__init__(self, flow)
         self._.PortClass = WorkflowInputPort
 
+    def __call__(self, name):
+        # this should be called untypedPort(), but that would pollute the
+        # namespace that this class represents, so we use __call__ as a hack
+        return UntypedInputPort(self._.flow, name)
+
+class UntypedOutputPort:
+
+    def __init__(self, flow, name):
+        self.flow = flow
+        self.name = name
+
+    def __ror__(self, source):
+        return self.flow.linkData(source, self)
+
 class WorkflowOutputPorts(WorkflowPorts):
 
     def __init__(self, flow):
         WorkflowPorts.__init__(self, flow)
         self._.PortClass = WorkflowOutputPort
+
+    def __call__(self, name):
+        # this should be called untypedPort(), but that would pollute the
+        # namespace that this class represents, so we use __call__ as a hack
+        return UntypedOutputPort(self._.flow, name)
 
 class DataLink:
 
@@ -254,9 +288,19 @@ class Workflow(object):
             source = self.addActivity(source)
         if isinstance(sink, Activity):
             sink = self.addActivity(sink)
+        # need to sort activities out before untyped sinks, so that type
+        # mapping will work
+        if isinstance(source, UntypedInputPort):
+            if isinstance(sink, UntypedOutputPort):
+                raise RuntimeError('cannot pipe input port to output port without declaring type')
+            self.input[source.name] = sink.asSinkPort().type
+            source = self.input[source.name]
+        if isinstance(sink, UntypedOutputPort):
+            self.output[sink.name] = source.asSourcePort().type
+            sink = self.output[sink.name]
         pipe = Pipeline(self, source, sink)
-        source = source.asSource()
-        sink = sink.asSink()
+        source = source.asSourcePort()
+        sink = sink.asSinkPort()
         validator = sink.type.validator(source.type)
         if validator is not None:
             task = self.addActivity(validator, 'Validate_' + source.name)
