@@ -262,7 +262,7 @@ for i in range(2):
         flow.task.MyTask << HTTP.GET(url)
 ```
 
-### Creating data links
+### Data Links
 
 Link ports using the `|` (pipe) symbol. Output ports can be part of multiple
 links. Input ports must only be linked once.
@@ -271,6 +271,14 @@ links. Input ports must only be linked once.
 flow.input.InputValues | flow.task.MyTask.input.vals
 flow.task.MyTask.output.total | flow.task.AnotherTask.input.x
 flow.task.MyTask.output.total | flow.output.SumOfValues
+```
+
+### Control Links
+
+Force services to run in sequence using the `>>` operator between tasks:
+
+```python
+flow.task.MyTask >> flow.task.AnotherTask
 ```
 
 ### Activities

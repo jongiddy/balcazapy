@@ -109,6 +109,9 @@ class WorkflowTask(object):
         self.activities.append(activity)
         return self
 
+    def __rshift__(self, task):
+        self.flow.sequenceTasks(self, task)
+
     def extendUnusedPorts(self):
         self.extendUnusedInputs()
         self.extendUnusedOutputs()

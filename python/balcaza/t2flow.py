@@ -203,6 +203,7 @@ class Workflow(object):
         self.id = getUUID()
         self.annotations = {}
         self.dataLinks = []
+        self.ctrlLinks = []
         self.input = WorkflowInputPorts(self)
         self.output = WorkflowOutputPorts(self)
         self.task = WorkflowTasks(self)
@@ -313,6 +314,9 @@ class Workflow(object):
             self.dataLinks.append(DataLink(source, sink))
         return pipe
 
+    def sequenceTasks(self, task1, task2):
+        self.ctrlLinks.append((task1, task2))
+
     def allDescendants(self, descendants=None):
         # Create a list of all nested workflows and their nested workflows, ad infinitum
         if descendants is None:
@@ -350,7 +354,9 @@ class Workflow(object):
                 with tav.processors:
                     for processor in self.task:
                         processor.exportXML(xml)                    
-                tav.conditions
+                with tav.conditions:
+                    for task1, task2 in self.ctrlLinks:
+                        tav.condition(control=task1.name, target=task2.name)
                 with tav.datalinks:
                     for link in self.dataLinks:
                         link.exportXML(xml)
