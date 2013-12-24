@@ -2,6 +2,7 @@ __all__ = ('BeanshellCode', 'BeanshellFile', 'InteractionPage',
     'NestedWorkflow', 'NestedZapyFile', 'HTTP', 'XPath', 'TextConstant', 
     'RServer')
 
+import re
 from t2types import *
 from t2util import alphanumeric, getAbsolutePathRelativeToCaller
 
@@ -175,13 +176,12 @@ class HTTP_Activity(Activity):
 
     def __init__(self, httpMethod, urlTemplate, inputContentType=None,
         inputBinary=False, outputContentType='application/xml', headers=None, 
-        sendExpectHeader=False, escapeParameters=True, inputs=None, defaultInput=None):
+        sendExpectHeader=False, escapeParameters=True, defaultInput=None):
         assert httpMethod in ('GET', 'POST', 'PUT', 'DELETE'), httpMethod
-        if inputs is None:
-            inputs = {}
-        else:
-            if inputs.has_key('inputBody'):
-                raise RuntimeError('Do not specify input port "inputBody" for HTTP Activity')
+        inputs = {}
+        variables = re.findall(r'\{([^}]+)\}', urlTemplate)
+        for variable in variables:
+            inputs[variable] = String
         if inputContentType:
             inputs['inputBody'] = String(description="Input for HTTP request in MIME %s format" % inputContentType)
             if defaultInput is None:
@@ -238,34 +238,34 @@ class HTTP_Activity(Activity):
 class HTTP_Factory:
 
     def GET(self, urlTemplate, outputContentType='application/xml', 
-        headers=None, inputs=None, escapeParameters=True):
+        headers=None, escapeParameters=True):
         return HTTP_Activity('GET', urlTemplate, headers=headers, 
             outputContentType=outputContentType, 
-            escapeParameters=escapeParameters, inputs=inputs)
+            escapeParameters=escapeParameters)
 
     def DELETE(self, urlTemplate, outputContentType='application/xml', 
-        headers=None, inputs=None, escapeParameters=True):
+        headers=None, escapeParameters=True):
         return HTTP_Activity('DELETE', urlTemplate, headers=headers,
             outputContentType=outputContentType,
-            escapeParameters=escapeParameters, inputs=inputs)
+            escapeParameters=escapeParameters)
 
     def POST(self, urlTemplate, inputContentType='application/xml',
         inputBinary=False, outputContentType='application/xml', 
-        headers=None, inputs=None, sendExpectHeader=False, escapeParameters=True):
+        headers=None, sendExpectHeader=False, escapeParameters=True):
         return HTTP_Activity('POST', urlTemplate,
             inputContentType=inputContentType, inputBinary=inputBinary,
             outputContentType=outputContentType, 
             headers=headers, sendExpectHeader=sendExpectHeader, 
-            escapeParameters=escapeParameters, inputs=inputs)
+            escapeParameters=escapeParameters)
 
     def PUT(self, urlTemplate, inputContentType='application/xml',
         inputBinary=False, outputContentType='application/xml', 
-        headers=None, inputs=None, sendExpectHeader=False, escapeParameters=True):
+        headers=None, sendExpectHeader=False, escapeParameters=True):
         return HTTP_Activity('PUT', urlTemplate,
             inputContentType=inputContentType, inputBinary=inputBinary,
             outputContentType=outputContentType, 
             headers=headers, sendExpectHeader=sendExpectHeader, 
-            escapeParameters=escapeParameters, inputs=inputs)
+            escapeParameters=escapeParameters)
 
 HTTP = HTTP_Factory()
 
