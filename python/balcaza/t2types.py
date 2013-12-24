@@ -1,5 +1,5 @@
 __all__ = ('Logical', 'Integer', 'Number', 'String', 'TextFile', 'PDF_File', 
-    'PNG_Image', 'RExpression', 'List', 'Vector')
+    'PNG_Image', 'RExpression', 'List', 'Vector', 'Option')
 
 import copy
 from t2util import BeanshellEscapeString
@@ -25,6 +25,15 @@ class T2FlowType:
 
     def validator(self, inputType):
         return None
+
+class OptionMarker:
+
+    def __getitem__(self, type):
+        return type
+
+# currently Option[type] is a null operation, just for documentation
+# However, we could use it to ensure no non-optional inputs are unconnected
+Option = OptionMarker()
 
 class StringType(T2FlowType):
 
