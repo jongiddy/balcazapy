@@ -276,7 +276,10 @@ class Workflow(object):
 
     def addActivity(self, activity, candidate=None):
         if candidate is None:
-            candidate = activity.__class__.__name__
+            if activity.name is None:
+                candidate = activity.__class__.__name__
+            else:
+                candidate = activity.name
         label = self.selectUniqueLabel(self.task, candidate)
         task = self.task[label] << activity
         return task

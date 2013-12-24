@@ -13,8 +13,9 @@ class Activity(object):
     activityClass = 'net.sf.taverna.t2.activities.stringconstant.StringConstantActivity'
     configEncoding = 'xstream'
 
-    def __init__(self, description=None, inputs=None, outputs=None,
+    def __init__(self, name=None, description=None, inputs=None, outputs=None,
         defaultInput=None, defaultOutput=None):
+        self.name = name
         self.description = description
         if inputs is None:
             self.inputs = {}

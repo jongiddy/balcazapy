@@ -23,6 +23,7 @@ concatenated = sb.toString();''',
 	inputs = dict(seperator = String, stringlist = List[String]),
 	outputs = dict(concatenated = String),
 	defaultInput = 'stringlist',
+	name = 'StringListToString',
 	description = 'Convert String List to String'
 	)
 
