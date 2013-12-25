@@ -235,33 +235,6 @@ flow.task.MyTask.retry(maxRetries = 3, initialDelay = 1000, maxDelay = 5000,
     backoffFactor = 1.0)
 ```
 
-Manage failover by adding additional activities to the same task
-
-```python
-# If this web request fails then try an alternative address
-flow.task.MyTask << HTTP.GET(url1) << HTTP.GET(url2)
-```
-
-Throughout the Zapy file you have access to the full Python language 
-to help you simplify the workflow description:
-
-```python
-# Try lots of sites until one works
-for url in long_url_list:
-    flow.task.MyTask << HTTP.GET(url)
-# Try each site twice
-flow.MyTask.retry(maxRetries=1)
-```
-
-The above will try each site twice in turn. To try each site in the list, then
-retry from the start of the list, use:
-
-```python
-for i in range(2):
-    for url in long_url_list:
-        flow.task.MyTask << HTTP.GET(url)
-```
-
 ### Data Links
 
 Link ports using the `|` (pipe) symbol. Output ports can be part of multiple
