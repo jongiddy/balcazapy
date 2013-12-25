@@ -43,7 +43,7 @@ concatenated = sb.toString();
 ''',
 	inputs = dict(
 		stringlist = List[String],
-		seperator = Option[String]
+		seperator = Optional[String]
 		),
 	outputs = dict(
 		concatenated = String
