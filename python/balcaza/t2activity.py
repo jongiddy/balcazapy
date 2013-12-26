@@ -15,7 +15,7 @@ class Activity(object):
     configEncoding = 'xstream'
 
     def __init__(self, name=None, description=None, inputs=None, outputs=None,
-        defaultInput=None, defaultOutput=None):
+        defaultInput=None, defaultOutput=None, parameters=None):
         self.name = name
         self.description = description
         if inputs is None:
@@ -28,6 +28,23 @@ class Activity(object):
             self.outputs = outputs
         self.defaultIn = defaultInput
         self.defaultOut = defaultOutput
+        self.parameters = {}
+        if parameters is not None:
+            self.updateParameters(parameters)
+
+    def __call__(self, **kw):
+        import copy
+        obj = copy.copy(self)
+        obj.parameters = self.parameters.copy()
+        obj.updateParameters(parameters)
+        return obj
+
+    def updateParameters(self, parameters):
+        for name, value in parameters.items():
+            if self.inputs.has_key(name):
+                self.parameters[name] = value
+            else:
+                raise RuntimeError('non-existent parameter')
 
     def getInputType(self, name):
         return self.inputs[name]

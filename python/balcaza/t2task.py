@@ -107,6 +107,11 @@ class WorkflowTask(object):
         if not isinstance(activity, Activity):
             raise TypeError('cannot assign non-Activity %s to task "%s"' % (repr(activity), self.name))
         self.activities.append(activity)
+        import sys
+        sys.stderr.write('X %s\n' % activity.parameters)
+        # if an activity has constant parameters, add them to the workflow
+        for name, value in activity.parameters.items():
+            value | self.input[name]
         return self
 
     def __rshift__(self, task):
@@ -260,6 +265,9 @@ class UnassignedTask:
         task = WorkflowTask(self._.flow, self.name, activity)
         self._.tasks[self.name] = task
         self._.order.append(self.name)
+        # if an activity has constant parameters, add them to the workflow
+        for name, value in activity.parameters.items():
+            value | task.input[name]
         if activity.description is not None:
             task.description = activity.description
         return task
