@@ -13,7 +13,7 @@ if (encoding == void) {
 ''',
 	inputs = dict(
 		bytes = String,
-		encoding = String
+		encoding = Optional[String]
 		),
 	outputs = dict(
 		string = String
