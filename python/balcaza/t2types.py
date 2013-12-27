@@ -1,5 +1,6 @@
-__all__ = ('Logical', 'Integer', 'Number', 'String', 'TextFile', 'PDF_File', 
-    'PNG_Image', 'RExpression', 'List', 'Vector', 'Optional')
+__all__ = ('Logical', 'Integer', 'Number', 'String', 'TextFile',
+    'BinaryFile', 'PDF_File', 'PNG_Image', 'RExpression', 'List', 'Vector', 
+    'Optional')
 
 import copy
 from t2util import BeanshellEscapeString
