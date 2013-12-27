@@ -347,8 +347,9 @@ class TextConstant(Activity):
                 conf.value >> self.text
 
 # The name of a special port for transferring the R workspace. This is the
-# default port for Rserve activities. Do not use a name starting with underscore
-# - R chokes on it, presumably due to historic use of _ as assignment operator
+# default port for Rserve activities. Although the code inserted by Balcazapy
+# allows underscores in this name, the additional code inserted by Taverna 
+# Engine does not. BioVeL JIRA bug [TAV-481]
 RWorkspacePort = 'RWorkspace'
 
 def checkPortTypesValidForR(ports):
@@ -436,13 +437,13 @@ class RserveServerActivity(Activity):
             outputs[port.name] = RExpression
         outputs.update(self.outputs)
         if inputs.has_key(RWorkspacePort) or outputs.has_key(RWorkspacePort):
-            prefix += '.wsfile<-%s\nrm(%s)\n' % (RWorkspacePort, RWorkspacePort)
+            prefix += '.wsfile<-get("%s")\nrm("%s")\n' % (RWorkspacePort, RWorkspacePort)
             if inputs.has_key(RWorkspacePort):
                 inputs[RWorkspacePort] = BinaryFile
                 prefix += 'load(.wsfile)\n'
             if outputs.has_key(RWorkspacePort):
                 outputs[RWorkspacePort] = BinaryFile
-                suffix = "save(list=ls(all.names=FALSE), file=.wsfile)\n%s<-.wsfile" % RWorkspacePort + suffix
+                suffix = 'save(list=ls(all.names=FALSE), file=.wsfile)\n"%s"<-.wsfile\n' % RWorkspacePort + suffix
         with xml.namespace() as config:
             with config.net.sf.taverna.t2.activities.rshell.RshellActivityConfigurationBean:
                 with config.inputs:
