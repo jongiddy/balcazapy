@@ -346,8 +346,15 @@ class TextConstant(Activity):
             with conf.net.sf.taverna.t2.activities.stringconstant.StringConstantConfigurationBean:
                 conf.value >> self.text
 
+# The name of a special port for transferring the R workspace. This is the
+# default port for Rserve activities. Do not use a name starting with underscore
+# - R chokes on it, presumably due to historic use of _ as assignment operator
+RWorkspacePort = 'RWorkspace'
+
 def checkPortTypesValidForR(ports):
     if ports is not None:
+        if ports.has_key(RWorkspacePort):
+            raise RuntimeError('Port name "%s" is reserved for R activity' % RWorkspacePort)
         for name, type in ports.items():
             if not hasattr(type, 'symanticType'):
                 raise RuntimeError('Invalid R type "%s = %s"' % (name, type))
@@ -367,24 +374,33 @@ class RserveServerActivity(Activity):
         # values, but does not add a newline to separate the last line of our
         # script from the first line added by Taverna. So, we ensure the script
         # ends with a newline.
-        script = script.strip() + '\n'
+        self.script = script.strip() + '\n'
+        self.prefix = ''
+        self.suffix = ''
         if inputMap is not None:
             for tName, rName in inputMap.items():
                 if tName not in inputs:
                     raise RuntimeError('inputMap specifies "%s", but not in inputs' % tName)
-                script = '%s <- %s\nrm(%s)\n' % (rName, tName, tName) + script
+                self.prefix += '%s <- %s\nrm(%s)\n' % (rName, tName, tName)
         if outputMap is not None:
             for tName, rName in outputMap.items():
                 if tName not in outputs:
                     raise RuntimeError('outputMap specifies "%s", but not in outputs' % tName)
-                script += '%s <- %s\n' % (tName, rName)
-        self.script = script
+                self.suffix += '%s <- %s\n' % (tName, rName)
+
+    def defaultInput(self):
+        return RWorkspacePort
+
+    def defaultOutput(self):
+        return RWorkspacePort
 
     def getInputType(self, name):
         # If the variable has not been named as an input port for the RShell,
         # check (poorly) whether the variable appears in the script. If it
         # does, act as though the variable had been defined as an input port of
         # type RExpression.
+        if name == RWorkspacePort:
+            return BinaryFile
         try:
             return Activity.getInputType(self, name)
         except KeyError:
@@ -396,6 +412,8 @@ class RserveServerActivity(Activity):
         # check (poorly) whether the variable appears in the script. If it
         # does, act as though the variable had been defined as an output port
         # of type RExpression.
+        if name == RWorkspacePort:
+            return BinaryFile
         try:
             return Activity.getOutputType(self, name)
         except KeyError:
@@ -407,6 +425,8 @@ class RserveServerActivity(Activity):
         # all of type RExpression.  The overwrite these values with the ports
         # defined for the activity.  This leaves only the undefined ports
         # specified with type RExpression.
+        prefix = self.prefix
+        suffix = self.suffix
         inputs = {}
         for port in connectedInputs:
             inputs[port.name] = RExpression
@@ -415,6 +435,14 @@ class RserveServerActivity(Activity):
         for port in connectedOutputs:
             outputs[port.name] = RExpression
         outputs.update(self.outputs)
+        if inputs.has_key(RWorkspacePort) or outputs.has_key(RWorkspacePort):
+            prefix += '.wsfile<-%s\nrm(%s)\n' % (RWorkspacePort, RWorkspacePort)
+            if inputs.has_key(RWorkspacePort):
+                inputs[RWorkspacePort] = BinaryFile
+                prefix += 'load(.wsfile)\n'
+            if outputs.has_key(RWorkspacePort):
+                outputs[RWorkspacePort] = BinaryFile
+                suffix = "save(list=ls(all.names=FALSE), file=.wsfile)\n%s<-.wsfile" % RWorkspacePort + suffix
         with xml.namespace() as config:
             with config.net.sf.taverna.t2.activities.rshell.RshellActivityConfigurationBean:
                 with config.inputs:
@@ -431,7 +459,7 @@ class RserveServerActivity(Activity):
                             outputPort.mimeTypes
                             outputPort.granularDepth >> type.getDepth()
                 config.rVersion >> 'false'
-                config.script >> self.script
+                config.script >> prefix >> self.script >> suffix
                 with config.connectionSettings as conn:
                     self.rserve.exportXML(xml)
                     conn.keepSessionAlive >> 'false'
