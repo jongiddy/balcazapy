@@ -384,19 +384,24 @@ class RserveServerActivity(Activity):
                     raise RuntimeError('inputMap specifies "%s", but not in inputs' % tName)
                 self.prefix += '%s <- %s\nrm(%s)\n' % (rName, tName, tName)
         if outputMap is not None:
+            from t2types import TextFileType, BinaryFileType
             for tName, rName in outputMap.items():
                 if tName not in outputs:
                     raise RuntimeError('outputMap specifies "%s", but not in outputs' % tName)
-                if isinstance(outputs[tName], (TextFile, BinaryFile)):
+                if isinstance(outputs[tName], (TextFileType, BinaryFileType)):
                     # also needs to be set at beginning
                     self.prefix += '%s <- %s\nrm(%s)\n' % (rName, tName, tName)
                 self.suffix += '%s <- %s\n' % (tName, rName)
 
     def defaultInput(self):
-        return RWorkspacePort
+        if self.defaultIn is None:
+            return RWorkspacePort
+        return Activity.defaultInput(self)
 
     def defaultOutput(self):
-        return RWorkspacePort
+        if self.defaultOut is None:
+            return RWorkspacePort
+        return Activity.defaultOut(self)
 
     def getInputType(self, name):
         # If the variable has not been named as an input port for the RShell,
