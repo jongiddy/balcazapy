@@ -387,6 +387,9 @@ class RserveServerActivity(Activity):
             for tName, rName in outputMap.items():
                 if tName not in outputs:
                     raise RuntimeError('outputMap specifies "%s", but not in outputs' % tName)
+                if isinstance(outputs[tName], (TextFile, BinaryFile)):
+                    # also needs to be set at beginning
+                    self.prefix += '%s <- %s\nrm(%s)\n' % (rName, tName, tName)
                 self.suffix += '%s <- %s\n' % (tName, rName)
 
     def defaultInput(self):
