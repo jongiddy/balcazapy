@@ -556,10 +556,6 @@ Double = flow.task.Double << rserve.code(
     outputs = dict(out1 = Integer)
     )
 
-SumValues.output.total | Double.input.in1
-SumValues.extendUnusedPorts()
-Double.extendUnusedOutputs()
-
 # Link internal script variables (transferred as RExpression types)
 SumValues.output.total | Double.input.in1
 
