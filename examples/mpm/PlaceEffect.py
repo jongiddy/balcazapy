@@ -64,8 +64,9 @@ sys.path.append('')
 from util.r.file import ReadMatrixFromFile
 
 ReadStageMatrix = flow.task.ReadStageMatrix << ReadMatrixFromFile(rserve)
-# List[List[String]] -> String = 2 levels of iteration
-RequestStageMatrices.output.matrices | ReadStageMatrix.input.matrix_file
+
+RequestStageMatrices.output.matrices |++ ReadStageMatrix.input.matrix_file
+matrices_LLRn2 = ReadStageMatrix.output.matrix
 flow.input.stages | ReadStageMatrix.input.xlabels
 flow.input.stages | ReadStageMatrix.input.ylabels
 
@@ -88,17 +89,26 @@ library(popbio)
 mean_matrix <- mean.list(matrices)
 ''',
 	inputs = dict(matrices = RExpression),
-	outputs = dict(mean_matrix = RExpression)
+	outputs = dict(mean_matrix = RExpression),
+	defaultInput = 'matrices',
+	defaultOutput = 'mean_matrix'
 	)
 
-ReadStageMatrix.output.matrix | ListRtoRList | MeanMatrix.input.matrices
-AddNames = flow.task.AddNames << rserve.code('names(expr) <- labels', inputs=dict(labels=Vector[String]))
+mean_matrices_LRn2 = matrices_LLRn2 |- ListRtoRList | MeanMatrix
 
-MeanMatrix.output.mean_matrix | ListRtoRList | AddNames.input.expr
+AddNames = flow.task.AddNames << rserve.code(
+	'names(expr) <- labels',
+	inputs=dict(labels=Vector[String]),
+	defaultInput='expr',
+	defaultOutput='expr'
+	)
+
 flow.input.places | AddNames.input.labels
 
 CalculatePlaceEffect = flow.task.CalculatePlaceEffect << NestedZapyFile('LTRE.py')
-AddNames.output.expr | CalculatePlaceEffect.input.matrices
+
+mean_matrices_LRn2 |- ListRtoRList | AddNames | CalculatePlaceEffect.input.matrices
+
 ReadPooledMatrix.output.matrix | CalculatePlaceEffect.input.pooled_matrix
 CalculatePlaceEffect.input.xlabel = 'Places'
 flow.input.places | CalculatePlaceEffect.input.xticks

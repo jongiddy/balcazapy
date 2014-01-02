@@ -39,6 +39,12 @@ class Activity(object):
         obj.updateParameters(parameters)
         return obj
 
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        return self
+        
     def updateParameters(self, parameters):
         for name, value in parameters.items():
             if self.inputs.has_key(name):

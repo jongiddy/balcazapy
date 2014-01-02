@@ -246,6 +246,45 @@ flow.task.MyTask.output.total | flow.task.AnotherTask.input.x
 flow.task.MyTask.output.total | flow.output.SumOfValues
 ```
 
+It is possible to create a chain when a task has default input and output ports.
+
+```
+flow.task.MyTask << rserve.code(
+    'total <- sum(vals)',
+    inputs = dict(vals = Vector[Integer]),
+    outputs = dict(total = Integer),
+    defaultInput = 'vals',
+    defaultOutput = 'total'
+    )
+flow.input.InputValues | flow.task.MyTask | flow.output.SumOfValues
+```
+
+To iterate a task for all values in a List, add `+` to the pipe before the port
+to be iterated and `-` for the port that collects the multiple results.
+
+```python
+flow.input.ListOfStrings |+ flow.task.ProcessSingleString |- flow.output.ProcessedStrings
+flow.input.ListOfListsOfStrings |++ flow.task.ProcessSingleString |-- flow.output.MoreProcessedStrings
+```
+
+It is possible to use activities in place of tasks, and a named task will be
+created. This is very useful for reuse of simple activities in pipelines.
+
+```python
+SumValues = rserve.code(
+    'total <- sum(vals)',
+    inputs = dict(vals = Vector[Integer]),
+    outputs = dict(total = Integer),
+    defaultInput = 'vals',
+    defaultOutput = 'total'
+    )
+flow.input.ListOfListsOfValues |+ SumValues |- SumValues | flow.output.GrandTotal
+```
+
+In this example, the first `SumValues` activity processes each outer list, to 
+create a list of totals, and the second `SumValues` activity sums these totals 
+to create a grand total.
+
 ### Control Links
 
 Force services to run in sequence using the `>>` operator between tasks:
@@ -339,12 +378,17 @@ HTTP.PUT(
     )
 ```
 
+For HTTP calls, the default input is the body of the HTTP request, and the 
+default output is the body of the HTTP response.
+
 #### Text Constant
 Create using:
 
 ```python
 TextConstant('Some text')
 ```
+
+For text constants, the default output is the text value.
 
 #### R Scripts
 
@@ -418,6 +462,8 @@ rserve.code(
 Note that the List type is not available for RServer activity ports.  Use the 
 Vector type instead.
 
+For R scripts, the default input and output is the R workspace
+
 #### XPath
 
 Create using:
@@ -426,6 +472,9 @@ Create using:
 XPath('/Job/JobId')
 XPath('/xhtml:html/xhtml:head/xhtml:title', {'xhtml': 'http://www.w3.org/1999/xhtml'})
 ```
+
+For XPath, the default input is the XPath expression, and the default output is
+a list of matched text elements.
 
 ### Nested Workflows
 
@@ -451,8 +500,8 @@ For input and output ports, it is possible to assign a type and link to an activ
 port using:
 
 ```python
-flow.input.InputValues = flow.task.MyTask.input.vals
-flow.output.OutputValue = flow.task.MyTask.output.x
+flow.input.InputValues | flow.task.MyTask.input.vals
+flow.task.MyTask.output.x | flow.output.OutputValue
 ```
 
 The types are inferred from the activity types (e.g. an R Vector becomes a List).
@@ -476,7 +525,7 @@ Text constants can be created and linked in one step using:
 flow.task.MyTask.input.plot_title = "Initial Results"
 ```
 
-To make access to activity ports less verbose, assign the task to a variable:
+To make access to task ports less verbose, assign the task to a variable:
 
 ```python
 MyTask = flow.task.MyTask << rserve.code(...)
@@ -505,6 +554,11 @@ Double = flow.task.Double << rserve.code(
     'out1 <- 2 * in1',
     outputs = dict(out1 = Integer)
     )
+
+SumValues.output.total | Double.input.in1
+SumValues.extendUnusedPorts()
+Double.extendUnusedOutputs()
+```
 
 Tasks and activities can be chained using their default input and output ports.
 See examples/rest/web.py for an example.

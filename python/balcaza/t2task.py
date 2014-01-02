@@ -133,6 +133,12 @@ class WorkflowTask(object):
                 flowPort = self.flow.selectUniqueLabel(self.flow.output, portName)
                 self.flow.output[flowPort] = self.output[portName]
 
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        return self
+        
     def __or__(self, sink):
         return self.flow.linkData(self, sink)
 

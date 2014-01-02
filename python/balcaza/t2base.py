@@ -53,6 +53,12 @@ class Sink:
     def __init__(self, flow):
         self.flow = flow
 
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        return self
+
     def __ror__(self, source):
         return self.flow.linkData(source, self)
 

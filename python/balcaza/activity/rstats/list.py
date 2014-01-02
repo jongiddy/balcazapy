@@ -33,6 +33,6 @@ Join = flow.task.JoinListOfStringsIntoRList = BeanshellFile(
     name = 'JoinListOfStringsIntoRList'
     )
 
-flow.input.list_of_r_expressions | Flatten | Join | flow.output.r_list_of_expressions
+flow.input.list_of_r_expressions |+ Flatten |- Join | flow.output.r_list_of_expressions
 
 ListRtoRList = NestedWorkflow(flow, name='ListRtoRList')
