@@ -19,5 +19,5 @@ if (encoding == void) {
 		string = String
 		),
 	defaultInput = 'bytes',
-	name = 'ByteArrayToString'	
+	name = 'ByteArrayToString'
 	)
