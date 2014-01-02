@@ -7,6 +7,5 @@ for (Iterator i = stringlist.iterator(); i.hasNext();) {
 	}
 }
 sb.append(")");
-concatenated = sb.toString();
 List output = new ArrayList(1);
 output.add(sb.toString());

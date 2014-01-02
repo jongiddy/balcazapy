@@ -20,18 +20,19 @@ Version 1: initial implementation
 Version 2: reduce number of BeanShells
 """)
 
-from balcaza.activity.local.list import FlattenList
+from balcaza.activity.local.list import MergeStringListToString
 
-Flatten = flow.task.FlattenListOfStringsToString << FlattenList
+Flatten = flow.task.RExpressionToString << MergeStringListToString
 
 flow.input.list_of_r_expressions = List[RExpression]
 
-Combine = flow.task.CombineListOfStringsIntoRList = BeanshellFile(
+Join = flow.task.JoinListOfStringsIntoRList = BeanshellFile(
     "RStringsToRList.bsh",
     inputs = dict(stringlist=List[String]),
-    outputs = dict(output=RExpression)
+    outputs = dict(output=RExpression),
+    name = 'JoinListOfStringsIntoRList'
     )
 
-flow.input.list_of_r_expressions | Flatten | Combine | flow.output.r_list_of_expressions
+flow.input.list_of_r_expressions | Flatten | Join | flow.output.r_list_of_expressions
 
-ListRtoRList = NestedWorkflow(flow)
+ListRtoRList = NestedWorkflow(flow, name='ListRtoRList')
