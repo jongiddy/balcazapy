@@ -267,24 +267,6 @@ flow.input.ListOfStrings |+ flow.task.ProcessSingleString |- flow.output.Process
 flow.input.ListOfListsOfStrings |++ flow.task.ProcessSingleString |-- flow.output.MoreProcessedStrings
 ```
 
-It is possible to use activities in place of tasks, and a named task will be
-created. This is very useful for reuse of simple activities in pipelines.
-
-```python
-SumValues = rserve.code(
-    'total <- sum(vals)',
-    inputs = dict(vals = Vector[Integer]),
-    outputs = dict(total = Integer),
-    defaultInput = 'vals',
-    defaultOutput = 'total'
-    )
-flow.input.ListOfListsOfValues |+ SumValues |- SumValues | flow.output.GrandTotal
-```
-
-In this example, the first `SumValues` activity processes each outer list, to 
-create a list of totals, and the second `SumValues` activity sums these totals 
-to create a grand total.
-
 ### Control Links
 
 Force services to run in sequence using the `>>` operator between tasks:
@@ -301,6 +283,25 @@ task to be performed. There are several types of activities.
 Activities can be created and assigned to named workflow tasks.
 
 Activities can be reused, by assigning them to multiple tasks.
+
+In pipelines, it is possible to use activities in place of tasks, and a task
+will be created. This is very useful for reuse of simple activities in
+pipelines.
+
+```python
+SumValues = rserve.code(
+    'total <- sum(vals)',
+    inputs = dict(vals = Vector[Integer]),
+    outputs = dict(total = Integer),
+    defaultInput = 'vals',
+    defaultOutput = 'total'
+    )
+flow.input.ListOfListsOfValues |+ SumValues |- SumValues | flow.output.GrandTotal
+```
+
+In this example, the first `SumValues` activity processes each outer list, to 
+create a list of totals, and the second `SumValues` activity sums these totals 
+to create a grand total.
 
 #### Beanshell
 
@@ -558,10 +559,6 @@ Double = flow.task.Double << rserve.code(
 SumValues.output.total | Double.input.in1
 SumValues.extendUnusedPorts()
 Double.extendUnusedOutputs()
-```
-
-Tasks and activities can be chained using their default input and output ports.
-See examples/rest/web.py for an example.
 
 # Link internal script variables (transferred as RExpression types)
 SumValues.output.total | Double.input.in1
@@ -569,6 +566,9 @@ SumValues.output.total | Double.input.in1
 SumValues.extendUnusedInputs()
 Double.extendUnusedOutputs()
 ```
+
+Tasks and activities can be chained using their default input and output ports.
+See examples/rest/web.py for an example.
 
 ### Annotations
 
