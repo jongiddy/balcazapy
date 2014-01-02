@@ -116,13 +116,11 @@ CalculatePlaceEffect.extendUnusedInputs()
 from util.r.format import PrettyPrint
 
 PrintAnalysis = flow.task.PrintAnalysis << PrettyPrint(rserve)
-CalculatePlaceEffect.output.LTRE_Analysis | PrintAnalysis.input.rexpr
-flow.output.LTRE_Analysis = PrintAnalysis.output.text
+CalculatePlaceEffect.output.LTRE_Analysis | PrintAnalysis | flow.output.LTRE_Analysis
 
 PrintResults = flow.task.PrintResults << PrettyPrint(rserve)
-CalculatePlaceEffect.output.LTRE_Results_RLn | PrintResults.input.rexpr
-flow.output.LTRE_Results = PrintResults.output.text
+CalculatePlaceEffect.output.LTRE_Results_RLn | PrintResults | flow.output.LTRE_Results
 
-flow.output.LTRE_Graph = CalculatePlaceEffect.output.graph
+CalculatePlaceEffect.output.graph | flow.output.LTRE_Graph
 
 

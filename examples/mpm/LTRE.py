@@ -20,8 +20,7 @@ LTRE_Analysis <- LTRE(matrices, pooled_matrix)
 		)
 	)
 
-LTRE.extendUnusedInputs()
-flow.output.LTRE_Analysis = LTRE.output.LTRE_Analysis
+LTRE.extendUnusedPorts()
 
 PlotLTRE = flow.task.PlotLTRE << rserve.file(
 	'PlotLTRE.r',

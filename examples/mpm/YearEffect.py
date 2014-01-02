@@ -133,13 +133,9 @@ CalculateYearEffect.extendUnusedInputs()
 from util.r.format import PrettyPrint
 
 PrintAnalysis = flow.task.PrintAnalysis << PrettyPrint(rserve)
-CalculateYearEffect.output.LTRE_Analysis | PrintAnalysis.input.rexpr
-flow.output.LTRE_Analysis = PrintAnalysis.output.text
+CalculateYearEffect.output.LTRE_Analysis | PrintAnalysis | flow.output.LTRE_Analysis
 
 PrintResults = flow.task.PrintResults << PrettyPrint(rserve)
-CalculateYearEffect.output.LTRE_Results_RLn | PrintResults.input.rexpr
-flow.output.LTRE_Results = PrintResults.output.text
+CalculateYearEffect.output.LTRE_Results_RLn | PrintResults | flow.output.LTRE_Results
 
-flow.output.LTRE_Graph = CalculateYearEffect.output.graph
-
-
+CalculateYearEffect.output.graph | flow.output.LTRE_Graph
