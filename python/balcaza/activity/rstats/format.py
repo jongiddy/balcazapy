@@ -13,5 +13,6 @@ sink()
 		outputs = dict(
 			text = TextFile
 			),
-		defaultOutput = 'text'
+		defaultOutput = 'text',
+		name = 'RExpressionToString'
 		)
