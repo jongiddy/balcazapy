@@ -1,4 +1,4 @@
-from t2base import Namespace, OrderedMapIterator, Port, Ports, Source, Sink
+from t2base import Namespace, OrderedMapIterator, Port, Ports, Source, Sink, DepthChange
 from t2annotation import Annotation
 from t2activity import Activity, TextConstant
 
@@ -134,11 +134,11 @@ class WorkflowTask(object):
                 self.flow.output[flowPort] = self.output[portName]
 
     def __pos__(self):
-        return self
+        return DepthChange(self, -1)
 
     def __neg__(self):
-        return self
-        
+        return DepthChange(self, 1)
+
     def __or__(self, sink):
         return self.flow.linkData(self, sink)
 

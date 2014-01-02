@@ -2,8 +2,8 @@ __all__ = ("Workflow",)
 
 import uuid
 
-from t2base import Port, Ports, Pipeline, Source, Sink
-from t2types import T2FlowType
+from t2base import Port, Ports, Pipeline, Source, Sink, DepthChange
+from t2types import T2FlowType, List
 from t2annotation import Annotation
 from t2activity import Activity, NestedWorkflow, TextConstant
 from t2task import WorkflowTasks
@@ -286,6 +286,13 @@ class Workflow(object):
         return task
 
     def linkData(self, source, sink):
+        if isinstance(source, DepthChange):
+            source = source.base
+        if isinstance(sink, DepthChange):
+            depthChange = sink.depthChange
+            sink = sink.base
+        else:
+            depthChange = 0
         if isinstance(source, basestring):
             source = self.addActivity(TextConstant(source), sink.name)
         elif isinstance(source, Activity):
@@ -297,14 +304,24 @@ class Workflow(object):
         if isinstance(source, UntypedInputPort):
             if isinstance(sink, UntypedOutputPort):
                 raise RuntimeError('cannot pipe input port to output port without declaring type')
-            self.input[source.name] = sink.asSinkPort().type
+            type = sink.asSinkPort().type
+            if depthChange < 0:
+                for i in range(depthChange):
+                    type = List[type]
+            self.input[source.name] = type
             source = self.input[source.name]
         if isinstance(sink, UntypedOutputPort):
-            self.output[sink.name] = source.asSourcePort().type
+            type = source.asSourcePort().type
+            if depthChange > 0:
+                for i in range(depthChange):
+                    type = List[type]
+            self.output[sink.name] = type
             sink = self.output[sink.name]
         pipe = Pipeline(self, source, sink)
         source = source.asSourcePort()
         sink = sink.asSinkPort()
+        if source.type.getDepth() + depthChange != sink.type.getDepth():
+            raise RuntimeError('%s | %s: depths %d - %d != %d expected difference' % (source, sink, source.type.getDepth(), sink.type.getDepth(), depthChange))
         validator = sink.type.validator(source.type)
         if validator is not None:
             task = self.addActivity(validator, 'Validate_' + source.name)

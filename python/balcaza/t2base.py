@@ -54,10 +54,10 @@ class Sink:
         self.flow = flow
 
     def __pos__(self):
-        return self
+        return DepthChange(self, -1)
 
     def __neg__(self):
-        return self
+        return DepthChange(self, 1)
 
     def __ror__(self, source):
         return self.flow.linkData(source, self)
@@ -65,11 +65,30 @@ class Sink:
     def __rrshift__(self, text):
         self.flow.linkData(text, self)
 
+class DepthChange:
+
+    def __init__(self, base, depthChange):
+        self.base = base
+        self.depthChange = depthChange
+
+    def __pos__(self):
+        if self.depthChange > 0:
+            raise RuntimeError('opposing depth changes')
+        return DepthChange(self.base, self.depthChange - 1)
+
+    def __neg__(self):
+        if self.depthChange < 0:
+            raise RuntimeError('opposing depth changes')
+        return DepthChange(self.base, self.depthChange + 1)
+
 class Port(object):
 
     def __init__(self, name, type):
         self.name = name
         self.type = type
+
+    def __str__(self):
+        return self.name
 
     def getDepth(self):
         return self.type.getDepth()

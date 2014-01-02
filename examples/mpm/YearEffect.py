@@ -65,10 +65,9 @@ import sys
 sys.path.append('')
 from util.r.file import ReadMatrixFromFile
 
-
 ReadStageMatrix = flow.task.ReadStageMatrix << ReadMatrixFromFile(rserve)
 
-RequestStageMatrices.output.matrices | FlattenList | ReadStageMatrix.input.matrix_file
+RequestStageMatrices.output.matrices | FlattenList |+ ReadStageMatrix.input.matrix_file
 flow.input.stages | ReadStageMatrix.input.xlabels
 flow.input.stages | ReadStageMatrix.input.ylabels
 
@@ -93,7 +92,7 @@ flow.input.years | AddNames.input.labels
 
 CalculateYearEffect = flow.task.CalculateYearEffect << NestedZapyFile('LTRE.py')
 
-ReadStageMatrix.output.matrix | ListRtoRList | AddNames | CalculateYearEffect.input.matrices
+ReadStageMatrix.output.matrix |- ListRtoRList | AddNames | CalculateYearEffect.input.matrices
 ReadPooledMatrix.output.matrix | CalculateYearEffect.input.pooled_matrix
 CalculateYearEffect.input.xlabel = 'Years'
 flow.input.years | CalculateYearEffect.input.xticks
