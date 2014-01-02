@@ -57,31 +57,7 @@ RequestStageMatrices.input.field = "Year"
 RequestStageMatrices.input.multiple = "false"
 flow.input.years | RequestStageMatrices.input.values
 
-FlattenList = flow.task.FlattenList << BeanshellCode(
-'''flatten(inputs, outputs, depth) {
-	for (i = inputs.iterator(); i.hasNext();) {
-	    element = i.next();
-		if (element instanceof Collection && depth > 0) {
-			flatten(element, outputs, depth - 1);
-		} else {
-			outputs.add(element);
-		}
-	}
-}
-
-outputlist = new ArrayList();
-
-flatten(inputlist, outputlist, 1);
-''',
-	inputs = dict(
-		inputlist=List[List[String]]
-		),
-	outputs = dict(
-		outputlist=List[String]
-		)
-	)
-
-RequestStageMatrices.output.matrices | FlattenList.input.inputlist
+from balcaza.activity.local.list import FlattenList
 
 rserve = RServer()
 
@@ -92,8 +68,7 @@ from util.r.file import ReadMatrixFromFile
 
 ReadStageMatrix = flow.task.ReadStageMatrix << ReadMatrixFromFile(rserve)
 
-# List[String] -> String = 1 level of iteration
-FlattenList.output.outputlist | ReadStageMatrix.input.matrix_file
+RequestStageMatrices.output.matrices | FlattenList | ReadStageMatrix.input.matrix_file
 flow.input.stages | ReadStageMatrix.input.xlabels
 flow.input.stages | ReadStageMatrix.input.ylabels
 
@@ -105,24 +80,20 @@ flow.input.stages | ReadPooledMatrix.input.xlabels
 flow.input.stages | ReadPooledMatrix.input.ylabels
 
 
-from util.r.format import ListR_to_RList
-CreateRListOfMatrices = flow.task.CreateRListOfMatrices << ListR_to_RList(rserve)
-
-ReadStageMatrix.output.matrix | CreateRListOfMatrices.input.list_of_r_expressions
-
+from balcaza.activity.rstats.list import ListRtoRList
 
 AddNames = flow.task.AddNames << rserve.code(
 	'names(expr) <- labels',
-	inputs=dict(labels=Vector[String])
+	inputs=dict(labels=Vector[String]),
+	defaultInput='expr',
+	defaultOutput='expr'
 	)
 
-CreateRListOfMatrices.output.r_list_of_expressions | AddNames.input.expr
 flow.input.years | AddNames.input.labels
-
 
 CalculateYearEffect = flow.task.CalculateYearEffect << NestedZapyFile('LTRE.py')
 
-AddNames.output.expr | CalculateYearEffect.input.matrices
+ReadStageMatrix.output.matrix | ListRtoRList | AddNames | CalculateYearEffect.input.matrices
 ReadPooledMatrix.output.matrix | CalculateYearEffect.input.pooled_matrix
 CalculateYearEffect.input.xlabel = 'Years'
 flow.input.years | CalculateYearEffect.input.xticks
@@ -130,12 +101,12 @@ CalculateYearEffect.input.ylabel = 'Year Effect'
 CalculateYearEffect.input.plot_colour = 'lightblue'
 CalculateYearEffect.extendUnusedInputs()
 
-from util.r.format import PrettyPrint
+from balcaza.activity.rstats.format import RExpressionToString
 
-PrintAnalysis = flow.task.PrintAnalysis << PrettyPrint(rserve)
+PrintAnalysis = flow.task.PrintAnalysis << RExpressionToString(rserve)
 CalculateYearEffect.output.LTRE_Analysis | PrintAnalysis | flow.output.LTRE_Analysis
 
-PrintResults = flow.task.PrintResults << PrettyPrint(rserve)
+PrintResults = flow.task.PrintResults << RExpressionToString(rserve)
 CalculateYearEffect.output.LTRE_Results_RLn | PrintResults | flow.output.LTRE_Results
 
 CalculateYearEffect.output.graph | flow.output.LTRE_Graph

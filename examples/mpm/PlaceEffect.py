@@ -74,10 +74,7 @@ flow.input.pooled_matrix_file | ReadPooledMatrix.input.matrix_file
 flow.input.stages | ReadPooledMatrix.input.xlabels
 flow.input.stages | ReadPooledMatrix.input.ylabels
 
-from util.r.format import ListR_to_RList
-
-CreateListOfRMatrices = flow.task.CreateListOfRMatrices << ListR_to_RList(rserve)
-ReadStageMatrix.output.matrix | CreateListOfRMatrices.input.list_of_r_expressions
+from balcaza.activity.rstats.list import ListRtoRList
 
 MeanMatrix = flow.task.MeanMatrix << rserve.code('''
 # mean(matrix) usually returns the mean of all values in the matrix
@@ -94,14 +91,10 @@ mean_matrix <- mean.list(matrices)
 	outputs = dict(mean_matrix = RExpression)
 	)
 
-CreateListOfRMatrices.output.r_list_of_expressions | MeanMatrix.input.matrices
-
-CreateRListOfMatrices = flow.task.CreateRListOfMatrices << ListR_to_RList(rserve)
-MeanMatrix.output.mean_matrix | CreateRListOfMatrices.input.list_of_r_expressions
-
-
+ReadStageMatrix.output.matrix | ListRtoRList | MeanMatrix.input.matrices
 AddNames = flow.task.AddNames << rserve.code('names(expr) <- labels', inputs=dict(labels=Vector[String]))
-CreateRListOfMatrices.output.r_list_of_expressions | AddNames.input.expr
+
+MeanMatrix.output.mean_matrix | ListRtoRList | AddNames.input.expr
 flow.input.places | AddNames.input.labels
 
 CalculatePlaceEffect = flow.task.CalculatePlaceEffect << NestedZapyFile('LTRE.py')
@@ -113,12 +106,12 @@ CalculatePlaceEffect.input.ylabel = 'Place Effect'
 CalculatePlaceEffect.input.plot_colour = 'lightgreen'
 CalculatePlaceEffect.extendUnusedInputs()
 
-from util.r.format import PrettyPrint
+from balcaza.activity.rstats.format import RExpressionToString
 
-PrintAnalysis = flow.task.PrintAnalysis << PrettyPrint(rserve)
+PrintAnalysis = flow.task.PrintAnalysis << RExpressionToString(rserve)
 CalculatePlaceEffect.output.LTRE_Analysis | PrintAnalysis | flow.output.LTRE_Analysis
 
-PrintResults = flow.task.PrintResults << PrettyPrint(rserve)
+PrintResults = flow.task.PrintResults << RExpressionToString(rserve)
 CalculatePlaceEffect.output.LTRE_Results_RLn | PrintResults | flow.output.LTRE_Results
 
 CalculatePlaceEffect.output.graph | flow.output.LTRE_Graph

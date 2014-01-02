@@ -20,23 +20,22 @@ outer workflow using a command like:
 
 flow.task.CalculatePlaceEffect << NestedZapyFile('LTRE.py')
 
-Several of the common activities are contained in sub-directories as a Python
-library. The library contains reusable RShell activities to read an R matrix 
-from a CSV file, and to format an R Expression as text. There is also an 
-activity to convert a list of R expressions to an R list of the expressions,
-which is actually implemented as a nested workflow containing Beanshells.
+Several of the common activities are contained in the standard libraries of
+Balcazapy. The library contains a reusable RShell activity to format an 
+RExpression as text. There is also an activity to convert a list of R 
+expressions to an R list of the expressions, which is actually implemented as a 
+nested workflow containing Beanshells.
 
-Libraries are good for small activities that are commonly useful, similar to the
-local tools available in Taverna Workbench.
+There is also a workflow-specific library containing an RShell activity to read
+an R matrix from a CSV file. Libraries are good for small activities that are 
+commonly useful, similar to the local tools available in Taverna Workbench.
 
 Library files must create activities. So, a workflow must be presented as a
 Nested Workflow activity by wrapping it:
 
 return NestedWorkflow(flow)
 
-See util/r/format.py for an example.
-
 To use the library activity, import it from the library directory, using:
 
-from util.r.format import PrettyPrint
-flow.task.PrintAnalysis << PrettyPrint(rserve)
+from util.r.file import ReadMatrixFromFile
+flow.task.ReadMatrix << ReadMatrixFromFile(rserve)
