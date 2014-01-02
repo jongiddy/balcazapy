@@ -134,8 +134,8 @@ class NestedWorkflow(Activity):
     activityClass = 'net.sf.taverna.t2.activities.dataflow.DataflowActivity'
     configEncoding = 'dataflow'
 
-    def __init__(self, flow):
-        Activity.__init__(self, inputs=flow.getInputs(), outputs=flow.getOutputs())
+    def __init__(self, flow, **kw):
+        Activity.__init__(self, inputs=flow.getInputs(), outputs=flow.getOutputs(), **kw)
         self.flow = flow
 
     def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
@@ -366,10 +366,10 @@ class RserveServerActivity(Activity):
     activityClass = 'net.sf.taverna.t2.activities.rshell.RshellActivity'
 
     def __init__(self, rserve, script, inputs=None, inputMap=None, outputs=None,
-        outputMap=None):
+        outputMap=None, **kw):
         checkPortTypesValidForR(inputs)
         checkPortTypesValidForR(outputs)
-        Activity.__init__(self, inputs=inputs, outputs=outputs)
+        Activity.__init__(self, inputs=inputs, outputs=outputs, **kw)
         self.rserve = rserve
         # Taverna 2.4 adds lines to the to the end of a script to access output
         # values, but does not add a newline to separate the last line of our
@@ -401,7 +401,7 @@ class RserveServerActivity(Activity):
     def defaultOutput(self):
         if self.defaultOut is None:
             return RWorkspacePort
-        return Activity.defaultOut(self)
+        return Activity.defaultOutput(self)
 
     def getInputType(self, name):
         # If the variable has not been named as an input port for the RShell,
