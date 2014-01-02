@@ -24,8 +24,6 @@ from balcaza.activity.local.list import MergeStringListToString
 
 Flatten = flow.task.RExpressionToString << MergeStringListToString
 
-flow.input.list_of_r_expressions = List[RExpression]
-
 Join = flow.task.JoinListOfStringsIntoRList = BeanshellFile(
     "RStringsToRList.bsh",
     inputs = dict(stringlist=List[String]),

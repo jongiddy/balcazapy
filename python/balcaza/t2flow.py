@@ -306,7 +306,7 @@ class Workflow(object):
                 raise RuntimeError('cannot pipe input port to output port without declaring type')
             type = sink.asSinkPort().type
             if depthChange < 0:
-                for i in range(depthChange):
+                for i in range(-depthChange):
                     type = List[type]
             self.input[source.name] = type
             source = self.input[source.name]
