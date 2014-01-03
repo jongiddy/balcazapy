@@ -2,7 +2,7 @@ __all__ = ("Workflow",)
 
 import uuid
 
-from t2base import Port, Ports, Pipeline, Source, Sink, DepthChange
+from t2base import *
 from t2types import T2FlowType, List
 from t2annotation import Annotation
 from t2activity import Activity, NestedWorkflow, TextConstant
@@ -290,6 +290,8 @@ class Workflow(object):
             source = source.base
         if isinstance(sink, DepthChange):
             depthChange = sink.depthChange
+            if isinstance(sink, SplayDepthChange):
+                depthChange = -depthChange
             sink = sink.base
         else:
             depthChange = 0

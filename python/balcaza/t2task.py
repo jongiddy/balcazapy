@@ -1,4 +1,4 @@
-from t2base import Namespace, OrderedMapIterator, Port, Ports, Source, Sink, DepthChange
+from t2base import *
 from t2annotation import Annotation
 from t2activity import Activity, TextConstant
 
@@ -93,6 +93,7 @@ class WorkflowTask(object):
         self.annotations = {}
         self.input = TaskInputPorts(flow, self)
         self.output = TaskOutputPorts(flow, self)
+        self.outputDepth = 0
         self.retryConfig = {
             'maxRetries': 0,
             'initialDelay': 1000,
@@ -134,10 +135,13 @@ class WorkflowTask(object):
                 self.flow.output[flowPort] = self.output[portName]
 
     def __pos__(self):
-        return DepthChange(self, -1)
+        return SplayDepthChange(self)
 
     def __neg__(self):
-        return DepthChange(self, 1)
+        return CollectDepthChange(self)
+
+    def __invert__(self):
+        return WrapDepthChange(self)
 
     def __or__(self, sink):
         return self.flow.linkData(self, sink)

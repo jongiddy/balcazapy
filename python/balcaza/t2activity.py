@@ -3,7 +3,7 @@ __all__ = ('BeanshellCode', 'BeanshellFile', 'InteractionPage',
     'RServer')
 
 import re
-from t2base import DepthChange
+from t2base import *
 from t2types import *
 from t2util import alphanumeric, getAbsolutePathRelativeToCaller
 
@@ -41,10 +41,13 @@ class Activity(object):
         return obj
 
     def __pos__(self):
-        return DepthChange(self, -1)
+        return SplayDepthChange(self)
 
     def __neg__(self):
-        return DepthChange(self, 1)
+        return CollectDepthChange(self)
+
+    def __invert__(self):
+        return WrapDepthChange(self)
 
     def updateParameters(self, parameters):
         for name, value in parameters.items():
