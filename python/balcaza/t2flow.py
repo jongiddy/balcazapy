@@ -59,6 +59,9 @@ class WorkflowInputPort(WorkflowPort, Source):
     def asSourcePort(self):
         return self
 
+    def getIterationDepth(self):
+        return 0
+
     def link(self, other):
         assert isinstance(other, Sink), other
         self.flow.linkData(self, other)
@@ -87,6 +90,12 @@ class WorkflowOutputPort(WorkflowPort, Sink):
 
     def asSinkPort(self):
         return self
+
+    def addIterationDepth(self, depth):
+        if depth > 0:
+            raise RuntimeError('require additional "%s" for "| %s"' % ('-' * depth, self.name))
+        elif depth < 0:
+            raise RuntimeError('too many collects')
 
     def link(self, other):
         assert isinstance(other, Source), other
@@ -162,6 +171,15 @@ class UntypedOutputPort:
 
     def __ror__(self, source):
         return self.flow.linkData(source, self)
+
+    def __pos__(self):
+        return SplayDepthChange(self)
+
+    def __neg__(self):
+        return CollectDepthChange(self)
+
+    def __invert__(self):
+        return WrapDepthChange(self)
 
 class WorkflowOutputPorts(WorkflowPorts):
 
@@ -288,13 +306,16 @@ class Workflow(object):
     def linkData(self, source, sink):
         if isinstance(source, DepthChange):
             source = source.base
+        depthChange = 0 # the depth change indicated by the pipe
+        depthChangeByIteration = False
         if isinstance(sink, DepthChange):
             depthChange = sink.depthChange
             if isinstance(sink, SplayDepthChange):
                 depthChange = -depthChange
+                depthChangeByIteration = True
+            elif isinstance(sink, CollectDepthChange):
+                depthChangeByIteration = True
             sink = sink.base
-        else:
-            depthChange = 0
         if isinstance(source, basestring):
             source = self.addActivity(TextConstant(source), sink.name)
         elif isinstance(source, Activity):
@@ -331,6 +352,10 @@ class Workflow(object):
             self.dataLinks.append(DataLink(task.output.output, sink))
         else:
             self.dataLinks.append(DataLink(source, sink))
+        iterationDepth = source.getIterationDepth()
+        if depthChangeByIteration:
+            iterationDepth -= depthChange
+        sink.addIterationDepth(iterationDepth)
         return pipe
 
     def sequenceTasks(self, task1, task2):

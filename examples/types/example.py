@@ -20,5 +20,6 @@ flow.input.Choice = flow.task.Process.input.input1
 # Note, as we are changing the depth of the input, we need to redo the annotations
 flow.input.Logicals = List[Logical](description="Choose TRUE or FALSE", example="TRUE")
 flow.input.Logicals |+ flow.task.Process.input.input2
-flow.output.Output = List[String]
+# Typing the inputs and outputs is no longer required, due to better inference
+#flow.output.Output = List[String]
 flow.task.Process |- flow.output.Output

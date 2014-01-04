@@ -18,6 +18,9 @@ class TaskInputPort(TaskPort, Sink):
     def asSinkPort(self):
         return self
 
+    def addIterationDepth(self, depth):
+        self.task.addIterationDepth(depth)
+
     def exportInputPortXML(self, xml):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.port as port:
@@ -39,6 +42,9 @@ class TaskOutputPort(TaskPort, Source):
 
     def asSourcePort(self):
         return self
+
+    def getIterationDepth(self):
+        return self.task.getIterationDepth()
 
     def exportOutputPortXML(self, xml):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
@@ -77,6 +83,9 @@ class TaskInputPorts(TaskPorts):
     def __setattr__(self, name, value):
         self._.flow.addActivity(TextConstant(value), name) | self[name]
 
+    def addIterationDepth(self, depth):
+        self.task.addIterationDepth(depth)
+
 class TaskOutputPorts(TaskPorts):
 
     def __init__(self, flow, task):
@@ -93,7 +102,8 @@ class WorkflowTask(object):
         self.annotations = {}
         self.input = TaskInputPorts(flow, self)
         self.output = TaskOutputPorts(flow, self)
-        self.outputDepth = 0
+        self.iterationDepth = 0
+        self.iterationLocked = False
         self.retryConfig = {
             'maxRetries': 0,
             'initialDelay': 1000,
@@ -149,6 +159,13 @@ class WorkflowTask(object):
     def __ror__(self, source):
         return self.flow.linkData(source, self)
 
+    def addIterationDepth(self, depth):
+        if depth != 0:
+            if self.iterationLocked:
+                raise RuntimeError('setup all iteration before using task "%s" outputs' % self.name)
+            else:
+                self.iterationDepth += depth
+
     def asSourcePort(self):
         activity = self.activities[0]
         portName = activity.defaultOutput()
@@ -156,6 +173,10 @@ class WorkflowTask(object):
             raise RuntimeError('task "%s" has no default output port' % self.name)
         else:
             return self.output[portName]
+
+    def getIterationDepth(self):
+        self.iterationLocked = True
+        return self.iterationDepth
 
     def asSinkPort(self):
         activity = self.activities[0]
