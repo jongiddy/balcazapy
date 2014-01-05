@@ -7,9 +7,13 @@ from t2util import BeanshellEscapeString
 
 class T2FlowType:
 
-    def __init__(self, depth=0):
+    def __init__(self, name, depth=0):
+        self.name = name
         self.depth = depth
         self.dict = {}
+
+    def __str__(self):
+        return self.name
 
     def __call__(self, **kw):
         new = copy.copy(self)
@@ -38,8 +42,8 @@ Optional = OptionalMarker()
 
 class StringType(T2FlowType):
 
-    def __init__(self, domain=None):
-        T2FlowType.__init__(self)
+    def __init__(self, name, domain=None):
+        T2FlowType.__init__(self, name)
         self.domain = domain
 
     def __getitem__(self, domain):
@@ -83,15 +87,15 @@ default:
         return BeanshellCode(script, inputs={'input': T2FlowType()}, 
             outputs={'output': T2FlowType()})
 
-String = StringType()
+String = StringType('String')
 
 class LogicalType(T2FlowType):
 
     domain = ('FALSE', 'TRUE')
     domainSet = frozenset(domain)
 
-    def __init__(self):
-        T2FlowType.__init__(self)
+    def __init__(self, name):
+        T2FlowType.__init__(self, name)
 
     def getDomain(self):
         return self.domainSet
@@ -105,12 +109,12 @@ class LogicalType(T2FlowType):
     def validator(self, inputType):
         return StringType(self.domain).validator(inputType)
 
-Logical = LogicalType()
+Logical = LogicalType('Logical')
 
 class IntegerType(T2FlowType):
 
-    def __init__(self, lower=None, higher=None):
-        T2FlowType.__init__(self)
+    def __init__(self, name, lower=None, higher=None):
+        T2FlowType.__init__(self, name)
         if lower is not None and higher is not None and lower > higher:
             raise RuntimeError('lower bound greater than upper bound')
         self.lower = lower
@@ -127,7 +131,7 @@ class IntegerType(T2FlowType):
                 domain = '[%d,...]' % self.lower
             else:
                 domain = '[%d,...,%d]' % (self.lower, self.higher)
-        return 'Integer%s' % domain
+        return '%s%s' % (name, domain)
 
     def symanticType(self):
         return 'INTEGER'
@@ -191,7 +195,7 @@ class IntegerType(T2FlowType):
             from t2activity import BeanshellCode
             return BeanshellCode(script, inputs={'input': T2FlowType()}, outputs={'output': T2FlowType()})
 
-Integer = IntegerType()
+Integer = IntegerType('Integer')
 
 class NumberType(T2FlowType):
 
@@ -201,29 +205,29 @@ class NumberType(T2FlowType):
     def symanticVectorType(self):
         return 'DOUBLE_LIST'
 
-Number = NumberType()
+Number = NumberType('Number')
 
 class BinaryFileType(T2FlowType):
-    
+
     def symanticType(self):
         return 'PNG_FILE'
 
-BinaryFile = BinaryFileType()
+BinaryFile = BinaryFileType('BinaryFile')
 
-PDF_File = BinaryFile
+PDF_File = BinaryFileType('PDF_File')
 
-PNG_Image = BinaryFile
+PNG_Image = BinaryFileType('PNG_Image')
 
 class TextFileType(T2FlowType):
 
     def symanticType(self):
         return 'TEXT_FILE'
 
-TextFile = TextFileType()
+TextFile = TextFileType('TextFile')
 
 class ListType(T2FlowType):
 
-    def __init__(self, elementType, depth=None):
+    def __init__(self, name, elementType, depth=None):
         if depth is not None:
             # this option allows the creation of a list of strings of the same
             # depth as another list type, to represent the unchecked input ports 
@@ -235,7 +239,7 @@ class ListType(T2FlowType):
         else:
             self.baseType = elementType
             depth = elementType.depth + 1
-        T2FlowType.__init__(self, depth)
+        T2FlowType.__init__(self, name, depth)
 
     def __str__(self):
         x = str(self.baseType)
@@ -248,32 +252,33 @@ class ListType(T2FlowType):
 
 class SeqFactory:
 
-    def __init__(self, seqType):
+    def __init__(self, name, seqType):
+        self.name = name
         self.seqType = seqType
 
     def __getitem__(self, elementType):
-        return self.seqType(elementType)
+        return self.seqType(self.name, elementType)
 
-List = SeqFactory(ListType)
+List = SeqFactory('List', ListType)
 
 class VectorType(ListType):
 
-    def __init__(self, elementType):
+    def __init__(self, name, elementType):
         if not hasattr(elementType, 'symanticVectorType'):
             raise RuntimeError('Invalid Vector type')
-        ListType.__init__(self, elementType)
+        ListType.__init__(self, name, elementType)
 
     def symanticType(self):
         return self.baseType.symanticVectorType()
 
-Vector = SeqFactory(VectorType)
+Vector = SeqFactory('Vector', VectorType)
 
 class RExpressionType(T2FlowType):
 
-    def __init__(self):
-        T2FlowType.__init__(self, 1)
+    def __init__(self, name):
+        T2FlowType.__init__(self, name, 1)
 
     def symanticType(self):
         return 'R_EXP'
 
-RExpression = RExpressionType()
+RExpression = RExpressionType('RExpression')

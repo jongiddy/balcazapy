@@ -1,3 +1,25 @@
+def readZapyFile(sourceFile, flowName):
+    with open(sourceFile) as f:
+        source = f.read()
+    code = compile(source, sourceFile, 'exec')
+    module = {}
+    exec(code, module)
+    return module[flowName]
+
+def printSig(sourceFile, flowName):
+    import sys
+    flow = readZapyFile(sourceFile, flowName)
+    sys.stdout.write("NestedZapyFile(\n")
+    sys.stdout.write("    '%s',\n" % sourceFile)
+    if flow.input:
+        sys.stdout.write("    inputs = dict(\n")
+        sys.stdout.write(",\n".join(["        %s = %s" % (port.name, port.type) for port in flow.input]))
+        sys.stdout.write("\n        ),\n")
+    if flow.output:
+        sys.stdout.write("    outputs = dict(\n")
+        sys.stdout.write(",\n".join(["        %s = %s" % (port.name, port.type) for port in flow.output]))
+        sys.stdout.write("\n        )\n")
+    sys.stdout.write(")\n")
 
 class T2FlowBuilder:
 
@@ -5,12 +27,7 @@ class T2FlowBuilder:
         import codecs
         import maximal.XMLExport as XMLExport
 
-        with open(sourceFile) as f:
-            source = f.read()
-        code = compile(source, sourceFile, 'exec')
-        module = {}
-        exec(code, module)
-        flow = module[flowName]
+        flow = readZapyFile(sourceFile, flowName)
 
         if validate:
             from t2wrapper import WrapperWorkflow
@@ -30,17 +47,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog=prog, description='Create a Taverna 2 workflow (t2flow) file from a Zapy description file')
     parser.add_argument('--indent', dest='compressed', action='store_false', help='create a larger but more readable indented file')
     parser.add_argument('--validate', dest='validate', action='store_true', help='modify workflow to validate input ports')
+    parser.add_argument('--signature', dest='signature', action='store_true', help='print workflow signature')
     parser.add_argument('--flow', dest='flowName', action='store', default='flow', help='name of the workflow in the source file (default: %(default)s)')
     parser.add_argument('source', help='Zapy (.py) description file')
     parser.add_argument('target', nargs='?', help='Taverna 2 Workflow (.t2flow) filename (default: stdout)')
     args = parser.parse_args()
-    target = args.target
-    if target is None:
-        t2flow = sys.stdout
+    if args.signature:
+        printSig(args.source, args.flowName)
     else:
-        if not target.endswith('.t2flow'):
-            target += '.t2flow'
-        t2flow = open(target, 'w')
-    builder = T2FlowBuilder()
-    builder.convert(args.source, t2flow, args.flowName, args.compressed, args.validate)
-    
+        target = args.target
+        if target is None:
+            t2flow = sys.stdout
+        else:
+            if not target.endswith('.t2flow'):
+                target += '.t2flow'
+            t2flow = open(target, 'w')
+        builder = T2FlowBuilder()
+        builder.convert(args.source, t2flow, args.flowName, args.compressed, args.validate)
