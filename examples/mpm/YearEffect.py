@@ -90,7 +90,23 @@ AddNames = flow.task.AddNames << rserve.code(
 
 flow.input.years | AddNames.input.labels
 
-CalculateYearEffect = flow.task.CalculateYearEffect << NestedZapyFile('LTRE.py')
+CalculateYearEffect = flow.task.CalculateYearEffect << NestedZapyFile('LTRE.py',
+    inputs = dict(
+        matrices = RExpression,
+        pooled_matrix = RExpression,
+        xticks = List[String],
+        xlabel = String,
+        plot_colour = String,
+        plot_title = String,
+        ylabel = String
+        ),
+    outputs = dict(
+        LTRE_Analysis = RExpression,
+        graph = PNG_Image,
+        LTRE_Results = List[Number],
+        LTRE_Results_RLn = RExpression
+        )
+)
 
 ReadStageMatrix.output.matrix |- ListRtoRList | AddNames | CalculateYearEffect.input.matrices
 ReadPooledMatrix.output.matrix | CalculateYearEffect.input.pooled_matrix

@@ -145,21 +145,35 @@ class NestedWorkflow(Activity):
     configEncoding = 'dataflow'
 
     def __init__(self, flow, **kw):
-        Activity.__init__(self, inputs=flow.getInputs(), outputs=flow.getOutputs(), **kw)
+        if not kw.has_key('inputs'):
+            kw['inputs'] = flow.getInputs()
+        if not kw.has_key('outputs'):
+            kw['outputs'] = flow.getOutputs()
+        Activity.__init__(self, **kw)
         self.flow = flow
 
     def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace('http://taverna.sf.net/2008/xml/t2flow') as tav:
             tav.dataflow(ref=self.flow.getId())
 
-def NestedZapyFile(filename, flowname='flow'):
+def NestedZapyFile(filename, flowname='flow', **kw):
     with open(getAbsolutePathRelativeToCaller(filename), 'r') as f:
         source = f.read()
     code = compile(source, filename, 'exec')
     module = {}
     exec(code, module)
     flow = module[flowname]
-    return NestedWorkflow(flow)
+    if not kw.has_key('inputs'):
+        kw['inputs'] = {}
+    if not kw.has_key('outputs'):
+        kw['outputs'] = {}
+    for name, type in kw['inputs'].items():
+        if name not in flow.input:
+            raise RuntimeError('Nested workflow does not have input "%s"' % name)
+    for name, type in kw['outputs'].items():
+        if name not in flow.output:
+            raise RuntimeError('Nested workflow does not have output "%s"' % name)
+    return NestedWorkflow(flow, **kw)
 
 class InteractionPage(Activity):
 

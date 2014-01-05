@@ -12,7 +12,15 @@ flow = Workflow(title='Create Projection Matrix', author="Maria and Jon",
 
 # and add the nested workflow (treat the nested workflow just like any other acivity)
 
-flow.task.ProjectionMatrix << NestedZapyFile('inner.py')
+flow.task.ProjectionMatrix << NestedZapyFile('inner.py',
+    inputs = dict(
+        speciesName = String,
+        stageMatrix = RExpression
+        ),
+    outputs = dict(
+        projectionMatrix = PNG_Image
+        )
+)
 
 flow.input.speciesName = flow.task.ProjectionMatrix.input.speciesName
 

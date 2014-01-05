@@ -105,7 +105,23 @@ AddNames = flow.task.AddNames << rserve.code(
 
 flow.input.places | AddNames.input.labels
 
-CalculatePlaceEffect = flow.task.CalculatePlaceEffect << NestedZapyFile('LTRE.py')
+CalculatePlaceEffect = flow.task.CalculatePlaceEffect << NestedZapyFile('LTRE.py',
+    inputs = dict(
+        matrices = RExpression,
+        pooled_matrix = RExpression,
+        xticks = List[String],
+        xlabel = String,
+        plot_colour = String,
+        plot_title = String,
+        ylabel = String
+        ),
+    outputs = dict(
+        LTRE_Analysis = RExpression,
+        graph = PNG_Image,
+        LTRE_Results = List[Number],
+        LTRE_Results_RLn = RExpression
+        )
+)
 
 mean_matrices_LRn2 |- ListRtoRList | AddNames | CalculatePlaceEffect.input.matrices
 
