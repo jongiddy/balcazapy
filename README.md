@@ -152,58 +152,6 @@ This workflow contains 3 main collections:
 
 - `flow.task` - the connected tasks within the workflow
 
-### Types
-
-For input and output ports, and for some activities, you will need to specify a 
-type for a port.
-
-Available types are:
-
-- `Integer`
-- `Number`
-- `String`
-- `TextFile`
-- `PDF_File`
-- `PNG_Image`
-
-For interaction with R code, the following additional types are available:
-
-- `Logical`
-- `RExpression`
-- `Vector[Logical]`
-- `Vector[Integer]`
-- `Vector[Number]`
-- `Vector[String]`
-
-You can also specify lists using `List[type]`, where `type` is any of the above,
-or another list. For example:
-
-- `List[Integer]` - a list of integers
-- `List[RExpression]` - a list of RExpressions
-- `List[List[String]]` - a list containing lists of strings
-
-### Input and output ports
-
-Create input and output ports using the `flow.input` and `flow.output` 
-collections.  Assign a type to a port name, as shown:
-
-```python
-flow.input.InputValues = List[Integer]
-flow.output.SumOfValues = Integer
-```
-
-#### Input Validation
-
-String types can be restricted to a set of values, and Integer types to a
-range, using:
-
-```python
-String['YES', 'NO']
-Integer[0,...,100]
-```
-
-Input ports can be checked using the `--validate` option to `balc`.
-
 ### Tasks
 
 Tasks are created by passing an *Activity* to a workflow task name.  The 
@@ -303,6 +251,47 @@ In this example, the first `SumValues` activity processes each outer list, to
 create a list of totals, and the second `SumValues` activity sums these totals 
 to create a grand total.
 
+#### Types
+
+For some activities, you will need to specify a 
+type for a port.
+
+Available types are:
+
+- `Integer`
+- `Number`
+- `String`
+- `TextFile`
+- `PDF_File`
+- `PNG_Image`
+
+For interaction with R code, the following additional types are available:
+
+- `Logical`
+- `RExpression`
+- `Vector[Logical]`
+- `Vector[Integer]`
+- `Vector[Number]`
+- `Vector[String]`
+
+You can also specify lists using `List[type]`, where `type` is any of the above,
+or another list. For example:
+
+- `List[Integer]` - a list of integers
+- `List[RExpression]` - a list of RExpressions
+- `List[List[String]]` - a list containing lists of strings
+
+String types can be restricted to a set of values, and Integer types to a
+range, using:
+
+```python
+String['YES', 'NO']
+Integer[0,...,100]
+```
+
+The `--validate` option to `balc` will add additional checks that input values
+have the correct type.
+
 #### Beanshell
 
 Create using:
@@ -347,6 +336,10 @@ BeanshellFile(
         )
     )
 ```
+
+All inputs and outputs for BeanShell are strings or lists of strings. However,
+it is possible to pass other types, for documentation purposes. Just remember
+that the Beanshell will see a String or a List type internally.
 
 #### Interaction Pages
 
