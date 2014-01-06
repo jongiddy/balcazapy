@@ -485,8 +485,11 @@ It is often more convenient to develop the nested workflow in a separate file,
 and then use:
 
 ```python
-outer.task.CoreAlgorithm << NestedZapyFile('inner.py')
+outer.task.CoreAlgorithm << NestedZapyFile('inner.py', inputs=..., outputs=...)
 ```
+
+When using an external file, provide the input and output ports as parameters. 
+These correct call can be obtained by running `balc --signature inner.py`.
 
 ### Shortcuts
 
