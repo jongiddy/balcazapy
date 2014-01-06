@@ -170,9 +170,15 @@ def NestedZapyFile(filename, flowname='flow', **kw):
     for name, type in kw['inputs'].items():
         if name not in flow.input:
             raise RuntimeError('Nested workflow does not have input "%s"' % name)
+        nestedDepth = flow.input[name].type.getDepth()
+        if type.getDepth() != nestedDepth:
+            raise RuntimeError('Input port "%s" depth is %d' % (name, nestedDepth))
     for name, type in kw['outputs'].items():
         if name not in flow.output:
             raise RuntimeError('Nested workflow does not have output "%s"' % name)
+        nestedDepth = flow.output[name].type.getDepth()
+        if type.getDepth() != nestedDepth:
+            raise RuntimeError('Output port "%s" depth is %d' % (name, nestedDepth))
     return NestedWorkflow(flow, **kw)
 
 class InteractionPage(Activity):
