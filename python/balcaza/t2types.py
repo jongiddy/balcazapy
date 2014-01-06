@@ -48,9 +48,9 @@ class StringType(T2FlowType):
 
     def __getitem__(self, domain):
         if isinstance(domain, tuple):
-            return StringType(domain)
+            return StringType(self.name, domain)
         else:
-            return StringType((domain,))
+            return StringType(self.name, (domain,))
 
     def symanticType(self):
         return 'STRING'
@@ -131,7 +131,7 @@ class IntegerType(T2FlowType):
                 domain = '[%d,...]' % self.lower
             else:
                 domain = '[%d,...,%d]' % (self.lower, self.higher)
-        return '%s%s' % (name, domain)
+        return '%s%s' % (self.name, domain)
 
     def symanticType(self):
         return 'INTEGER'
@@ -156,7 +156,7 @@ class IntegerType(T2FlowType):
             higher = domain[2]
         else:
             raise RuntimeError('unrecognised Integer range')
-        return IntegerType(lower, higher)
+        return IntegerType(self.name, lower, higher)
 
     def validator(self, inputType):
         if isinstance(inputType, ListType):
