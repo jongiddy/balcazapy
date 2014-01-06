@@ -490,16 +490,6 @@ outer.task.CoreAlgorithm << NestedZapyFile('inner.py')
 
 ### Shortcuts
 
-For input and output ports, it is possible to assign a type and link to an activity
-port using:
-
-```python
-flow.input.InputValues | flow.task.MyTask.input.vals
-flow.task.MyTask.output.x | flow.output.OutputValue
-```
-
-The types are inferred from the activity types (e.g. an R Vector becomes a List).
-
 To connect all unconnected ports of a task as ports of the workflow, use:
 
 ```python
