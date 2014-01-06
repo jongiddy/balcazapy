@@ -7,15 +7,14 @@ class WrapperWorkflow(Workflow):
 	def __init__(self, flow):
 		self.flow = flow
 		Workflow.__init__(self, flow.title, flow.author, flow.description)
-		self.task[flow.name] = NestedWorkflow(flow)
-		nested = self.task[flow.name]
+		nested = self.task[flow.name] << NestedWorkflow(flow)
 		for port in flow.input:
 			# Set type to same depth, but basetype of String
 			depth = port.type.getDepth()
 			if depth == 0:
 				type = String
 			else:
-				type = ListType(String, depth)
+				type = ListType('List', String, depth)
 			# Copy any annotations
 			type.dict = port.type.dict
 			self.input[port.name] = type
@@ -26,7 +25,7 @@ class WrapperWorkflow(Workflow):
 			if depth == 0:
 				type = String
 			else:
-				type = ListType(String, depth)
+				type = ListType('List', String, depth)
 			# Copy any annotations
 			type.dict = port.type.dict
 			self.output[port.name] = type

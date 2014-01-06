@@ -84,8 +84,8 @@ default:
 }
 """
         from t2activity import BeanshellCode
-        return BeanshellCode(script, inputs={'input': T2FlowType()}, 
-            outputs={'output': T2FlowType()})
+        return BeanshellCode(script, inputs={'input': String}, 
+            outputs={'output': String})
 
 String = StringType('String')
 
@@ -179,7 +179,7 @@ class IntegerType(T2FlowType):
             script += 'if (%s) {\n  throw new RuntimeException("integer out of bounds");\n}\n' % condition
         if script:
             from t2activity import BeanshellCode
-            return BeanshellCode(script, inputs={'input': T2FlowType()}, outputs={'output': T2FlowType()})
+            return BeanshellCode(script, inputs={'input': String}, outputs={'output': String})
 
     def integerValidator(self, inputType):
         conditions = []
