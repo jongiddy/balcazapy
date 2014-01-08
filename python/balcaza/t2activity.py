@@ -29,15 +29,15 @@ class Activity(object):
             self.outputs = outputs
         self.defaultIn = defaultInput
         self.defaultOut = defaultOutput
-        self.parameters = {}
+        self.fixedParameters = {}
         if parameters is not None:
             self.updateParameters(parameters)
 
     def __call__(self, **kw):
         import copy
         obj = copy.copy(self)
-        obj.parameters = self.parameters.copy()
-        obj.updateParameters(parameters)
+        obj.fixedParameters = self.fixedParameters.copy()
+        obj.updateParameters(kw)
         return obj
 
     def __pos__(self):
@@ -52,7 +52,7 @@ class Activity(object):
     def updateParameters(self, parameters):
         for name, value in parameters.items():
             if self.inputs.has_key(name):
-                self.parameters[name] = value
+                self.fixedParameters[name] = value
             else:
                 raise RuntimeError('non-existent parameter')
 

@@ -119,9 +119,9 @@ class WorkflowTask(object):
             raise TypeError('cannot assign non-Activity %s to task "%s"' % (repr(activity), self.name))
         self.activities.append(activity)
         import sys
-        sys.stderr.write('X %s\n' % activity.parameters)
+        sys.stderr.write('X %s\n' % activity.fixedParameters)
         # if an activity has constant parameters, add them to the workflow
-        for name, value in activity.parameters.items():
+        for name, value in activity.fixedParameters.items():
             value | self.input[name]
         return self
 
@@ -297,7 +297,7 @@ class UnassignedTask:
         self._.tasks[self.name] = task
         self._.order.append(self.name)
         # if an activity has constant parameters, add them to the workflow
-        for name, value in activity.parameters.items():
+        for name, value in activity.fixedParameters.items():
             value | task.input[name]
         if activity.description is not None:
             task.description = activity.description
