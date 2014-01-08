@@ -74,18 +74,17 @@ class StringType(T2FlowType):
         if inputDomain is not None and inputDomain <= self.getDomain():
             # the input string must be one of our valid strings, so do not validate
             return None
-        script = "switch(input)\n{\n"
+        script = "switch(s)\n{\n"
         for value in self.domain:
             script += 'case "%s":\n' % BeanshellEscapeString(value)
-        script += """\toutput = input;
-\tbreak;
+        script += """\tbreak;
 default:
 \tthrow RuntimeException("Invalid value");
 }
 """
         from t2activity import BeanshellCode
-        return BeanshellCode(script, inputs={'input': String}, 
-            outputs={'output': String})
+        return BeanshellCode(script, inputs={'s': String}, 
+            outputs={'s': String})
 
 String = StringType('String')
 
@@ -164,36 +163,36 @@ class IntegerType(T2FlowType):
         if isinstance(inputType, IntegerType):
             return self.integerValidator(inputType)
         if isinstance(inputType, StringType):
-            script = "output = Integer.parseInt(input.trim());\n"
+            script = "i=Integer.parseInt(s.trim());\n"
         elif isinstance(inputType, NumberType):
-            script = "output = input.intValue();\n"
+            script = "i=s.intValue();\n"
         else:
             raise RuntimeError('incompatible input to Integer')
         conditions = []
         if self.lower is not None:
-            conditions.append("output < %d" % self.lower)
+            conditions.append("i<%d" % self.lower)
         if self.higher is not None:
-            conditions.append("output > %d" % self.higher)
-        condition = ' || '.join(conditions)
+            conditions.append("i>%d" % self.higher)
+        condition = '||'.join(conditions)
         if condition:
-            script += 'if (%s) {\n  throw new RuntimeException("integer out of bounds");\n}\n' % condition
+            script += 'if(%s){throw new RuntimeException("integer out of bounds");}' % condition
         if script:
             from t2activity import BeanshellCode
-            return BeanshellCode(script, inputs={'input': String}, outputs={'output': String})
+            return BeanshellCode(script, inputs={'s': String}, outputs={'i': String})
 
     def integerValidator(self, inputType):
         conditions = []
         if self.lower is not None:
             if inputType.lower is None or inputType.lower < self.lower:
-                conditions.append("output < %d" % self.lower)
+                conditions.append("i<%d" % self.lower)
         if self.higher is not None:
             if inputType.higher is None or inputType.higher > self.higher:
-                conditions.append("output > %d" % self.higher)
-        condition = ' || '.join(conditions)
+                conditions.append("i>%d" % self.higher)
+        condition = '||'.join(conditions)
         if condition:
-            script = '''output = input;\nif (%s) {\n  throw new RuntimeException("integer out of bounds");\n}\n''' % condition
+            script = 'if(%s){throw new RuntimeException("integer out of bounds");}' % condition
             from t2activity import BeanshellCode
-            return BeanshellCode(script, inputs={'input': T2FlowType()}, outputs={'output': T2FlowType()})
+            return BeanshellCode(script, inputs={'i': String}, outputs={'i': String})
 
 Integer = IntegerType('Integer')
 

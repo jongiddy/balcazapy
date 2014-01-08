@@ -348,8 +348,8 @@ class Workflow(object):
         validator = sink.type.validator(source.type)
         if validator is not None:
             task = self.addActivity(validator, 'Validate_' + source.name)
-            self.dataLinks.append(DataLink(source, task.input.input))
-            self.dataLinks.append(DataLink(task.output.output, sink))
+            self.dataLinks.append(DataLink(source, task.asSinkPort()))
+            self.dataLinks.append(DataLink(task.asSourcePort(), sink))
         else:
             self.dataLinks.append(DataLink(source, sink))
         iterationDepth = source.getIterationDepth()
