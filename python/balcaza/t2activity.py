@@ -461,6 +461,8 @@ class RserveServerActivity(Activity):
         except KeyError:
             if name in self.script:
                 return RExpression
+            else:
+                raise
 
     def getOutputType(self, name):
         # If the variable has not been named as an output port for the RShell,
@@ -474,6 +476,8 @@ class RserveServerActivity(Activity):
         except KeyError:
             if name in self.script:
                 return RExpression
+            else:
+                raise
 
     def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         # For inputs and outputs, first create a dictionary of connected ports,
