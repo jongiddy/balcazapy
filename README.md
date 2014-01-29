@@ -449,8 +449,8 @@ rserve.code(
         totalAsVector = Vector[Integer]
         ),
     outputMap = dict(
-        totalAsInt = total,
-        totalAsVector = total
+        totalAsInt = 'total',
+        totalAsVector = 'total'
         )
     )
 ```
