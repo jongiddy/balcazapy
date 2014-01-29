@@ -514,11 +514,17 @@ Text constants can be created and linked in one step using:
 flow.task.MyTask.input.plot_title = "Initial Results"
 ```
 
+This is equivalent to:
+
+```python
+TextConstant("Initial Results") | flow.task.MyTask.input.plot_title
+```
+
 To make access to task ports less verbose, assign the task to a variable:
 
 ```python
 MyTask = flow.task.MyTask << rserve.code(...)
-flow.input.values = MyTask.input.vals
+flow.input.values | MyTask.input.vals
 MyTask.output.total | AnotherTask.input.in1
 ```
 
