@@ -491,7 +491,7 @@ outer.task.CoreAlgorithm << NestedZapyFile('inner.py', inputs=..., outputs=...)
 ```
 
 When using an external file, provide the input and output ports as parameters. 
-These correct call can be obtained by running `balc --signature inner.py`.
+The correct call can be obtained by running `balc --signature inner.py`.
 
 ### Shortcuts
 
