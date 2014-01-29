@@ -105,7 +105,8 @@ balc myfile.py myflow.t2flow
 Run `balc -h` to see the available options:
 
 ```
-usage: balc [-h] [--indent] [--validate] [--flow FLOWNAME] source [target]
+usage: balc [-h] [--indent] [--validate] [--signature] [--flow FLOWNAME]
+            source [target]
 
 Create a Taverna 2 workflow (t2flow) file from a Zapy description file
 
@@ -117,6 +118,7 @@ optional arguments:
   -h, --help       show this help message and exit
   --indent         create a larger but more readable indented file
   --validate       modify workflow to validate input ports
+  --signature      print workflow signature
   --flow FLOWNAME  name of the workflow in the source file (default: flow)
 ```
 
