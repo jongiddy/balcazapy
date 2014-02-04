@@ -427,14 +427,18 @@ class Workflow(object):
 def getCreator():
     from subprocess import check_output
     import os, traceback
-    repo = "http://github.com/jongiddy/balcazapy"
+    repo = "github.com/jongiddy/balcazapy"
     hash = " unknown version"
     modifications = ""
     try:
         balcazapy_home = os.environ['BALCAZAPY_HOME']
         output = check_output(["git", "config", "--get", "remote.origin.url"], cwd=balcazapy_home).strip()
         if output:
-            repo = output
+            # myExperiment cannot parse t2flow files with a colon in the
+            # producedBy attribute, so simplify the URL to work
+            repo = output.split('://')[1]
+            if repo.endswith('.git'):
+                repo = repo[:-4]
         words = check_output(["git", "show-ref", "--hash=10"], cwd=balcazapy_home).split()
         localHash = words[0]
         remoteHash = words[1]
