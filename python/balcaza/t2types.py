@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 __all__ = ('Logical', 'Integer', 'Number', 'String', 'TextFile',
-    'BinaryFile', 'PDF_File', 'PNG_Image', 'RExpression', 'List', 'Vector', 
+    'BinaryFile', 'PDF_File', 'PNG_Image', 'RExpression', 'List', 'Vector',
     'Optional')
 
 import copy
@@ -29,7 +29,14 @@ class T2FlowType:
         self.dict = {}
 
     def __str__(self):
-        return self.name
+        return '%s%s' % (self.name, self.attributeString())
+
+    def attributeString(self):
+        if self.dict:
+            attributes = ', '.join([('%s=%s' % (name, repr(value))) for name, value in self.dict.items()])
+            return '(%s)' % attributes
+        else:
+            return ''
 
     def __call__(self, **kw):
         new = copy.copy(self)
@@ -37,7 +44,7 @@ class T2FlowType:
         return new
 
     def getDomain(self):
-        # return all possible values of this type as a (frozen) set of strings. 
+        # return all possible values of this type as a (frozen) set of strings.
         # Return None if domain is too large or not possible to represent.
         return None
 
@@ -99,7 +106,7 @@ default:
 }
 """
         from t2activity import BeanshellCode
-        return BeanshellCode(script, inputs={'s': String}, 
+        return BeanshellCode(script, inputs={'s': String},
             outputs={'s': String})
 
 String = StringType('String')
@@ -146,7 +153,7 @@ class IntegerType(T2FlowType):
                 domain = '[%d,...]' % self.lower
             else:
                 domain = '[%d,...,%d]' % (self.lower, self.higher)
-        return '%s%s' % (self.name, domain)
+        return '%s%s%s' % (self.name, domain, self.attributeString())
 
     def symanticType(self):
         return 'INTEGER'
@@ -245,7 +252,7 @@ class ListType(T2FlowType):
     def __init__(self, name, elementType, depth=None):
         if depth is not None:
             # this option allows the creation of a list of strings of the same
-            # depth as another list type, to represent the unchecked input ports 
+            # depth as another list type, to represent the unchecked input ports
             self.baseType = elementType
             depth = depth
         elif isinstance(elementType, ListType):
@@ -259,7 +266,7 @@ class ListType(T2FlowType):
     def __str__(self):
         x = str(self.baseType)
         for i in range(self.depth):
-            x = 'List[%s]' % x
+            x = 'List[%s]%s' % (x, self.attributeString())
         return x
 
     def validator(self, inputType):
