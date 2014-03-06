@@ -15,13 +15,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 __all__ = ('BeanshellCode', 'BeanshellFile', 'InteractionPage',
-    'NestedWorkflow', 'NestedZapyFile', 'HTTP', 'XPath', 'TextConstant', 
-    'RServer')
+    'NestedWorkflow', 'NestedZapyFile', 'HTTP', 'XPath', 'ExternalTool',
+    'TextConstant', 'RServer')
 
 import re
-from t2base import *
-from t2types import *
+from t2base import CollectDepthChange, SplayDepthChange, WrapDepthChange
+from t2types import BinaryFileType, TextFileType, String, Integer, List, BinaryFile, RExpression
 from t2util import alphanumeric, getAbsolutePathRelativeToCaller
+
+# allow textual forms of booleans to be generated using t2Boolean[boolean expression]
+T2Boolean = ('false', 'true')
+
 
 class Activity(object):
 
@@ -238,7 +242,7 @@ class HTTP_Activity(Activity):
     activityClass = 'net.sf.taverna.t2.activities.rest.RESTActivity'
 
     def __init__(self, httpMethod, urlTemplate, inputContentType=None,
-        inputBinary=False, outputContentType='application/xml', headers=None, 
+        inputBinary=False, outputContentType='application/xml', headers=None,
         sendExpectHeader=False, escapeParameters=True, defaultInput=None):
         assert httpMethod in ('GET', 'POST', 'PUT', 'DELETE'), httpMethod
         inputs = {}
@@ -300,34 +304,34 @@ class HTTP_Activity(Activity):
 
 class HTTP_Factory:
 
-    def GET(self, urlTemplate, outputContentType='application/xml', 
+    def GET(self, urlTemplate, outputContentType='application/xml',
         headers=None, escapeParameters=True):
-        return HTTP_Activity('GET', urlTemplate, headers=headers, 
-            outputContentType=outputContentType, 
+        return HTTP_Activity('GET', urlTemplate, headers=headers,
+            outputContentType=outputContentType,
             escapeParameters=escapeParameters)
 
-    def DELETE(self, urlTemplate, outputContentType='application/xml', 
+    def DELETE(self, urlTemplate, outputContentType='application/xml',
         headers=None, escapeParameters=True):
         return HTTP_Activity('DELETE', urlTemplate, headers=headers,
             outputContentType=outputContentType,
             escapeParameters=escapeParameters)
 
     def POST(self, urlTemplate, inputContentType='application/xml',
-        inputBinary=False, outputContentType='application/xml', 
+        inputBinary=False, outputContentType='application/xml',
         headers=None, sendExpectHeader=False, escapeParameters=True):
         return HTTP_Activity('POST', urlTemplate,
             inputContentType=inputContentType, inputBinary=inputBinary,
-            outputContentType=outputContentType, 
-            headers=headers, sendExpectHeader=sendExpectHeader, 
+            outputContentType=outputContentType,
+            headers=headers, sendExpectHeader=sendExpectHeader,
             escapeParameters=escapeParameters)
 
     def PUT(self, urlTemplate, inputContentType='application/xml',
-        inputBinary=False, outputContentType='application/xml', 
+        inputBinary=False, outputContentType='application/xml',
         headers=None, sendExpectHeader=False, escapeParameters=True):
         return HTTP_Activity('PUT', urlTemplate,
             inputContentType=inputContentType, inputBinary=inputBinary,
-            outputContentType=outputContentType, 
-            headers=headers, sendExpectHeader=sendExpectHeader, 
+            outputContentType=outputContentType,
+            headers=headers, sendExpectHeader=sendExpectHeader,
             escapeParameters=escapeParameters)
 
 HTTP = HTTP_Factory()
@@ -365,6 +369,88 @@ class XPathActivity(Activity):
 
 XPath = XPathActivity
 
+import uuid
+def getUUID():
+   return uuid.uuid4()
+
+class ExternalToolActivity(Activity):
+
+    activityArtifact = 'external-tool-activity'
+    activityVersion = '1.5-SNAPSHOT'
+    activityClass = 'net.sf.taverna.t2.activities.externaltool.ExternalToolActivity'
+
+    def __init__(self, command, inputMap=None, outputMap=None, **kw):
+        Activity.__init__(self, **kw)
+        self.command = command
+        self.inputMap = inputMap or {}
+        self.outputMap = outputMap or {}
+
+    def getInputType(self, name):
+        if name in ('STDIN'):
+            return String
+        else:
+            return Activity.getInputType(self, name)
+
+    def getOutputType(self, name):
+        if name in ('STDOUT', 'STDERR'):
+            return String
+        else:
+            return Activity.getOutputType(self, name)
+
+    def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
+        with xml.namespace() as conf:
+            with conf.net.sf.taverna.t2.activities.externaltool.ExternalToolActivityConfigurationBean:
+                conf.mechanismType >> '789663B8-DA91-428A-9F7D-B3F3DA185FD4'
+                conf.mechanismName >> 'default local'
+                conf.mechanismXML >> '''<?xml version="1.0" encoding="UTF-8"?>
+<localInvocation><shellPrefix>/bin/sh -c</shellPrefix><linkCommand>/bin/ln -s %%PATH_TO_ORIGINAL%% %%TARGET_NAME%%</linkCommand></localInvocation>
+'''
+                conf.externaltoolid >> getUUID()
+                with conf.useCaseDescription:
+                    conf.usecaseid
+                    conf.description
+                    conf.command >> self.command
+                    conf.preparingTimeoutInSeconds >> '1200'
+                    conf.executionTimeoutInSeconds >> '1800'
+                    conf.tags
+                    conf.REs
+                    conf.queue__preferred
+                    conf.queue__deny
+                    conf.static__inputs
+                    with conf.inputs:
+                        for name, type in self.inputs.items():
+                            with conf.entry:
+                                conf.string >> name
+                                with conf.de.uni__luebeck.inb.knowarc.usecases.ScriptInputUser:
+                                    # tag is either inputMap[name] or else just name
+                                    tag = self.inputMap.get(name, name)
+                                    conf.tag >> tag
+                                    conf.file >> T2Boolean[isinstance(type, (BinaryFileType, TextFileType))]
+                                    conf.tempFile >> T2Boolean[False]
+                                    conf.binary >> T2Boolean[isinstance(type, BinaryFileType)]
+                                    conf.charsetName >> 'UTF-8'
+                                    conf.forceCopy >> T2Boolean[False]
+                                    conf.list >> T2Boolean[False]
+                                    conf.concatenate >> T2Boolean[False]
+                                    conf.mime
+                    with conf.outputs:
+                        for name, type in self.outputs.items():
+                            with conf.entry:
+                                conf.string >> name
+                                with conf.de.uni__luebeck.inb.knowarc.usecases.ScriptOutput:
+                                    tag = self.outputMap.get(name, name)
+                                    conf.path >> tag
+                                    conf.binary >> T2Boolean[isinstance(type, BinaryFileType)]
+                                    conf.mime
+                    conf.includeStdIn >> T2Boolean['STDIN' in connectedInputs]
+                    conf.includeStdOut >> T2Boolean['STDOUT' in connectedOutputs]
+                    conf.includeStdErr >> T2Boolean['STDERR' in connectedOutputs]
+                    with conf.validReturnCodes:
+                        conf.int >> '0'
+                conf.edited >> T2Boolean[False]
+
+ExternalTool = ExternalToolActivity
+
 class TextConstant(Activity):
 
     activityArtifact = 'stringconstant-activity'
@@ -394,7 +480,7 @@ class TextConstant(Activity):
 
 # The name of a special port for transferring the R workspace. This is the
 # default port for Rserve activities. Although the code inserted by Balcazapy
-# allows underscores in this name, the additional code inserted by Taverna 
+# allows underscores in this name, the additional code inserted by Taverna
 # Engine does not. BioVeL JIRA bug [TAV-481]
 RWorkspacePort = 'RWorkspace'
 

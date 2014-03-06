@@ -39,7 +39,7 @@ def printSig(sourceFile, flowName):
 
 class T2FlowBuilder:
 
-    def convert(self, sourceFile, t2flow, flowName, compressed, validate):
+    def convert(self, sourceFile, t2flow, flowName, compressed, validate, zip):
         import codecs
         import maximal.XMLExport as XMLExport
 
@@ -47,7 +47,7 @@ class T2FlowBuilder:
 
         if validate:
             from t2wrapper import WrapperWorkflow
-            flow = WrapperWorkflow(flow)
+            flow = WrapperWorkflow(flow, validate, zip)
 
         UTF8Writer = codecs.getwriter('utf8')
         output = UTF8Writer(t2flow)
@@ -63,6 +63,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog=prog, description='Create a Taverna 2 workflow (t2flow) file from a Zapy description file')
     parser.add_argument('--indent', dest='compressed', action='store_false', help='create a larger but more readable indented file')
     parser.add_argument('--validate', dest='validate', action='store_true', help='modify workflow to validate input ports')
+    parser.add_argument('--zip', dest='zip', action='store_true', help='create a zip file containing outputs')
     parser.add_argument('--signature', dest='signature', action='store_true', help='print workflow signature')
     parser.add_argument('--flow', dest='flowName', action='store', default='flow', help='name of the workflow in the source file (default: %(default)s)')
     parser.add_argument('source', help='Zapy (.py) description file')
@@ -79,4 +80,4 @@ if __name__ == '__main__':
                 target += '.t2flow'
             t2flow = open(target, 'w')
         builder = T2FlowBuilder()
-        builder.convert(args.source, t2flow, args.flowName, args.compressed, args.validate)
+        builder.convert(args.source, t2flow, args.flowName, args.compressed, args.validate, args.zip)
