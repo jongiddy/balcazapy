@@ -59,6 +59,8 @@ class WrapperWorkflow(Workflow):
 						parts = filename.split('%%')
 						while len(parts) >= 3:
 							var = parts[1]
+							if var not in self.input:
+								raise RuntimeError('Non-existent input port: %s' % var)
 							inputPorts[var] = String
 							del parts[:2]
 				else:
