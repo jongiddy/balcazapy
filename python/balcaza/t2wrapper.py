@@ -53,12 +53,12 @@ class WrapperWorkflow(Workflow):
 					if 'filename' in portType.dict:
 						filename = portType.dict['filename']
 						if filename != portName:
-							lines.append('mv %s %s\n' % (portName, filename))
+							lines.append("mv '%s' '%s'\n" % (portName, filename))
 						# If filename contains %%var%% markers, ensure relevant
 						# workflow input port is provided as input here.
 						parts = filename.split('%%')
 						while len(parts) >= 3:
-							var = parts[2]
+							var = parts[1]
 							inputPorts[var] = String
 							del parts[:2]
 				else:
@@ -78,7 +78,7 @@ class WrapperWorkflow(Workflow):
 					if 'filename' in portType.dict:
 						filename = portType.dict['filename']
 						if filename != portName:
-							lines.append('mv %s %s\n' % (portName, filename))
+							lines.append("mv '%s' '%s'\n" % (portName, filename))
 					inputs[portName] = BinaryFile
 					inputPorts[portName] = BinaryFile
 			lines.append('zip outputs.zip *\n')
