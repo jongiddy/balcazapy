@@ -29,11 +29,9 @@ class WrapperWorkflow(Workflow):
 				# Set type to same depth, but basetype of String
 				depth = port.type.getDepth()
 				if depth == 0:
-					type = String
+					type = String(**port.type.dict)
 				else:
-					type = ListType('List', String, depth)
-				# Copy any annotations
-				type.dict = port.type.dict
+					type = ListType('List', String, depth)(**port.type.dict)
 			else:
 				type = port.type
 			self.input[port.name] = type
@@ -72,17 +70,6 @@ class WrapperWorkflow(Workflow):
 				if type.getDepth() != 0:
 					raise RuntimeError('cannot use input port "%s" of depth %d in filename' % (name, type.getDepth()))
 				inputs[name] = type
-			# Add any input ports to the zip file, as long as its name doesn't clash
-			for port in self.input:
-				portName = port.name
-				portType = port.type
-				if portName not in inputs and portType.getDepth() == 0:
-					if 'filename' in portType.dict:
-						filename = portType.dict['filename']
-						if filename != portName:
-							lines.append("mv '%s' '%s'\n" % (portName, filename))
-					inputs[portName] = BinaryFile
-					inputPorts[portName] = BinaryFile
 			lines.append('zip outputs.zip *\n')
 			command = ''.join(lines)
 			ZipOutputs = self.task.ZipOutputs << ExternalTool(

@@ -24,6 +24,7 @@ from t2util import BeanshellEscapeString
 class T2FlowType:
 
     def __init__(self, name, depth=0):
+        assert isinstance(name, str), name
         self.name = name
         self.depth = depth
         self.dict = {}
@@ -129,7 +130,7 @@ class LogicalType(T2FlowType):
         return 'BOOL_LIST'
 
     def validator(self, inputType):
-        return StringType(self.domain).validator(inputType)
+        return StringType(self.name, self.domain).validator(inputType)
 
 Logical = LogicalType('Logical')
 
