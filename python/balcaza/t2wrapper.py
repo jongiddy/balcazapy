@@ -83,8 +83,6 @@ class WrapperWorkflow(Workflow):
 			for name, type in inputPorts.items():
 				self.input[name] | ZipOutputs.input[name]
 			ZipOutputs.output.zipFile | self.output.zipFile
-			ZipOutputs.output.STDOUT | self.output.stdout
-			ZipOutputs.output.STDERR | self.output.stderr
 		else:
 			for port in flow.output:
 				nested.output[port.name] | self.output[port.name]
