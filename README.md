@@ -343,6 +343,33 @@ All inputs and outputs for BeanShell are strings or lists of strings. However,
 it is possible to pass other types, for documentation purposes. Just remember
 that the Beanshell will see a String or a List type internally.
 
+#### External Tool
+
+An external tool can run a shell script locally to the workflow. Create using:
+
+```python
+ExternalTool(
+    '''mv myfile file-%%myvar%%.txt
+    zip out.zip * 
+''',
+    inputs = dict(
+        myfile = TextFile,
+        myvar = String
+        ),
+    outputs = dict(
+        output = BinaryFile
+        ),
+    outputMap = dict(
+        output = 'out.zip'
+        )
+    )
+```
+
+Any input files are available to the script as files. Any non-file inputs are
+available as variables which can be accessed using `%%` delimiters, 
+e.g. `%%myvar%%`. Use `inputMap` and `outputMap` to rename files, as shown.
+
+
 #### Interaction Pages
 
 Create using:
