@@ -223,7 +223,7 @@ class InteractionPage(Activity):
                                 conf.string >> 'text/plain'
                             conf.handledReferenceSchemes
                             conf.translatedElementType >> 'java.lang.String'
-                            conf.allowsLiteralValues >> 'false'
+                            conf.allowsLiteralValues >> T2Boolean[False]
                 with conf.outputs:
                     for name, type in self.outputs.items():
                         with conf.net.sf.taverna.t2.workflowmodel.processor.activity.config.ActivityOutputPortDefinitionBean:
@@ -233,7 +233,7 @@ class InteractionPage(Activity):
                             conf.granularDepth >> type.getDepth()
                 conf.presentationOrigin >> self.url
                 conf.interactionActivityType >> 'LocallyPresentedHtml'
-                conf.progressNotification >> 'false'
+                conf.progressNotification >> T2Boolean[False]
 
 
 class HTTP_Activity(Activity):
@@ -283,13 +283,13 @@ class HTTP_Activity(Activity):
                 conf.httpMethod >> self.httpMethod
                 conf.urlSignature >> self.urlTemplate
                 conf.acceptsHeaderValue >> self.outputContentType
-                conf.contentTypeForUpdates >> (self.inputContentType if self.inputContentType else 'application/xml')
-                conf.outgoingDataFormat >> ('Binary' if self.inputBinary else 'String')
-                conf.sendHTTPExpectRequestHeader >> ('true' if self.sendExpectHeader else 'false')
-                conf.showRedirectionOutputPort >> ('true' if 'redirection' in connectedOutputs else 'false')
-                conf.showActualUrlPort >> ('true' if 'actualUrl' in connectedOutputs else 'false')
-                conf.showResponseHeadersPort >> ('true' if 'responseHeaders' in connectedOutputs else 'false')
-                conf.escapeParameters >> ('true' if self.escapeParameters else 'false')
+                conf.contentTypeForUpdates >> ('application/xml', self.inputContentType)[self.inputContentType]
+                conf.outgoingDataFormat >> ('String', 'Binary')[self.inputBinary]
+                conf.sendHTTPExpectRequestHeader >> T2Boolean[self.sendExpectHeader]
+                conf.showRedirectionOutputPort >> T2Boolean['redirection' in connectedOutputs]
+                conf.showActualUrlPort >> T2Boolean['actualUrl' in connectedOutputs]
+                conf.showResponseHeadersPort >> T2Boolean['responseHeaders' in connectedOutputs]
+                conf.escapeParameters >> T2Boolean[self.escapeParameters]
                 with conf.otherHTTPHeaders:
                     if self.headers is not None:
                         for name, value in self.headers.items():
@@ -595,7 +595,7 @@ class RserveServerActivity(Activity):
                         with config.net.sf.taverna.t2.workflowmodel.processor.activity.config.ActivityInputPortDefinitionBean as inputPort:
                             inputPort.name >> name
                             inputPort.depth >> type.getDepth()
-                            inputPort.allowsLiteralValues >> 'false'
+                            inputPort.allowsLiteralValues >> T2Boolean[False]
                 with config.outputs:
                     for name, type in outputs.items():
                         with config.net.sf.taverna.t2.workflowmodel.processor.activity.config.ActivityOutputPortDefinitionBean as outputPort:
@@ -603,12 +603,12 @@ class RserveServerActivity(Activity):
                             outputPort.depth >> type.getDepth()
                             outputPort.mimeTypes
                             outputPort.granularDepth >> type.getDepth()
-                config.rVersion >> 'false'
+                config.rVersion >> T2Boolean[False]
                 config.script >> prefix >> self.script >> suffix
                 with config.connectionSettings as conn:
                     self.rserve.exportXML(xml)
-                    conn.keepSessionAlive >> 'false'
-                    conn.newRVersion >> 'false'
+                    conn.keepSessionAlive >> T2Boolean[False]
+                    conn.newRVersion >> T2Boolean[False]
                 with config.inputSymanticTypes:
                     for name, type in inputs.items():
                         with config.net.sf.taverna.t2.activities.rshell.RShellPortSymanticTypeBean:
