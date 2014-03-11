@@ -45,8 +45,7 @@ class WrapperWorkflow(Workflow):
 				portName = port.name
 				portType = port.type
 				if portType.getDepth() == 0:
-					type = (BinaryFile, TextFile)[isinstance(portType, TextFileType)]
-					type.dict = portType.dict
+					type = (BinaryFile, TextFile)[isinstance(portType, TextFileType)](**portType.dict)
 					outputPorts[portName] = type
 					if 'filename' in portType.dict:
 						filename = portType.dict['filename']
