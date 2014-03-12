@@ -42,7 +42,7 @@ class Pipeline:
     @output.setter
     def output(self, value):
         raise RuntimeError('cannot set pipeline output')
-    
+
     def extendUnusedPorts(self):
         self.extendUnusedInputs()
         self.extendUnusedOutputs()
@@ -114,6 +114,9 @@ class Port(object):
     def __str__(self):
         return self.name
 
+    def set(self, **kw):
+        self.type = self.type.set(**kw)
+
     def getDepth(self):
         return self.type.getDepth()
 
@@ -147,7 +150,7 @@ class Ports(object):
 
     def __contains__(self, name):
         return self._.ports.has_key(name)
-        
+
     def __iter__(self):
         return OrderedMapIterator(self._.ports, self._.order)
 

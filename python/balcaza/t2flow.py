@@ -51,7 +51,7 @@ class WorkflowPort(Port):
         if not isinstance(value, Annotation):
             value = Annotation(value)
         self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = value
-        
+
     @property
     def example(self):
         try:
@@ -272,7 +272,7 @@ class Workflow(object):
             value = Annotation(value)
         self.annotations['net.sf.taverna.t2.annotation.annotationbeans.DescriptiveTitle'] = value
         self.name = tavernaName(value.text)
-        
+
     @property
     def author(self):
         return self.annotations.get('net.sf.taverna.t2.annotation.annotationbeans.Author')
@@ -282,7 +282,7 @@ class Workflow(object):
         if not isinstance(value, Annotation):
             value = Annotation(value)
         self.annotations['net.sf.taverna.t2.annotation.annotationbeans.Author'] = value
-        
+
     @property
     def description(self):
         return self.annotations.get('net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription')
@@ -294,7 +294,7 @@ class Workflow(object):
         self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = value
 
     def isWorkbenchSafe(self):
-        # If this is set to False, RServe activities will use direct mapping of 
+        # If this is set to False, RServe activities will use direct mapping of
         # dotted names. Taverna Engine is OK with this, but Workbench cannot
         # display the links or edit the component.
         # If it is True, the RServe activity will add lines to the start and
@@ -383,7 +383,7 @@ class Workflow(object):
             descendants = []
         for task in self.task:
             for activity in task.activities:
-                if isinstance(activity, NestedWorkflow): 
+                if isinstance(activity, NestedWorkflow):
                     flow = activity.flow
                     descendants.append(flow)
                     flow.allDescendants(descendants)
@@ -413,7 +413,7 @@ class Workflow(object):
                         port.exportOutputPortXML(xml)
                 with tav.processors:
                     for processor in self.task:
-                        processor.exportXML(xml)                    
+                        processor.exportXML(xml)
                 with tav.conditions:
                     for task1, task2 in self.ctrlLinks:
                         tav.condition(control=task1.name, target=task2.name)

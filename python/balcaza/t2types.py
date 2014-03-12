@@ -44,6 +44,12 @@ class T2FlowType:
         new.dict = kw
         return new
 
+    def set(self, **kw):
+        new = copy.copy(self)
+        new.dict = self.dict.copy()
+        new.dict.update(kw)
+        return new
+
     def getDomain(self):
         # return all possible values of this type as a (frozen) set of strings.
         # Return None if domain is too large or not possible to represent.
