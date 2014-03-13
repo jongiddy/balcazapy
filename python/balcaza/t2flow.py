@@ -24,6 +24,7 @@ from t2annotation import Annotation
 from t2activity import Activity, NestedWorkflow, TextConstant
 from t2task import WorkflowTasks
 from t2util import alphanumeric
+from balc_version import version
 
 def getUUID():
     return uuid.uuid4()
@@ -427,28 +428,14 @@ class Workflow(object):
 def getCreator():
     from subprocess import check_output
     import os, traceback
-    repo = "github.com/jongiddy/balcazapy"
-    hash = " unknown version"
-    modifications = ""
+    gitTag = ''
     try:
         balcazapy_home = os.environ['BALCAZAPY_HOME']
-        output = check_output(["git", "config", "--get", "remote.origin.url"], cwd=balcazapy_home).strip()
-        if output:
-            # myExperiment cannot parse t2flow files with a colon in the
-            # producedBy attribute, so simplify the URL to work
-            repo = output.split('://')[1]
-            if repo.endswith('.git'):
-                repo = repo[:-4]
-        words = check_output(["git", "show-ref", "--hash=10"], cwd=balcazapy_home).split()
-        localHash = words[0]
-        remoteHash = words[1]
-        if remoteHash == localHash:
-            hash = " " + localHash
-        else:
-            hash = " %s (remote %s)" % (localHash, remoteHash)
+        words = check_output(["git", "show-ref", "--hash=8"], cwd=balcazapy_home).split()
+        gitTag = " " + words[0]
         if check_output(["git", "ls-files", "-m"], cwd=balcazapy_home).strip():
-            modifications = ' with local modifications'
+            gitTag += ' with local modifications'
     except:
         traceback.print_exc()
-    creator = "Balcazapy %s%s%s" % (repo, hash, modifications)
+    creator = 'Balcazapy %s%s' % (version, gitTag)
     return creator
