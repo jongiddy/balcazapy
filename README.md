@@ -371,6 +371,8 @@ Any input files are available to the script as files. Any non-file inputs are
 available as variables which can be accessed using `%%` delimiters, 
 e.g. `%%myvar%%`. Use `inputMap` and `outputMap` to rename files, as shown.
 
+Note, use of ExternalTool will prevent the workflow from working on a
+Microsoft Windows or other non-Unix-based operating systems. 
 
 #### Interaction Pages
 
