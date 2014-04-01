@@ -49,8 +49,15 @@ class WrapperWorkflow(Workflow):
 					outputPorts[portName] = type
 					if 'filename' in portType.dict:
 						filename = portType.dict['filename']
+						deleteIfEmpty = portType.dict.get('deleteIfEmpty', False)
+						if deleteIfEmpty:
+							lines.append("if [ ! -s '%s' ]; then rm '%s'\n" % (portName, portName))
 						if filename != portName:
+							if deleteIfEmpty:
+								lines.append('else ')
 							lines.append("mv '%s' '%s'\n" % (portName, filename))
+						if deleteIfEmpty:
+							lines.append('fi\n')
 						# If filename contains %%var%% markers, ensure relevant
 						# workflow input port is provided as input here.
 						parts = filename.split('%%')
