@@ -615,3 +615,40 @@ Port annotations can come from the type, but can be overridden
 flow.input.Location = String(description="The site name", example="Terschelling")
 flow.input.Location.example = "Dwingeloo"
 ```
+
+### Zip files
+
+The `--zip` flag to the `balc` command will create an output zip file
+containing non-list outputs. Any outputs stored in the zip file will not be
+output as separate workflow output ports. Lists and any non-list outputs marked
+as below will not be added to the zip file, and will be output as separate
+output ports.
+
+A `filename` annotation can be added to the output port, to rename the Taverna
+port name inside the zip file. This option does nothing if the file is not
+included in the zip file.  If the filename contains `%%` markers, the value of
+the named input port is replaced between the `%%` markers.
+
+The annotation `zip=False` causes a non-list output to continue to be provided 
+as an output port, and not to be added to the zip file.
+
+The annotation `deleteIfEmpty=True` causes an output file to be completely
+removed if the file is empty. The file is output neither in the zip file nor
+as an output.  This flag has no effect if `--zip` is not used, since Taverna
+does not allow output ports to be removed dynamically.
+
+Examples:
+```python
+InteractionsMethodMatrix = flow.task.InteractionsMethodMatrix << rserve.file(
+    "KW_11.r",
+    encoding='cp1252',
+    inputs=dict(
+        BetaQ_SR = String['YES', 'NO'](example= "YES"),
+        percIncr = Number(description="Percentage increment of chinook abundance (0.1 = 10%)", example='0.1'),
+        ),
+    outputs=dict(
+        F1_Fecundity_File = PDF_File(filename='CI %%Population%% F1_Fecundity.pdf', deleteIfEmpty=True),
+        F2_Fecundity_File = PDF_File(filename='CI %%Population%% F2_Fecundity.pdf', deleteIfEmpty=True)
+        )
+    )
+```
