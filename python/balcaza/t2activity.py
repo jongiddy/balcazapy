@@ -584,7 +584,11 @@ class RserveServerActivity(Activity):
             prefix += '.wsfile<-get("%s")\nrm("%s")\n' % (RWorkspacePort, RWorkspacePort)
             if inputs.has_key(RWorkspacePort):
                 inputs[RWorkspacePort] = BinaryFile
-                prefix += 'load(.wsfile)\n'
+                # Input ports are set before the script is run. To prevent the
+                # workspace from overriding values provided as input ports,
+                # save the workspace containing the input ports, then load the
+                # provided workspace, then reload the input ports workspace.
+                prefix += 'save(list=ls(all.names=FALSE), file="ws.tmp")\nload(.wsfile)\nload("ws.tmp")\n'
             if outputs.has_key(RWorkspacePort):
                 outputs[RWorkspacePort] = BinaryFile
                 suffix = 'save(list=ls(all.names=FALSE), file=.wsfile)\n"%s"<-.wsfile\n' % RWorkspacePort + suffix
