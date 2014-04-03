@@ -640,4 +640,5 @@ class RServer:
 
     def file(self, filename, encoding='utf-8', **kw):
         import codecs
-        with codecs.open(getAbsolutePathRelativeToCaller(filename), encoding=encoding) as f:            return RserveServerActivity(self, f.read(), **kw)
+        with codecs.open(getAbsolutePathRelativeToCaller(filename), encoding=encoding) as f:
+            return RserveServerActivity(self, f.read(), **kw)
