@@ -28,10 +28,11 @@ class WrapperWorkflow(Workflow):
 			if validate:
 				# Set type to same depth, but basetype of String
 				depth = port.type.getDepth()
+				annotations = {name: port.type.getAnnotation(name) for name in port.type.dict}
 				if depth == 0:
-					type = String(**port.type.dict)
+					type = String(**annotations)
 				else:
-					type = ListType('List', String, depth)(**port.type.dict)
+					type = ListType('List', String, depth)(**annotations)
 			else:
 				type = port.type
 			self.input[port.name] = type

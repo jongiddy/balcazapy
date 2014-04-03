@@ -35,10 +35,9 @@ class WorkflowPort(Port):
     def __init__(self, name, type):
         Port.__init__(self, name, type)
         self.annotations = {}
-        dict = type.dict
         for name in ('description', 'example'):
-            if dict.has_key(name):
-                setattr(self, name, dict[name])
+            if type.hasAnnotation(name):
+                setattr(self, name, type.getAnnotation(name))
 
     @property
     def description(self):

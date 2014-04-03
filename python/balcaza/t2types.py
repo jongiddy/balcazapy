@@ -30,12 +30,18 @@ class T2FlowType:
         self.dict = {}
 
     def __str__(self):
-        return '%s%s' % (self.name, self.attributeString())
+        return '%s%s' % (self.name, self.annotationsAsString())
 
-    def attributeString(self):
+    def hasAnnotation(self, name):
+        return name in self.dict
+
+    def getAnnotation(self, name):
+        return self.dict[name]
+
+    def annotationsAsString(self):
         if self.dict:
-            attributes = ', '.join([('%s=%s' % (name, repr(value))) for name, value in self.dict.items()])
-            return '(%s)' % attributes
+            annotations = ', '.join([('%s=%s' % (name, repr(value))) for name, value in self.dict.items()])
+            return '(%s)' % annotations
         else:
             return ''
 
@@ -126,6 +132,15 @@ class LogicalType(T2FlowType):
     def __init__(self, name):
         T2FlowType.__init__(self, name)
 
+    def getAnnotation(self, name):
+        value = T2FlowType.getAnnotation(self, name)
+        if name == 'example' and (value not in self.domain):
+            # Example can be set to any boolean (e.g. Python's True or False)
+            # and will be mapped to the Taverna/R logical string value here
+            value = self.domain[value]
+            assert value in self.domain, value
+        return value
+
     def getDomain(self):
         return self.domainSet
 
@@ -160,7 +175,7 @@ class IntegerType(T2FlowType):
                 domain = '[%d,...]' % self.lower
             else:
                 domain = '[%d,...,%d]' % (self.lower, self.higher)
-        return '%s%s%s' % (self.name, domain, self.attributeString())
+        return '%s%s%s' % (self.name, domain, self.annotationsAsString())
 
     def symanticType(self):
         return 'INTEGER'
@@ -273,7 +288,7 @@ class ListType(T2FlowType):
     def __str__(self):
         x = str(self.baseType)
         for i in range(self.depth):
-            x = 'List[%s]%s' % (x, self.attributeString())
+            x = 'List[%s]%s' % (x, self.annotationsAsString())
         return x
 
     def validator(self, inputType):
