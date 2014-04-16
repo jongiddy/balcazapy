@@ -1,0 +1,17 @@
+// For a list of depth 3, transpose the two outermost lists.
+// A 5x2x3-element structure becomes a 2x5x3-element structure.
+transposed = new ArrayList();
+
+// For each column in the first row, create a row in the result
+for (x: listDepth3.get(0)) {
+	transposed.add(new ArrayList());	
+}
+
+// For each row, traverse the columns, and add the elements to each row in turn
+for (listDepth2: listDepth3) {
+	i = 0;
+	for (listDepth1: listDepth2) {
+		transposed.get(i).add(listDepth1);
+		++i;
+	}	
+}

@@ -27,7 +27,7 @@ from balcaza.t2flow import Workflow
 flow = Workflow(title='Year Effect', author=u'Maria Paula Balcázar-Vargas, Jonathan Giddy and Gerard Oostermeijer')
 
 flow.input.years = List[Integer[1500,...,2100]](
-	description="All years which start a period of transition. This is likely to be all the years in which a survey was performed, apart from the last yearself.",
+	description="All years which start a period of transition. This is likely to be all the years in which a survey was performed, apart from the last year itself.",
 	example="[1987, 1988, 1989, 1990, 1991, 1992]"
 	)
 
@@ -45,8 +45,8 @@ V	0.4637	0.8300	0.9009	0.2857	0.8604
 G	0.0000	0.0400	0.0090	0.6190	0.1162
 D	0.0000	0.0300	0.0180	0.0000	0.0232
 
-The stages of this matrix are: 
-1) Seedlings		S 
+The stages of this matrix are:
+1) Seedlings		S
 2) Juveniles		J
 3) Vegetative		V
 4) Reproductive individuals	G
