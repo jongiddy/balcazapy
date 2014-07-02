@@ -503,11 +503,12 @@ class RserveServerActivity(Activity):
         checkPortTypesValidForR(outputs)
         Activity.__init__(self, inputs=inputs, outputs=outputs, **kw)
         self.rserve = rserve
-        # Taverna 2.4 adds lines to the to the end of a script to access output
-        # values, but does not add a newline to separate the last line of our
-        # script from the first line added by Taverna. So, we ensure the script
-        # ends with a newline.
-        self.script = script.strip() + '\n'
+        # Taverna 2.4 adds lines to the end of a script to access output values,
+        # but does not add a newline to separate the last line of our script
+        # from the first line added by Taverna. So, we clean each line and add
+        # a terminal \n.  We clean each line because, from experience, R scripts
+        # often have extra spaces and, if developed on Windows, \r characters.
+        self.script = ''.join([line.rstrip() + '\n' for line in script.split('\n')])
         self.prefix = ''
         self.suffix = ''
         if inputMap is not None:
