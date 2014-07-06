@@ -14,9 +14,10 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-from t2activity import NestedWorkflow, ExternalTool
-from t2types import ListType, String, BinaryFile, TextFile, TextFileType
+from t2activity import NestedWorkflow
+from t2types import ListType, String
 from t2flow import Workflow
+from ExternalToolZipper import ExternalToolZipper
 
 class WrapperWorkflow(Workflow):
 
@@ -38,56 +39,28 @@ class WrapperWorkflow(Workflow):
 			self.input[port.name] = type
 			self.input[port.name] | nested.input[port.name]
 		if zip:
-			inputs = {}
-			inputPorts = {}
-			outputPorts = {}
-			lines = []
+			zipper = ExternalToolZipper()
 			for port in flow.output:
 				portName = port.name
 				portType = port.type
 				if portType.getDepth() == 0 and portType.dict.get('zip', True):
-					type = (BinaryFile, TextFile)[isinstance(portType, TextFileType)](**portType.dict)
-					outputPorts[portName] = type
-					if 'filename' in portType.dict:
-						filename = portType.dict['filename']
-						deleteIfEmpty = portType.dict.get('deleteIfEmpty', False)
-						if deleteIfEmpty:
-							lines.append("if [ ! -s '%s' ]; then rm '%s'\n" % (portName, portName))
-						if filename != portName:
-							if deleteIfEmpty:
-								lines.append('else ')
-							lines.append("mv '%s' '%s'\n" % (portName, filename))
-						if deleteIfEmpty:
-							lines.append('fi\n')
-						# If filename contains %%var%% markers, ensure relevant
-						# workflow input port is provided as input here.
-						parts = filename.split('%%')
-						while len(parts) >= 3:
-							var = parts[1]
-							if var not in self.input:
-								raise RuntimeError('Non-existent input port: %s' % var)
-							inputPorts[var] = String
-							del parts[:2]
+					filename = portType.dict.get('filename', portName).split('%%')
+					if portType.dict.get('deleteIfEmpty', False):
+						zipper.copyToZipIfNotEmpty(portName, filename)
+					else:
+						zipper.copyToZip(portName, filename)
 				else:
+					# Copy output port outside of zip if:
+					# 1. it is a list (i.e. depth > 0), or
+					# 2. it has the attribute zip=False
 					nested.output[portName] | self.output[portName]
-			inputs = outputPorts.copy()
-			for name, type in inputPorts.items():
-				if name in inputs:
-					raise RuntimeError('input and output name "%s" conflict' % (name,))
-				if type.getDepth() != 0:
-					raise RuntimeError('cannot use input port "%s" of depth %d in filename' % (name, type.getDepth()))
-				inputs[name] = type
-			lines.append('zip outputs.zip *\n')
-			command = ''.join(lines)
-			ZipOutputs = self.task.ZipOutputs << ExternalTool(
-				command = command,
-				inputs = inputs,
-				outputs = dict(zipFile=BinaryFile),
-				outputMap = dict(zipFile='outputs.zip')
-				)
-			for name, type in outputPorts.items():
+			ZipOutputs = self.task.ZipOutputs << zipper.activity()
+			for name in zipper.zippedPorts():
 				nested.output[name] | ZipOutputs.input[name]
-			for name, type in inputPorts.items():
+			for name in zipper.filenameVars():
+				depth = self.input[name].getDepth()
+				if depth != 0:
+					raise RuntimeError('cannot use input port "%s" of depth %d in filename' % (name, depth))
 				self.input[name] | ZipOutputs.input[name]
 			ZipOutputs.output.zipFile | self.output.zipFile
 		else:
