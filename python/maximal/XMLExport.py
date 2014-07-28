@@ -1,18 +1,22 @@
 # Copyright (C) 2013 Cardiff University
 #
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 from xml.sax.saxutils import escape, quoteattr
 
@@ -65,11 +69,11 @@ class NamespaceSet:
 			prefix = self.uriPrefix[uri]
 		else:
 			# use the prefix supplied as a parameter, but check whether the
-			# prefix has been used for a different namespace 
+			# prefix has been used for a different namespace
 			i = 1
 			prefix = prefixCandidate
 			while self.prefixUri.has_key(prefix):
-				# prefix is used for another namespace - we enforce a good 
+				# prefix is used for another namespace - we enforce a good
 				# practice of not reusing prefixes for different namespaces
 				prefix = prefixCandidate + str(i)
 				i += 1
@@ -118,7 +122,7 @@ class NamespaceSet:
 		return fulltag
 
 class XMLCompressor:
-	
+
 	def __init__(self, file):
 		file.write
 		self.file = file
@@ -253,18 +257,18 @@ class NamespaceScope:
 			self.xml.setNamespaces(self.old)
 
 
-# 	
+#
 # 	enter namespace:
 # 	- old = xml.getNamespaces()
 # 	- clone = old.clone() # same prefix*, copy default, pendingUris
 # 	- add namespace to pendingUris
 # 	- xml.setNamespaces(clone)
-# 	
+#
 # 	exit namespace:
 # 	- xml.setNamespace(old)
-# 	
+#
 #   openTag:
-#  	- if pending has entries, get them as 
+#  	- if pending has entries, get them as
 # enter namespace: xml.pendingMap
 # on entering namespace(), add pendingMap[prefix] -> URI (but if URI has an existing prefix ignore)
 # treat default as special, and always add it, even if it has a prefix
