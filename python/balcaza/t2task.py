@@ -18,11 +18,13 @@ from t2base import *
 from t2annotation import Annotation
 from t2activity import Activity, TextConstant
 
+
 class TaskPort(Port):
 
     def __init__(self, task, name, type):
         Port.__init__(self, name, type)
         self.task = task
+
 
 class TaskInputPort(TaskPort, Sink):
 
@@ -48,6 +50,7 @@ class TaskInputPort(TaskPort, Sink):
             with tav.sink(type="processor"):
                 tav.processor >> self.task.name
                 tav.port >> self.name
+
 
 class TaskOutputPort(TaskPort, Source):
 
@@ -76,6 +79,7 @@ class TaskOutputPort(TaskPort, Source):
                 tav.processor >> self.task.name
                 tav.port >> self.name
 
+
 class TaskPorts(Ports):
 
     def __init__(self, flow, task):
@@ -90,6 +94,7 @@ class TaskPorts(Ports):
             self._.order.append(name)
         return port
 
+
 class TaskInputPorts(TaskPorts):
 
     def __init__(self, flow, task):
@@ -101,6 +106,7 @@ class TaskInputPorts(TaskPorts):
 
     def addIterationDepth(self, depth):
         self.task.addIterationDepth(depth)
+
 
 class TaskOutputPorts(TaskPorts):
 
@@ -114,7 +120,7 @@ class WorkflowTask(object):
     def __init__(self, flow, name, activity):
         self.name = name
         self.flow = flow
-        self.activities = [ activity ]
+        self.activities = [activity]
         self.annotations = {}
         self.input = TaskInputPorts(flow, self)
         self.output = TaskOutputPorts(flow, self)
@@ -224,7 +230,7 @@ class WorkflowTask(object):
         if not isinstance(value, Annotation):
             value = Annotation(value)
         self.annotations['net.sf.taverna.t2.annotation.annotationbeans.FreeTextDescription'] = value
-    
+
     def exportXML(self, xml):
         with xml.namespace("http://taverna.sf.net/2008/xml/t2flow") as tav:
             with tav.processor as proc:
@@ -300,6 +306,7 @@ class WorkflowTask(object):
                                     for port in self.input:
                                         tav.port(name=port.name, depth=port.getDepth())
 
+
 class UnassignedTask:
 
     def __init__(self, ns, name):
@@ -318,6 +325,7 @@ class UnassignedTask:
         if activity.description is not None:
             task.description = activity.description
         return task
+
 
 class WorkflowTasks(object):
 

@@ -14,6 +14,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
+
 def readZapyFile(sourceFile, flowName):
     with open(sourceFile) as f:
         source = f.read()
@@ -21,6 +22,7 @@ def readZapyFile(sourceFile, flowName):
     module = {}
     exec(code, module)
     return module[flowName]
+
 
 def printSig(sourceFile, flowName):
     import sys
@@ -36,6 +38,7 @@ def printSig(sourceFile, flowName):
         sys.stdout.write(",\n".join(["        %s = %s" % (port.name, port.type) for port in flow.output]))
         sys.stdout.write("\n        )\n")
     sys.stdout.write(")\n")
+
 
 class T2FlowBuilder:
 
@@ -58,7 +61,9 @@ class T2FlowBuilder:
             flow.exportXML(XMLExport.XMLExporter(XMLExport.XMLIndenter(output)))
 
 if __name__ == '__main__':
-    import argparse, os, sys
+    import argparse
+    import os
+    import sys
     prog = os.path.basename(os.environ.get('BALCAZAPROG', sys.argv[0]))
     parser = argparse.ArgumentParser(prog=prog, description='Create a Taverna 2 workflow (t2flow) file from a Zapy description file')
     parser.add_argument('--indent', dest='compressed', action='store_false', help='create a larger but more readable indented file')

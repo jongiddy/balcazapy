@@ -21,6 +21,7 @@ __all__ = ('Logical', 'Integer', 'Number', 'String', 'TextFile',
 import copy
 from t2util import BeanshellEscapeString
 
+
 class T2FlowType:
 
     def __init__(self, name, depth=0):
@@ -67,6 +68,7 @@ class T2FlowType:
     def validator(self, inputType):
         return None
 
+
 class OptionalMarker:
 
     def __getitem__(self, type):
@@ -75,6 +77,7 @@ class OptionalMarker:
 # currently Optional[type] is a null operation, just for documentation
 # However, we could use it to ensure no non-optional inputs are unconnected
 Optional = OptionalMarker()
+
 
 class StringType(T2FlowType):
 
@@ -124,6 +127,7 @@ default:
 
 String = StringType('String')
 
+
 class LogicalType(T2FlowType):
 
     domain = ('FALSE', 'TRUE')
@@ -154,6 +158,7 @@ class LogicalType(T2FlowType):
         return StringType(self.name, self.domain).validator(inputType)
 
 Logical = LogicalType('Logical')
+
 
 class IntegerType(T2FlowType):
 
@@ -241,6 +246,7 @@ class IntegerType(T2FlowType):
 
 Integer = IntegerType('Integer')
 
+
 class NumberType(T2FlowType):
 
     def symanticType(self):
@@ -250,6 +256,7 @@ class NumberType(T2FlowType):
         return 'DOUBLE_LIST'
 
 Number = NumberType('Number')
+
 
 class BinaryFileType(T2FlowType):
 
@@ -262,12 +269,14 @@ PDF_File = BinaryFileType('PDF_File')
 
 PNG_Image = BinaryFileType('PNG_Image')
 
+
 class TextFileType(T2FlowType):
 
     def symanticType(self):
         return 'TEXT_FILE'
 
 TextFile = TextFileType('TextFile')
+
 
 class ListType(T2FlowType):
 
@@ -294,6 +303,7 @@ class ListType(T2FlowType):
     def validator(self, inputType):
         return self.baseType.validator(inputType)
 
+
 class SeqFactory:
 
     def __init__(self, name, seqType):
@@ -304,6 +314,7 @@ class SeqFactory:
         return self.seqType(self.name, elementType)
 
 List = SeqFactory('List', ListType)
+
 
 class VectorType(ListType):
 
@@ -316,6 +327,7 @@ class VectorType(ListType):
         return self.baseType.symanticVectorType()
 
 Vector = SeqFactory('Vector', VectorType)
+
 
 class RExpressionType(T2FlowType):
 

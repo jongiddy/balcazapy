@@ -14,6 +14,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
+
 class Pipeline:
 
     def __init__(self, flow, first, last):
@@ -32,6 +33,7 @@ class Pipeline:
     @property
     def input(self):
         return self.first.input
+
     @input.setter
     def input(self, value):
         raise RuntimeError('cannot set pipeline input')
@@ -39,6 +41,7 @@ class Pipeline:
     @property
     def output(self):
         return self.last.output
+
     @output.setter
     def output(self, value):
         raise RuntimeError('cannot set pipeline output')
@@ -53,6 +56,7 @@ class Pipeline:
     def extendUnusedOutputs(self):
         self.last.extendUnusedOutputs()
 
+
 class Source:
 
     def __init__(self, flow):
@@ -63,6 +67,7 @@ class Source:
 
     def __rshift__(self, sink):
         self.flow.linkData(self, sink)
+
 
 class Sink:
 
@@ -84,26 +89,31 @@ class Sink:
     def __rrshift__(self, text):
         self.flow.linkData(text, self)
 
+
 class DepthChange:
 
     def __init__(self, base, depthChange=1):
         self.base = base
         self.depthChange = depthChange
 
+
 class WrapDepthChange(DepthChange):
 
     def __invert__(self):
         return WrapDepthChange(self.base, self.depthChange + 1)
+
 
 class SplayDepthChange(DepthChange):
 
     def __pos__(self):
         return SplayDepthChange(self.base, self.depthChange + 1)
 
+
 class CollectDepthChange(DepthChange):
 
     def __neg__(self):
         return CollectDepthChange(self.base, self.depthChange + 1)
+
 
 class Port(object):
 
@@ -119,6 +129,7 @@ class Port(object):
 
     def getDepth(self):
         return self.type.getDepth()
+
 
 class OrderedMapIterator(object):
 
@@ -136,6 +147,7 @@ class OrderedMapIterator(object):
         item = self.map[self.order[self.i]]
         self.i += 1
         return item
+
 
 class Ports(object):
 
@@ -164,4 +176,3 @@ class Ports(object):
 class Namespace:
 
     pass
-

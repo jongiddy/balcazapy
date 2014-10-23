@@ -18,11 +18,14 @@ import string
 
 alphanumeric = string.letters + string.digits
 
+
 def BeanshellEscapeString(s):
     return s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
 
+
 def getAbsolutePathRelativeToCaller(path):
-    import inspect, os
+    import inspect
+    import os
     # the caller of the caller of this function is 3rd in the stack
     callerFrame = inspect.stack()[2]
     # the pathname is 2nd element n the returned tuple

@@ -36,7 +36,7 @@ class Activity(object):
     configEncoding = 'xstream'
 
     def __init__(self, name=None, description=None, inputs=None, outputs=None,
-        defaultInput=None, defaultOutput=None, parameters=None):
+                defaultInput=None, defaultOutput=None, parameters=None):
         self.name = name
         self.description = description
         if inputs is None:
@@ -114,6 +114,7 @@ class Activity(object):
                     self.exportConfigurationXML(xml, connectedInputs, connectedOutputs)
                 tav.annotations
 
+
 class BeanshellCode(Activity):
 
     activityArtifact = 'beanshell-activity'
@@ -153,10 +154,12 @@ class BeanshellCode(Activity):
                 conf.script >> self.script
                 conf.dependencies
 
+
 def BeanshellFile(filename, localDependencies=(), **kw):
     with open(getAbsolutePathRelativeToCaller(filename), 'r') as f:
         script = f.read()
     return BeanshellCode(script, localDependencies, **kw)
+
 
 class NestedWorkflow(Activity):
 
@@ -175,6 +178,7 @@ class NestedWorkflow(Activity):
     def exportConfigurationXML(self, xml, connectedInputs, connectedOutputs):
         with xml.namespace('http://taverna.sf.net/2008/xml/t2flow') as tav:
             tav.dataflow(ref=self.flow.getId())
+
 
 def NestedZapyFile(filename, flowname='flow', **kw):
     with open(getAbsolutePathRelativeToCaller(filename), 'r') as f:
@@ -200,6 +204,7 @@ def NestedZapyFile(filename, flowname='flow', **kw):
         if type.getDepth() != nestedDepth:
             raise RuntimeError('Output port "%s" depth is %d' % (name, nestedDepth))
     return NestedWorkflow(flow, **kw)
+
 
 class InteractionPage(Activity):
 
@@ -242,8 +247,9 @@ class HTTP_Activity(Activity):
     activityClass = 'net.sf.taverna.t2.activities.rest.RESTActivity'
 
     def __init__(self, httpMethod, urlTemplate, inputContentType=None,
-        inputBinary=False, outputContentType='application/xml', headers=None,
-        sendExpectHeader=False, escapeParameters=True, defaultInput=None):
+                inputBinary=False, outputContentType='application/xml',
+                headers=None, sendExpectHeader=False, escapeParameters=True,
+                defaultInput=None):
         assert httpMethod in ('GET', 'POST', 'PUT', 'DELETE'), httpMethod
         inputs = {}
         variables = re.findall(r'\{([^}]+)\}', urlTemplate)
@@ -254,11 +260,11 @@ class HTTP_Activity(Activity):
             if defaultInput is None:
                 defaultInput = 'inputBody'
         Activity.__init__(self, inputs=inputs, outputs=dict(
-            responseBody = String,
-            status = Integer[100,...,599]
+            responseBody=String,
+            status=Integer[100, ..., 599]
             ),
-            defaultInput = defaultInput,
-            defaultOutput = 'responseBody'
+            defaultInput=defaultInput,
+            defaultOutput='responseBody'
         )
         self.httpMethod = httpMethod
         self.urlTemplate = urlTemplate
@@ -302,23 +308,24 @@ class HTTP_Activity(Activity):
                             conf.string >> name
                             conf['java-class'] >> 'java.lang.String'
 
+
 class HTTP_Factory:
 
     def GET(self, urlTemplate, outputContentType='application/xml',
-        headers=None, escapeParameters=True):
+                headers=None, escapeParameters=True):
         return HTTP_Activity('GET', urlTemplate, headers=headers,
             outputContentType=outputContentType,
             escapeParameters=escapeParameters)
 
     def DELETE(self, urlTemplate, outputContentType='application/xml',
-        headers=None, escapeParameters=True):
+                headers=None, escapeParameters=True):
         return HTTP_Activity('DELETE', urlTemplate, headers=headers,
             outputContentType=outputContentType,
             escapeParameters=escapeParameters)
 
     def POST(self, urlTemplate, inputContentType='application/xml',
-        inputBinary=False, outputContentType='application/xml',
-        headers=None, sendExpectHeader=False, escapeParameters=True):
+                inputBinary=False, outputContentType='application/xml',
+                headers=None, sendExpectHeader=False, escapeParameters=True):
         return HTTP_Activity('POST', urlTemplate,
             inputContentType=inputContentType, inputBinary=inputBinary,
             outputContentType=outputContentType,
@@ -326,8 +333,8 @@ class HTTP_Factory:
             escapeParameters=escapeParameters)
 
     def PUT(self, urlTemplate, inputContentType='application/xml',
-        inputBinary=False, outputContentType='application/xml',
-        headers=None, sendExpectHeader=False, escapeParameters=True):
+                inputBinary=False, outputContentType='application/xml',
+                headers=None, sendExpectHeader=False, escapeParameters=True):
         return HTTP_Activity('PUT', urlTemplate,
             inputContentType=inputContentType, inputBinary=inputBinary,
             outputContentType=outputContentType,
@@ -335,6 +342,7 @@ class HTTP_Factory:
             escapeParameters=escapeParameters)
 
 HTTP = HTTP_Factory()
+
 
 class XPathActivity(Activity):
 
@@ -369,9 +377,11 @@ class XPathActivity(Activity):
 
 XPath = XPathActivity
 
-import uuid
+
 def getUUID():
-   return uuid.uuid4()
+    import uuid
+    return uuid.uuid4()
+
 
 class ExternalToolActivity(Activity):
 
@@ -451,6 +461,7 @@ class ExternalToolActivity(Activity):
 
 ExternalTool = ExternalToolActivity
 
+
 class TextConstant(Activity):
 
     activityArtifact = 'stringconstant-activity'
@@ -469,7 +480,7 @@ class TextConstant(Activity):
             del parts[0]
             candidate.append('_')
             if len(candidate) > 30:
-               break
+                break
             label = ''.join(candidate)
         return label
 
@@ -484,6 +495,7 @@ class TextConstant(Activity):
 # Engine does not. BioVeL JIRA bug [TAV-481]
 RWorkspacePort = 'RWorkspace'
 
+
 def checkPortTypesValidForR(ports):
     if ports is not None:
         if ports.has_key(RWorkspacePort):
@@ -492,13 +504,14 @@ def checkPortTypesValidForR(ports):
             if not hasattr(type, 'symanticType'):
                 raise RuntimeError('Invalid R type "%s = %s"' % (name, type))
 
+
 class RserveServerActivity(Activity):
 
     activityArtifact = 'rshell-activity'
     activityClass = 'net.sf.taverna.t2.activities.rshell.RshellActivity'
 
     def __init__(self, rserve, script, inputs=None, inputMap=None, outputs=None,
-        outputMap=None, **kw):
+                outputMap=None, **kw):
         checkPortTypesValidForR(inputs)
         checkPortTypesValidForR(outputs)
         Activity.__init__(self, inputs=inputs, outputs=outputs, **kw)
@@ -624,6 +637,7 @@ class RserveServerActivity(Activity):
                         with config.net.sf.taverna.t2.activities.rshell.RShellPortSymanticTypeBean:
                             config.name >> name
                             config.symanticType >> type.symanticType()
+
 
 class RServer:
 

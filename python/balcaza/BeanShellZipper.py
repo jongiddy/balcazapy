@@ -30,6 +30,7 @@ finally {
 
 INDENT = '  '
 
+
 class BeanShellZipper:
 
     def __init__(self):
@@ -71,8 +72,8 @@ class BeanShellZipper:
         inputs = {name: String for name in (self.files | self.vars)}
         return BeanshellCode(
             self.code(),
-            inputs = inputs,
-            outputs = dict(zipFile=BinaryFile)
+            inputs=inputs,
+            outputs=dict(zipFile=BinaryFile)
             )
 
     def zippedPorts(self):

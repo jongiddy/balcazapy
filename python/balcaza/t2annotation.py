@@ -14,6 +14,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
+
 class Annotation:
 
     def __init__(self, text):
@@ -34,10 +35,10 @@ class Annotation:
                                 annotation.creators
                                 annotation.curationEventList
 
+
 class Annotation_2_2(Annotation):
 
     def __init__(self, text):
         Annotation.__init__(self, text)
         self.chain = 'annotation_chain_2_2'
         self.label = 'identification'
-

@@ -7,6 +7,7 @@ from t2types import BinaryFile, String
 
 INDENT = '  '
 
+
 class ExternalToolZipper:
 
     def __init__(self):
@@ -53,10 +54,10 @@ class ExternalToolZipper:
         for var in self.vars:
             inputs[var] = String
         return ExternalTool(
-            command = self.code(),
-            inputs = inputs,
-            outputs = dict(zipFile=BinaryFile),
-            outputMap = dict(zipFile='outputs.zip')
+            command=self.code(),
+            inputs=inputs,
+            outputs=dict(zipFile=BinaryFile),
+            outputMap=dict(zipFile='outputs.zip')
             )
 
     def zippedPorts(self):

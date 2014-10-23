@@ -26,6 +26,7 @@ from t2task import WorkflowTasks
 from t2util import alphanumeric
 from balc_version import version
 
+
 def getUUID():
     return uuid.uuid4()
 
@@ -98,6 +99,7 @@ class WorkflowInputPort(WorkflowPort, Source):
             with tav.source(type="dataflow"):
                 tav.port >> self.name
 
+
 class WorkflowOutputPort(WorkflowPort, Sink):
 
     def __init__(self, flow, name, type):
@@ -130,6 +132,7 @@ class WorkflowOutputPort(WorkflowPort, Sink):
             with tav.sink(type="dataflow"):
                 tav.port >> self.name
 
+
 class WorkflowPorts(Ports):
 
     def __getitem__(self, name):
@@ -156,8 +159,9 @@ class WorkflowPorts(Ports):
 
     def __getattr__(self, name):
         if self._.ports.has_key(name):
-            return self._.ports[name] # return an existing typed port
-        return self(name) # return a new untyped port
+            return self._.ports[name]  # return an existing typed port
+        return self(name)  # return a new untyped port
+
 
 class UntypedInputPort:
 
@@ -167,6 +171,7 @@ class UntypedInputPort:
 
     def __or__(self, sink):
         return self.flow.linkData(self, sink)
+
 
 class WorkflowInputPorts(WorkflowPorts):
 
@@ -178,6 +183,7 @@ class WorkflowInputPorts(WorkflowPorts):
         # this should be called untypedPort(), but that would pollute the
         # namespace that this class represents, so we use __call__ as a hack
         return UntypedInputPort(self._.flow, name)
+
 
 class UntypedOutputPort:
 
@@ -197,6 +203,7 @@ class UntypedOutputPort:
     def __invert__(self):
         return WrapDepthChange(self)
 
+
 class WorkflowOutputPorts(WorkflowPorts):
 
     def __init__(self, flow):
@@ -207,6 +214,7 @@ class WorkflowOutputPorts(WorkflowPorts):
         # this should be called untypedPort(), but that would pollute the
         # namespace that this class represents, so we use __call__ as a hack
         return UntypedOutputPort(self._.flow, name)
+
 
 class DataLink:
 
@@ -220,6 +228,7 @@ class DataLink:
                 self.source.exportSourceXML(xml)
                 self.sink.exportSinkXML(xml)
 
+
 def tavernaName(title):
     # Taverna creates the workflow name from the title annotation's first 20 characters,
     # with non-alphanumeric characters replaced by underscore
@@ -230,6 +239,7 @@ def tavernaName(title):
         else:
             name.append('_')
     return ''.join(name)
+
 
 class Workflow(object):
 
@@ -322,7 +332,7 @@ class Workflow(object):
     def linkData(self, source, sink):
         if isinstance(source, DepthChange):
             source = source.base
-        depthChange = 0 # the depth change indicated by the pipe
+        depthChange = 0  # the depth change indicated by the pipe
         depthChangeByIteration = False
         if isinstance(sink, DepthChange):
             depthChange = sink.depthChange
@@ -424,9 +434,11 @@ class Workflow(object):
                     for annotationClass, annotation in self.annotations.items():
                         annotation.exportXML(xml, annotationClass)
 
+
 def getCreator():
     from subprocess import check_output
-    import os, traceback
+    import os
+    import traceback
     gitTag = ''
     try:
         balcazapy_home = os.environ['BALCAZAPY_HOME']
