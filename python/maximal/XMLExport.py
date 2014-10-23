@@ -1,4 +1,4 @@
-# Copyright (C) 2013 Cardiff University
+# Copyright (C) 2013 Cardiff University, Jonathan Giddy
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -181,10 +181,16 @@ class Element:
         self.__xml.setPendingTag(self.__tag)
         return self
 
-    def __call__(self, attr=None, **attributes):
-        # tav.foo({'from': 0}, to=10) => <tav:foo from='0' to='10'>
+    def __call__(self, *args, **attributes):
+        # tav.foo('text', {'from': 0}, to=10) => <tav:foo from='0' to='10'>
         if self.__tag is None:
             raise RuntimeError('Element is no longer in scope')
+        attr = {}
+        for arg in args:
+            if isinstance(arg, dict):
+                attr.update(arg)
+            else:
+                self.__xml.setPendingText(arg)
         if attr is not None:
             attributes.update(attr)
         self.__xml.setPendingAttributes(attributes)

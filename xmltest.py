@@ -5,10 +5,10 @@ from maximal import XMLExport
 x = XMLExport.XMLExporter(XMLExport.XMLCompressor(sys.stdout))
 
 with x.namespace('http://taverna.org/2013/') as tav:
-	with tav.workflow(author='Jon Giddy'):
-		tav.input.routine({'complex.name': 'hλ1h'}, name='fido', x=2) >> 'Hλ1ello'
-		with tav.output as foo:
-			foo.hd >> "World!"
+    with tav.workflow(author='Jon Giddy'):
+        tav.input.routine(u'Hλ1ello', {'complex.name': u'hλ1h'}, name='fido', x=2)
+        with tav.output as foo:
+            foo.hd("World!")
 
 
 
